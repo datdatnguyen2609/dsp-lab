@@ -337,7 +337,7 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
 <section class="ch" id="c0" data-ch="0">
   <h2><span class="no">00</span>MATLAB cấp tốc cho xử lý tín hiệu</h2>
   <p class="lead">MATLAB là công cụ tiêu chuẩn trong học tập và nghiên cứu DSP: mọi thứ là ma trận, và các hàm như <code>fft</code>, <code>conv</code>, <code>filter</code>, <code>freqz</code>, <code>butter</code> đều có sẵn. Mỗi chương từ 1 đến 15 kết thúc bằng một đoạn MATLAB tái hiện lại thí nghiệm của chương đó.</p>
-  <div class="key"><b>Chạy được ngay trên trang.</b> Các khung code dưới đây chạy bằng một trình thông dịch MATLAB thu gọn viết bằng JavaScript: sửa code rồi bấm <b>▶ Chạy</b> (hoặc <span class="kbd">Ctrl</span> + <span class="kbd">Enter</span>) để xem kết quả và đồ thị. Trình chạy này hỗ trợ khoảng 200 hàm thường dùng trong DSP, kể cả khai báo <code>function</code> ở cuối script, nhưng không phải MATLAB đầy đủ (chưa có struct, cell array đầy đủ, ma trận nhiều chiều). Mọi đoạn code đều viết đúng cú pháp MATLAB thật, nên bạn có thể bấm <b>Sao chép code</b> rồi chạy trong MATLAB, <a href="https://matlab.mathworks.com" target="_blank" rel="noopener">MATLAB Online</a> hoặc GNU Octave (Octave cần <code>pkg load signal</code>).</div>
+  <div class="key"><b>Chạy được ngay trên trang.</b> Các khung code dưới đây chạy bằng một trình thông dịch MATLAB thu gọn viết bằng JavaScript: sửa code rồi bấm <b>▶ Chạy</b> (hoặc <span class="kbd">Ctrl</span> + <span class="kbd">Enter</span>) để xem kết quả và đồ thị. Trình chạy này hỗ trợ khoảng 200 hàm thường dùng trong DSP, gồm cả <code>function</code> ở cuối script, struct, cell array và mảng nhiều chiều; nhưng đây không phải MATLAB đầy đủ (không có lập trình hướng đối tượng, file .m riêng, và chỉ có một phần các toolbox). Mọi đoạn code đều viết đúng cú pháp MATLAB thật, nên bạn có thể bấm <b>Sao chép code</b> rồi chạy trong MATLAB, <a href="https://matlab.mathworks.com" target="_blank" rel="noopener">MATLAB Online</a> hoặc GNU Octave (Octave cần <code>pkg load signal</code>).</div>
 
   <h3>1. Vector và ma trận</h3>
   <div class="mlab" data-ml="c0a"></div>
@@ -356,6 +356,8 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
   <div class="mlab" data-ml="c0g"></div>
   <h3>8. Viết hàm của riêng bạn</h3>
   <div class="mlab" data-ml="c0h"></div>
+  <h3>9. Struct, cell array và mảng nhiều chiều</h3>
+  <div class="mlab" data-ml="c0i"></div>
 
   <h3>Bảng tra: công thức DSP và hàm MATLAB</h3>
   <div class="tbl"><table class="t">
@@ -2581,7 +2583,9 @@ const MLAB = (() => {
     get n() { return this.r * this.c; }
   }
   class Str { constructor(s) { this.s = s; } }
-  class Cell { constructor(v) { this.v = v; } }
+  class Cell { constructor(v, r, c) { this.v = v; this.r = r !== undefined ? r : (v.length ? 1 : 0); this.c = c !== undefined ? c : v.length; } get n() { return this.v.length; } }
+  class Struct { constructor(r, c, el) { this.r = r; this.c = c; this.el = el; } get n() { return this.el.length; } }
+  class CSL { constructor(v) { this.v = v; } }   // danh sách giá trị tách rời: c{:}, s.ten của mảng struct
   class Fun { constructor(params, body, env, src) { Object.assign(this, { params, body, env, src }); } }
   class FH { constructor(name) { this.name = name; } }
   const COLON = { colon: true };
@@ -2593,16 +2597,28 @@ const MLAB = (() => {
   const B = v => { const m = S(v ? 1 : 0); m.lg = true; return m; };
   function clean(m) { if (m.im) { let z = true; for (let k = 0; k < m.im.length; k++) if (m.im[k] !== 0) { z = false; break; } if (z) m.im = null; } return m; }
   function cloneV(v) {
-    if (v instanceof Mat) { const m = new Mat(v.r, v.c, Float64Array.from(v.re), v.im ? Float64Array.from(v.im) : null); m.lg = v.lg; return m; }
-    if (v instanceof Cell) return new Cell(v.v.slice());
+    if (v instanceof Mat) { const m = new Mat(v.r, v.c, Float64Array.from(v.re), v.im ? Float64Array.from(v.im) : null); m.lg = v.lg; if (v.dims) m.dims = v.dims.slice(); return m; }
+    if (v instanceof Cell) return new Cell(v.v.map(cloneV), v.r, v.c);
+    if (v instanceof Struct) return new Struct(v.r, v.c, v.el.map(mp => new Map([...mp].map(([k, x]) => [k, cloneV(x)]))));
     return v;
   }
+  /* mảng nhiều chiều: Mat lưu như ma trận r × (tích các chiều còn lại), kèm trường dims */
+  const prod = a => a.reduce((s, v) => s * v, 1);
+  const dimsOf = m => m.dims ? m.dims.slice() : [m.r, m.c];
+  function normDims(d) { d = d.map(v => Math.max(0, v)); while (d.length > 2 && d[d.length - 1] === 1) d.pop(); while (d.length < 2) d.push(1); return d; }
+  function mkND(d, re, im) { d = normDims(d); const m = new Mat(d[0], prod(d.slice(1)), re, im); if (d.length > 2) m.dims = d; return m; }
+  function withDims(m, d) { const o = cloneV(m); delete o.dims; const nd = normDims(d); o.r = nd[0]; o.c = prod(nd.slice(1)); if (nd.length > 2) o.dims = nd; return o; }
+  const keepDims = (a, o) => { if (a.dims) o.dims = a.dims.slice(); return o; };
+  const vshape = v => v instanceof Mat ? dimsOf(v) : v instanceof Str ? [v.s.length ? 1 : 0, v.s.length] : (v instanceof Cell || v instanceof Struct) ? [v.r, v.c] : [1, 1];
+  const typeName = v => v instanceof Str ? 'char' : v instanceof Cell ? 'cell' : v instanceof Struct ? 'struct' : (v instanceof Fun || v instanceof FH) ? 'function_handle' : (v instanceof Mat && v.lg) ? 'logical' : 'double';
   function asM(v) {
     if (v instanceof Mat) return v;
     if (v instanceof Str) { const m = new Mat(v.s.length ? 1 : 0, v.s.length); for (let k = 0; k < v.s.length; k++) m.re[k] = v.s.charCodeAt(k); return m; }
     if (typeof v === 'number') return S(v);
     if (v instanceof Fun || v instanceof FH) err('Không dùng được hàm như một số. Bạn có quên gọi hàm với đối số không?');
     if (v instanceof Cell) err('Không thể tính toán trực tiếp trên cell array; dùng c{k} để lấy phần tử.');
+    if (v instanceof Struct) err('Không thể tính toán trên struct; lấy trường bằng s.ten');
+    if (v instanceof CSL) { if (!v.v.length) err('Danh sách giá trị rỗng'); return asM(v.v[0]); }
     if (v === COLON) err("Dấu ':' đứng một mình chỉ dùng được trong chỉ số, ví dụ x(:)");
     err('Giá trị không hợp lệ');
   }
@@ -2636,8 +2652,24 @@ const MLAB = (() => {
     if (r < 0 || c < 0) err(`Kích thước không khớp: ${a.r}×${a.c} và ${b.r}×${b.c}. Gợi ý: kiểm tra vector hàng/cột (dùng ' hoặc (:)), hoặc dùng .* ./ .^ cho phép tính từng phần tử.`);
     return [r, c];
   }
+  function ewND(a, b, fr, fc, forceC) {
+    const da = dimsOf(a), db = dimsOf(b), L = Math.max(da.length, db.length);
+    while (da.length < L) da.push(1); while (db.length < L) db.push(1);
+    const d = da.map((x, k) => { const y = db[k]; if (x === y || y === 1) return x; if (x === 1) return y; err(`Kích thước không khớp: ${da.join('×')} và ${db.join('×')}`); });
+    const N = prod(d), o = mkND(d), useC = !!(a.im || b.im || forceC); if (useC) o.im = new Float64Array(N);
+    const sa = [], sb = []; let ta = 1, tb = 1;
+    for (let k = 0; k < L; k++) { sa.push(da[k] === 1 ? 0 : ta); sb.push(db[k] === 1 ? 0 : tb); ta *= da[k]; tb *= db[k]; }
+    const sub = new Array(L).fill(0);
+    for (let q = 0; q < N; q++) {
+      let ia = 0, ib = 0; for (let k = 0; k < L; k++) { ia += sub[k] * sa[k]; ib += sub[k] * sb[k]; }
+      if (useC) { const z = fc(a.re[ia], a.im ? a.im[ia] : 0, b.re[ib], b.im ? b.im[ib] : 0); o.re[q] = z[0]; o.im[q] = z[1]; } else o.re[q] = fr(a.re[ia], b.re[ib]);
+      for (let k = 0; k < L; k++) { if (++sub[k] < d[k]) break; sub[k] = 0; }
+    }
+    return clean(o);
+  }
   function ew(a, b, fr, fc, forceC) {
     a = asM(a); b = asM(b);
+    if (a.dims || b.dims) return ewND(a, b, fr, fc, forceC);
     const [r, c] = bshape(a, b), o = new Mat(r, c);
     const useC = !!(a.im || b.im || forceC);
     if (useC) o.im = new Float64Array(r * c);
@@ -2649,7 +2681,7 @@ const MLAB = (() => {
     return clean(o);
   }
   function map(a, fr, fc) {
-    a = asM(a); const o = new Mat(a.r, a.c);
+    a = asM(a); const o = keepDims(a, new Mat(a.r, a.c));
     if (a.im && fc) { o.im = new Float64Array(a.n); for (let k = 0; k < a.n; k++) { const z = fc(a.re[k], a.im[k]); o.re[k] = z[0]; o.im[k] = z[1]; } return clean(o); }
     for (let k = 0; k < a.n; k++) o.re[k] = fr(a.re[k]);
     return o;
@@ -2659,7 +2691,7 @@ const MLAB = (() => {
     a = asM(a); let anyC = !!a.im;
     if (!anyC) for (let k = 0; k < a.n; k++) if (needC(a.re[k])) { anyC = true; break; }
     if (!anyC) return map(a, fr);
-    const o = new Mat(a.r, a.c); o.im = new Float64Array(a.n);
+    const o = keepDims(a, new Mat(a.r, a.c)); o.im = new Float64Array(a.n);
     for (let k = 0; k < a.n; k++) { const z = fc(a.re[k], a.im ? a.im[k] : 0); o.re[k] = z[0]; o.im[k] = z[1]; }
     return clean(o);
   }
@@ -2691,6 +2723,7 @@ const MLAB = (() => {
   function mtimes(a, b) {
     a = asM(a); b = asM(b);
     if (a.n === 1 || b.n === 1) return times(a, b);
+    if (a.dims || b.dims) err('Phép * chỉ dùng cho ma trận 2 chiều; dùng .* để nhân từng phần tử');
     if (a.c !== b.r) err(`Nhân ma trận cần số cột vế trái (${a.c}) = số hàng vế phải (${b.r}). Muốn nhân từng phần tử hãy dùng .*`);
     const o = new Mat(a.r, b.c), C = a.im || b.im; if (C) o.im = new Float64Array(a.r * b.c);
     for (let i = 0; i < a.r; i++) for (let j = 0; j < b.c; j++) {
@@ -2712,7 +2745,8 @@ const MLAB = (() => {
   }
   function transpose(a, conj) {
     if (a instanceof Str) return a.s.length <= 1 ? a : err('Chuyển vị chuỗi chưa được hỗ trợ');
-    a = asM(a); const o = new Mat(a.c, a.r); if (a.im) o.im = new Float64Array(a.n);
+    a = asM(a); if (a.dims) err("Chuyển vị chỉ dùng cho ma trận 2 chiều; với mảng nhiều chiều dùng permute(A, [2 1 3])");
+    const o = new Mat(a.c, a.r); if (a.im) o.im = new Float64Array(a.n);
     for (let i = 0; i < a.r; i++) for (let j = 0; j < a.c; j++) { o.re[j + i * a.c] = a.re[i + j * a.r]; if (a.im) o.im[j + i * a.c] = conj ? -a.im[i + j * a.r] : a.im[i + j * a.r]; }
     o.lg = a.lg; return o;
   }
@@ -2728,6 +2762,8 @@ const MLAB = (() => {
       return new Str(list.map(v => v instanceof Str ? v.s : String.fromCharCode(...Array.from(asM(v).re))).join(''));
     }
     if (list.some(v => v instanceof Cell)) return new Cell(list.flatMap(v => v instanceof Cell ? v.v : [v]));
+    if (list.some(v => v instanceof Struct)) { if (!list.every(v => v instanceof Struct || (v instanceof Mat && v.n === 0))) err('Chỉ ghép được struct với struct'); const el = list.filter(v => v instanceof Struct).flatMap(v => v.el); return new Struct(1, el.length, el); }
+    if (list.some(v => v instanceof Mat && v.dims)) err('Ghép mảng nhiều chiều bằng [ ] chưa hỗ trợ; dùng cat(dim, A, B)');
     const ms = list.map(asM).filter(m => m.n > 0 || m.r > 0 && m.c > 0);
     const ne = ms.filter(m => m.n > 0); if (!ne.length) return ms.length ? ms[0] : EMPTY();
     const r = ne[0].r; for (const m of ne) if (m.r !== r) err(`Ghép ngang [a, b] cần cùng số hàng (${r} và ${m.r}).`);
@@ -2738,6 +2774,9 @@ const MLAB = (() => {
   function vert(list) {
     if (list.length === 1) return list[0];
     if (list.some(isStr)) { if (list.every(isStr)) return new Str(list.map(v => v.s).join('\n')); err('Không ghép dọc chuỗi với số được'); }
+    if (list.some(v => v instanceof Cell)) { const cs = list.filter(v => v instanceof Cell && v.n); if (!cs.length) return new Cell([], 0, 0); const c = cs[0].c; if (cs.some(x => x.c !== c)) err('Ghép dọc cell cần cùng số cột'); const r = cs.reduce((s, x) => s + x.r, 0), v = new Array(r * c); let ro = 0; for (const x of cs) { for (let j = 0; j < c; j++) for (let i = 0; i < x.r; i++) v[ro + i + j * r] = x.v[i + j * x.r]; ro += x.r; } return new Cell(v, r, c); }
+    if (list.some(v => v instanceof Struct)) { const el = list.filter(v => v instanceof Struct).flatMap(v => v.el); return new Struct(el.length, 1, el); }
+    if (list.some(v => v instanceof Mat && v.dims)) err('Ghép mảng nhiều chiều bằng [ ; ] chưa hỗ trợ; dùng cat(dim, A, B)');
     const ne = list.map(asM).filter(m => m.n > 0); if (!ne.length) return EMPTY();
     const c = ne[0].c; for (const m of ne) if (m.c !== c) err(`Ghép dọc [a; b] cần cùng số cột (${c} và ${m.c}).`);
     const r = ne.reduce((s, m) => s + m.r, 0), o = new Mat(r, c), C = ne.some(m => m.im); if (C) o.im = new Float64Array(r * c);
@@ -2760,9 +2799,18 @@ const MLAB = (() => {
   }
   function getIndex(v, args) {
     if (v instanceof Str) { const r = getIndex(asM(v), args); return new Str(String.fromCharCode(...Array.from(r.re))); }
-    if (v instanceof Cell) { const ii = idxList(args[0], v.v.length); return new Cell(ii.map(k => v.v[k])); }
+    if (v instanceof Cell || v instanceof Struct) {
+      if (!args.length) return v;
+      const arr = v instanceof Cell ? v.v : v.el, ks = linIdx(v, args, false);
+      let r, c;
+      if (args.length === 2) { r = idxList(args[0], v.r).length; c = idxList(args[1], v.c).length; }
+      else if (args[0] === COLON) { r = ks.length; c = 1; }
+      else if (v.c === 1 && v.r > 1) { r = ks.length; c = 1; } else { r = ks.length ? 1 : 0; c = ks.length; }
+      return v instanceof Cell ? new Cell(ks.map(k => arr[k]), r, c) : new Struct(r, c, ks.map(k => arr[k]));
+    }
     const m = asM(v);
     if (args.length === 0) return m;
+    if (args.length >= 3 || (m.dims && args.length === 2)) return getND(m, args);
     if (args.length === 1) {
       const ii = idxList(args[0], m.n);
       for (const k of ii) if (k >= m.n) err(`Chỉ số vượt quá kích thước: truy cập phần tử ${k + 1} nhưng mảng chỉ có ${m.n} phần tử.`);
@@ -2789,12 +2837,91 @@ const MLAB = (() => {
     }
     err('Chỉ hỗ trợ tối đa 2 chiều chỉ số (hàng, cột).');
   }
+  /* chỉ số tuyến tính cho cell / mảng struct (2 chiều) */
+  function linIdx(v, args, allowGrow) {
+    if (args.length === 1) { const ks = idxList(args[0], v.n); if (!allowGrow) for (const k of ks) if (k >= v.n) err(`Chỉ số ${k + 1} vượt quá số phần tử (${v.n})`); return ks; }
+    if (args.length === 2) {
+      const ri = idxList(args[0], v.r), ci = idxList(args[1], v.c), out = [];
+      for (const cj of ci) for (const rk of ri) { if (!allowGrow && (rk >= v.r || cj >= v.c)) err(`Chỉ số (${rk + 1}, ${cj + 1}) vượt quá kích thước ${v.r}×${v.c}`); out.push(rk + cj * v.r); }
+      return out;
+    }
+    err('Cell và mảng struct chỉ hỗ trợ tối đa 2 chỉ số');
+  }
+  function cellAssign(c, args, vals) {
+    let r = c.r, cc = c.c, ks;
+    if (args.length === 1) {
+      ks = idxList(args[0], c.n); const mx = Math.max(-1, ...ks);
+      if (mx >= c.n) { if (c.n === 0 || c.r === 1) { r = 1; cc = mx + 1; } else if (c.c === 1) { r = mx + 1; cc = 1; } else err('Không mở rộng được cell 2 chiều bằng một chỉ số'); }
+    } else if (args.length === 2) {
+      const ri = idxList(args[0], c.r), ci = idxList(args[1], c.c);
+      r = Math.max(c.r, ...ri.map(q => q + 1)); cc = Math.max(c.c, ...ci.map(q => q + 1));
+      ks = []; for (const cj of ci) for (const rk of ri) ks.push(rk + cj * r);
+    } else err('Cell chỉ hỗ trợ tối đa 2 chỉ số');
+    let v = c.v.slice();
+    if (r !== c.r || cc !== c.c) { v = new Array(r * cc); for (let q = 0; q < v.length; q++) v[q] = EMPTY(); for (let j = 0; j < c.c; j++) for (let i = 0; i < c.r; i++) v[i + j * r] = c.v[i + j * c.r]; }
+    if (vals.length !== 1 && vals.length !== ks.length) err(`Gán không khớp số phần tử: ${ks.length} vị trí, ${vals.length} giá trị`);
+    ks.forEach((k, t) => { v[k] = vals.length === 1 ? vals[0] : vals[t]; });
+    return new Cell(v, r, cc);
+  }
+  function structAssign(s, args, els) {
+    const ks = linIdx(s, args, true), mx = Math.max(-1, ...ks);
+    let el = s.el.slice(), r = s.r, c = s.c;
+    if (mx >= el.length) {
+      if (el.length > 1 && s.r !== 1 && s.c !== 1) err('Không mở rộng được mảng struct 2 chiều');
+      while (el.length <= mx) el.push(new Map());
+      if (s.c === 1 && s.r > 1) { r = el.length; c = 1; } else { r = 1; c = el.length; }
+    }
+    if (els.length !== 1 && els.length !== ks.length) err('Số phần tử struct không khớp');
+    ks.forEach((k, t) => { el[k] = new Map(els.length === 1 ? els[0] : els[t]); });
+    const keys = []; for (const mp of el) for (const k of mp.keys()) if (!keys.includes(k)) keys.push(k);
+    el = el.map(mp => { const o = new Map(); for (const k of keys) o.set(k, mp.has(k) ? mp.get(k) : EMPTY()); return o; });
+    return new Struct(r, c, el);
+  }
+  /* mảng nhiều chiều: kích thước hiệu dụng khi dùng k chỉ số (chiều cuối gộp các chiều còn lại) */
+  function edims(m, k) { const d = dimsOf(m); while (d.length < k) d.push(1); return d.slice(0, k - 1).concat([prod(d.slice(k - 1))]); }
+  function getND(m, args) {
+    const k = args.length, ed = edims(m, k);
+    const L = args.map((a, t) => { const l = idxList(a, ed[t]); for (const q of l) if (q >= ed[t]) err(`Chỉ số ${q + 1} ở chiều ${t + 1} vượt quá kích thước (${ed[t]})`); return l; });
+    const od = L.map(l => l.length), N = prod(od), o = mkND(od); if (m.im) o.im = new Float64Array(N);
+    const st = []; let s = 1; for (let t = 0; t < k; t++) { st.push(s); s *= ed[t]; }
+    const sub = new Array(k).fill(0);
+    for (let q = 0; q < N; q++) {
+      let src = 0; for (let t = 0; t < k; t++) src += L[t][sub[t]] * st[t];
+      o.re[q] = m.re[src]; if (m.im) o.im[q] = m.im[src];
+      for (let t = 0; t < k; t++) { if (++sub[t] < od[t]) break; sub[t] = 0; }
+    }
+    o.lg = m.lg; return clean(o);
+  }
+  function setND(m, args, R) {
+    const k = args.length, old = edims(m, k);
+    const L = args.map((a, t) => idxList(a, old[t]));
+    const nd = old.map((x, t) => Math.max(x, ...L[t].map(q => q + 1)));
+    if (nd.some((x, t) => x !== old[t])) {
+      if (m.dims && k < m.dims.length) err('Không mở rộng được mảng nhiều chiều khi dùng ít chỉ số hơn số chiều');
+      const g = mkND(nd); if (m.im) g.im = new Float64Array(g.n);
+      const sub = new Array(k).fill(0), sn = []; let b = 1; for (let t = 0; t < k; t++) { sn.push(b); b *= nd[t]; }
+      for (let q = 0; q < m.n; q++) { let di = 0; for (let t = 0; t < k; t++) di += sub[t] * sn[t]; g.re[di] = m.re[q]; if (m.im) g.im[di] = m.im[q]; for (let t = 0; t < k; t++) { if (++sub[t] < old[t]) break; sub[t] = 0; } }
+      m = g;
+    }
+    const cnt = prod(L.map(l => l.length));
+    if (R.n !== 1 && R.n !== cnt) err(`Gán không khớp số phần tử: vế trái ${cnt}, vế phải ${R.n}`);
+    if (R.im && !m.im) m.im = new Float64Array(m.n);
+    const st = []; let s = 1; for (let t = 0; t < k; t++) { st.push(s); s *= nd[t]; }
+    const sub = new Array(k).fill(0);
+    for (let q = 0; q < cnt; q++) {
+      let di = 0; for (let t = 0; t < k; t++) di += L[t][sub[t]] * st[t];
+      const si = R.n === 1 ? 0 : q; m.re[di] = R.re[si]; if (m.im) m.im[di] = R.im ? R.im[si] : 0;
+      for (let t = 0; t < k; t++) { if (++sub[t] < L[t].length) break; sub[t] = 0; }
+    }
+    m.lg = false; return clean(m);
+  }
   function setIndex(t, args, rhs, del) {
-    if (t instanceof Cell || rhs instanceof Cell) err('Gán vào cell array chưa được hỗ trợ.');
+    if (t instanceof Cell || rhs instanceof Cell || t instanceof Struct || rhs instanceof Struct) err('Kiểu dữ liệu không khớp khi gán: dùng c{i} = ... cho cell, s.ten = ... cho struct.');
     if (t instanceof Str) t = asM(t);
     let m = t ? asM(t) : EMPTY();
     if (rhs instanceof Str) rhs = asM(rhs);
     const R = asM(rhs);
+    if (args.length >= 3 || (m.dims && args.length === 2)) { if (del) err('Xoá phần tử của mảng nhiều chiều chưa hỗ trợ'); return setND(m, args, R); }
     if (del) {
       if (args.length !== 1) err('Xoá phần tử x(idx) = [] chỉ hỗ trợ chỉ số tuyến tính.');
       const kill = new Set(idxList(args[0], m.n)), keep = [];
@@ -3019,15 +3146,25 @@ const MLAB = (() => {
       }
       const e = expr(); const show = endStmt(); return { t: 'expr', e, show, line };
     }
+    // vế trái: ten, rồi chuỗi truy cập (...) {...} .truong .(bieu_thuc)
     function tryLhs() {
-      const id = next(); let args = null, brace = false;
-      if (isOp('(') || isOp('{')) {
-        brace = isOp('{'); const close = brace ? '}' : ')'; next(); idxDepth++; args = [];
-        try { if (!isOp(close)) { args.push(arg()); while (isOp(',')) { next(); args.push(arg()); } } }
-        catch (e) { idxDepth--; return null; }
-        idxDepth--; if (!isOp(close)) return null; next();
+      const id = next(), chain = [];
+      for (; ;) {
+        if (isOp('(') || isOp('{')) {
+          const brace = isOp('{'), close = brace ? '}' : ')'; next(); idxDepth++; const args = [];
+          try { if (!isOp(close)) { args.push(arg()); while (isOp(',')) { next(); args.push(arg()); } } }
+          catch (e) { idxDepth--; return null; }
+          idxDepth--; if (!isOp(close)) return null; next();
+          chain.push({ k: brace ? 'brace' : 'paren', args }); continue;
+        }
+        if (isOp('.') && peek(1).t === 'id') { next(); chain.push({ k: 'field', name: next().v }); continue; }
+        if (isOp('.') && isOp('(', 1)) {
+          next(); next(); let e; try { e = expr(); } catch (er) { return null; }
+          if (!isOp(')')) return null; next(); chain.push({ k: 'dfield', e }); continue;
+        }
+        break;
       }
-      return { name: id.v, args, brace };
+      return { name: id.v, chain };
     }
     function tryMulti() {
       next(); const names = [];
@@ -3079,6 +3216,8 @@ const MLAB = (() => {
           idxDepth--; expectOp(close);
           e = { t: 'idx', target: e, args, brace }; continue;
         }
+        if (isOp('.') && peek(1).t === 'id') { next(); e = { t: 'field', e, name: next().v }; continue; }
+        if (isOp('.') && isOp('(', 1)) { next(); next(); const ne = expr(); expectOp(')'); e = { t: 'dfield', e, ne }; continue; }
         break;
       }
       return e;
@@ -3160,12 +3299,56 @@ const MLAB = (() => {
     }
     return out.replace(/\n$/, '');
   }
+  const sz = v => vshape(v).join('×');
+  function brief(x) {
+    if (x instanceof Str) return `'${x.s}'`;
+    if (x instanceof Cell) return `{${sz(x)} cell}`;
+    if (x instanceof Struct) return `[${sz(x)} struct]`;
+    if (x instanceof Fun) return `@(${x.params.join(',')}) ${x.src}`;
+    if (x instanceof FH) return '@' + x.name;
+    if (x instanceof Mat) {
+      if (x.n === 0) return '[]';
+      if (x.n === 1) return fcx(x.re[0], x.im ? x.im[0] : null);
+      if (x.r === 1 && !x.dims && x.n <= 10) return '[' + Array.from(x.re).map((r, k) => x.im ? fcx(r, x.im[k]) : fnum(r)).join(' ') + ']';
+      return `[${sz(x)} ${x.lg ? 'logical' : 'double'}]`;
+    }
+    return '…';
+  }
+  function cellBrief(x) {
+    if (x instanceof Str) return `{'${x.s}'}`;
+    if (x instanceof Mat && x.n === 1) return `{[${fcx(x.re[0], x.im ? x.im[0] : null)}]}`;
+    if (x instanceof Mat && x.n === 0) return '{0×0 double}';
+    if (x instanceof Mat && x.r === 1 && !x.dims && x.n <= 4 && !x.im) return `{[${Array.from(x.re).map(fnum).join(' ')}]}`;
+    return `{${sz(x)} ${typeName(x)}}`;
+  }
   function display(name, v, long) {
     if (v instanceof Str) return `${name} = '${v.s}'`;
     if (v instanceof Fun) return `${name} = @(${v.params.join(',')}) ${v.src}`;
     if (v instanceof FH) return `${name} = @${v.name}`;
-    if (v instanceof Cell) return `${name} = {` + v.v.map(x => x instanceof Str ? `'${x.s}'` : x instanceof Mat ? (x.n === 1 ? fcx(x.re[0], x.im ? x.im[0] : null) : `[${x.r}×${x.c} double]`) : '…').join(', ') + '}';
+    if (v instanceof CSL) return v.v.map(x => display(name, x, long)).join('\n');
+    if (v instanceof Struct) {
+      if (v.n === 1) {
+        const mp = v.el[0], w = Math.max(0, ...[...mp.keys()].map(k => k.length));
+        return `${name} = \n  struct với các trường:\n\n` + [...mp].map(([k, x]) => `    ${k.padStart(w)}: ${brief(x)}`).join('\n') + '\n';
+      }
+      return `${name} = \n  mảng struct ${v.r}×${v.c} với các trường:\n\n` + (v.el[0] ? [...v.el[0].keys()].map(k => '    ' + k).join('\n') : '') + '\n';
+    }
+    if (v instanceof Cell) {
+      if (!v.n) return `${name} =\n  {}  (cell rỗng ${v.r}×${v.c})`;
+      const cells = []; for (let i = 0; i < v.r; i++) { const row = []; for (let j = 0; j < v.c; j++) row.push(cellBrief(v.v[i + j * v.r])); cells.push(row); }
+      const w = Math.max(...cells.flat().map(s => s.length));
+      return `${name} =\n  cell array ${v.r}×${v.c}\n\n` + cells.map(r => '    ' + r.map(s => s.padEnd(w)).join('    ')).join('\n') + '\n';
+    }
     const m = asM(v);
+    if (m.dims) {
+      const d = m.dims, pg = d[0] * d[1], np = prod(d.slice(2)); let out = '';
+      for (let p = 0; p < np; p++) {
+        const subs = []; let q = p; for (let t = 2; t < d.length; t++) { subs.push(q % d[t] + 1); q = Math.floor(q / d[t]); }
+        const P = new Mat(d[0], d[1], m.re.slice(p * pg, (p + 1) * pg), m.im ? m.im.slice(p * pg, (p + 1) * pg) : null);
+        out += `${name}(:,:,${subs.join(',')}) =\n\n${fmtMat(clean(P), long)}\n\n`;
+      }
+      return out.replace(/\n+$/, '\n');
+    }
     if (m.n === 1) return `${name} = ${fcx(m.re[0], m.im ? m.im[0] : null, long)}`;
     if (m.n === 0) return `${name} =\n     []  (${m.r}×${m.c})`;
     return `${name} =\n\n${fmtMat(m, long)}\n`;
@@ -3419,7 +3602,8 @@ const MLAB = (() => {
     if (a.length === 1) { const m = asM(a[0]); if (m.n >= 2) return [m.re[0], m.re[1]]; return [m.re[0], m.re[0]]; }
     return [num(a[0]), num(a[1])];
   };
-  const filled = f => (I, a) => { const [r, c] = dims(a.filter(v => !(v instanceof Str))); if (r * c > 2e7) err('Mảng quá lớn'); const o = new Mat(Math.max(0, r), Math.max(0, c)); for (let k = 0; k < o.n; k++) o.re[k] = f(I); return o; };
+  const sizeArgs = a => { a = a.filter(v => !(v instanceof Str)); if (!a.length) return [1, 1]; if (a.length === 1) { const m = asM(a[0]); return m.n >= 2 ? Array.from(m.re) : [m.re[0], m.re[0]]; } return a.map(v => num(v)); };
+  const filled = f => (I, a) => { const d = sizeArgs(a).map(x => Math.max(0, Math.floor(x))); if (prod(d) > 2e7) err('Mảng quá lớn'); const o = mkND(d); for (let k = 0; k < o.n; k++) o.re[k] = f(I); return o; };
   FN.zeros = filled(() => 0); FN.ones = filled(() => 1);
   FN.rand = filled(I => I.rand()); FN.randn = filled(I => I.rand.n());
   FN.randi = (I, a) => { const mx = num(a[0]); return filled(I2 => 1 + Math.floor(I2.rand() * mx))(I, a.slice(1)); };
@@ -3431,32 +3615,128 @@ const MLAB = (() => {
   FN.logspace = (I, a) => { const l = FN.linspace(I, a); return map(l, x => Math.pow(10, x)); };
   FN.colon = (I, a) => colonRange(a[0], a.length > 2 ? a[1] : undefined, a[a.length - 1]);
   FN.repmat = (I, a) => { const m = asM(a[0]); const [rr, cc] = dims(a.slice(1)); let row = horz(new Array(cc).fill(m)); return vert(new Array(rr).fill(row)); };
-  FN.reshape = (I, a) => { const m = asM(a[0]); let [r, c] = dims(a.slice(1)); if (r * c !== m.n) err(`reshape: không thể đổi ${m.n} phần tử thành ${r}×${c}`); const o = cloneV(m); o.r = r; o.c = c; return o; };
+  FN.reshape = (I, a) => {
+    const m = asM(a[0]); const d = a.length === 2 ? reArr(a[1]) : a.slice(1).map(v => asM(v).n ? num(v) : NaN);
+    const miss = d.findIndex(Number.isNaN); if (miss >= 0) d[miss] = m.n / prod(d.filter((_, k) => k !== miss));
+    if (prod(d) !== m.n || d.some(x => !Number.isInteger(x))) err(`reshape: không thể đổi ${m.n} phần tử thành ${d.join('×')}`);
+    return withDims(m, d);
+  };
+  FN.squeeze = (I, a) => { const m = asM(a[0]); if (!m.dims) return m; let d = m.dims.filter(x => x !== 1); if (d.length === 1) d = [d[0], 1]; return withDims(m, d.length ? d : [1, 1]); };
+  FN.permute = (I, a) => {
+    const m = asM(a[0]), ord = reArr(a[1]).map(x => x - 1), d = dimsOf(m); while (d.length < ord.length) d.push(1);
+    if (ord.length < d.length || ord.slice().sort((x, y) => x - y).some((x, k) => x !== k)) err('permute: thứ tự chiều phải là một hoán vị của 1..ndims');
+    const nd = ord.map(k => d[k]), o = mkND(nd); if (m.im) o.im = new Float64Array(o.n);
+    const sIn = []; let s = 1; for (let k = 0; k < d.length; k++) { sIn.push(s); s *= d[k]; }
+    const sub = new Array(nd.length).fill(0);
+    for (let q = 0; q < o.n; q++) {
+      let src = 0; for (let k = 0; k < nd.length; k++) src += sub[k] * sIn[ord[k]];
+      o.re[q] = m.re[src]; if (m.im) o.im[q] = m.im[src];
+      for (let k = 0; k < nd.length; k++) { if (++sub[k] < nd[k]) break; sub[k] = 0; }
+    }
+    return clean(o);
+  };
+  FN.cat = (I, a) => {
+    const dim = num(a[0]), L = a.slice(1).filter(v => !(v instanceof Mat && v.n === 0));
+    if (!L.length) return EMPTY();
+    if (dim === 1 && !L.some(v => v.dims)) return vert(L);
+    if (dim === 2 && !L.some(v => v.dims)) return horz(L);
+    const ms = L.map(asM), D = ms.map(m => { const d = dimsOf(m); while (d.length < dim) d.push(1); return d; }), base = D[0];
+    for (const d of D) if (d.length !== base.length || d.some((x, k) => k !== dim - 1 && x !== base[k])) err('cat: các mảng phải cùng kích thước ở mọi chiều trừ chiều ghép');
+    const od = base.slice(); od[dim - 1] = D.reduce((s, d) => s + d[dim - 1], 0);
+    const o = mkND(od), C = ms.some(m => m.im); if (C) o.im = new Float64Array(o.n);
+    const before = prod(base.slice(0, dim - 1)), after = prod(base.slice(dim)); let off = 0;
+    ms.forEach((m, t) => {
+      const len = D[t][dim - 1];
+      for (let a2 = 0; a2 < after; a2++) for (let l = 0; l < len; l++) for (let b = 0; b < before; b++) {
+        const src = b + l * before + a2 * before * len, dst = b + (off + l) * before + a2 * before * od[dim - 1];
+        o.re[dst] = m.re[src]; if (C) o.im[dst] = m.im ? m.im[src] : 0;
+      }
+      off += len;
+    });
+    return clean(o);
+  };
+  // struct
+  FN.struct = (I, a) => {
+    if (!a.length) return new Struct(1, 1, [new Map()]);
+    if (a.length % 2) err("struct: cần các cặp 'tên', giá trị");
+    let n = 1; for (let k = 1; k < a.length; k += 2) if (a[k] instanceof Cell && a[k].n !== 1) { if (n !== 1 && a[k].n !== n) err('struct: các cell giá trị phải cùng số phần tử'); n = a[k].n; }
+    const el = [];
+    for (let t = 0; t < n; t++) { const mp = new Map(); for (let k = 0; k < a.length; k += 2) { const v = a[k + 1]; mp.set(str(a[k], 'Tên trường'), v instanceof Cell ? (v.n === 1 ? cloneV(v.v[0]) : cloneV(v.v[t])) : cloneV(v)); } el.push(mp); }
+    return new Struct(n ? 1 : 0, n, el);
+  };
+  const needS = (v, f) => { if (!(v instanceof Struct)) err(`${f}: đối số phải là struct`); return v; };
+  FN.fieldnames = (I, a) => { const s = needS(a[0], 'fieldnames'); const ks = s.el[0] ? [...s.el[0].keys()] : []; return new Cell(ks.map(k => new Str(k)), ks.length, 1); };
+  FN.isfield = (I, a) => { if (!(a[0] instanceof Struct)) return B(false); const has = k => !!a[0].el[0] && a[0].el[0].has(k); if (a[1] instanceof Cell) { const o = rowv(a[1].v.map(x => has(str(x)) ? 1 : 0)); o.lg = true; return o; } return B(has(str(a[1], 'Tên trường'))); };
+  FN.rmfield = (I, a) => { const s = cloneV(needS(a[0], 'rmfield')), k = str(a[1], 'Tên trường'); if (!s.el[0] || !s.el[0].has(k)) err(`rmfield: không có trường '${k}'`); s.el.forEach(mp => mp.delete(k)); return s; };
+  FN.getfield = (I, a) => { const s = needS(a[0], 'getfield'), k = str(a[1]); if (!s.el[0] || !s.el[0].has(k)) err(`getfield: không có trường '${k}'`); return s.el[0].get(k); };
+  FN.setfield = (I, a) => { const s = a[0] instanceof Struct ? cloneV(a[0]) : new Struct(1, 1, [new Map()]); s.el[0].set(str(a[1]), cloneV(a[2])); return s; };
+  FN.isstruct = (I, a) => B(a[0] instanceof Struct);
+  // cell
+  FN.cell = (I, a) => { const d = sizeArgs(a); if (d.length > 2) err('cell: chỉ hỗ trợ 2 chiều'); const n = d[0] * d[1]; return new Cell(Array.from({ length: n }, () => EMPTY()), d[0], d[1]); };
+  FN.iscell = (I, a) => B(a[0] instanceof Cell);
+  FN.iscellstr = (I, a) => B(a[0] instanceof Cell && a[0].v.every(isStr));
+  FN.num2cell = (I, a) => { const m = asM(a[0]); return new Cell(Array.from(m.re).map((x, k) => m.im ? CX(x, m.im[k]) : S(x)), m.r, m.c); };
+  FN.cell2mat = (I, a) => { const c = a[0]; if (!(c instanceof Cell)) err('cell2mat: cần cell array'); if (!c.n) return EMPTY(); const rows = []; for (let i = 0; i < c.r; i++) { const r = []; for (let j = 0; j < c.c; j++) r.push(c.v[i + j * c.r]); rows.push(horz(r)); } return vert(rows); };
+  FN.cellfun = (I, a) => {
+    let f = a[0]; if (f instanceof Str) f = new FH(f.s);
+    let k = 1; const cs = []; while (k < a.length && a[k] instanceof Cell) cs.push(a[k++]);
+    let uni = true; for (; k < a.length - 1; k += 2) if (a[k] instanceof Str && /uniformoutput/i.test(a[k].s)) uni = truthy(a[k + 1]);
+    if (!cs.length) err('cellfun: cần ít nhất một cell array');
+    const res = [];
+    for (let t = 0; t < cs[0].n; t++) { let r = I.callValue(f, cs.map(c => c.v[t]), 1); if (Array.isArray(r)) r = r[0]; res.push(r); }
+    if (!uni) return new Cell(res, cs[0].r, cs[0].c);
+    const o = new Mat(cs[0].r, cs[0].c); res.forEach((r, t) => { const m = asM(r); if (m.n !== 1) err("cellfun: kết quả không phải một số; thêm 'UniformOutput', false"); o.re[t] = m.re[0]; }); return o;
+  };
+  FN.strjoin = (I, a) => { const c = a[0]; if (!(c instanceof Cell)) err('strjoin: cần cell chứa chuỗi'); const d = a[1] ? str(a[1]).replace(/\\n/g, '\n').replace(/\\t/g, '\t') : ' '; return new Str(c.v.map(x => str(x)).join(d)); };
+  FN.strsplit = (I, a) => { const s = str(a[0]); const parts = a[1] ? s.split(str(a[1])) : s.split(/\s+/).filter((x, k, arr) => x.length || (k > 0 && k < arr.length - 1)); return new Cell(parts.map(p => new Str(p))); };
+  FN.class = (I, a) => new Str(typeName(a[0]));
+  FN.isnumeric = (I, a) => B(a[0] instanceof Mat && !a[0].lg);
+  FN.islogical = (I, a) => B(a[0] instanceof Mat && !!a[0].lg);
+  FN.deal = (I, a, no) => { const out = []; for (let k = 0; k < Math.max(no, 1); k++) out.push(cloneV(a.length === 1 ? a[0] : a[k])); return no >= 2 ? out : out[0]; };
   FN.horzcat = (I, a) => horz(a); FN.vertcat = (I, a) => vert(a);
   FN.double = FN.single = (I, a) => a[0] instanceof Str ? asM(a[0]) : cloneV(asM(a[0]));
   FN.logical = (I, a) => { const o = map(a[0], x => x !== 0 ? 1 : 0); o.lg = true; return o; };
   const intc = (lo, hi) => (I, a) => map(a[0], x => clamp(Math.round(x), lo, hi));
   FN.int8 = intc(-128, 127); FN.int16 = intc(-32768, 32767); FN.int32 = intc(-2147483648, 2147483647); FN.uint8 = intc(0, 255); FN.uint16 = intc(0, 65535);
   // kích thước
-  FN.length = (I, a) => { const v = a[0]; if (v instanceof Str) return S(v.s.length); if (v instanceof Cell) return S(v.v.length); const m = asM(v); return S(m.n ? Math.max(m.r, m.c) : 0); };
-  FN.numel = (I, a) => { const v = a[0]; if (v instanceof Cell) return S(v.v.length); return S(asM(v).n); };
-  FN.size = (I, a, no) => { const m = a[0] instanceof Cell ? new Mat(1, a[0].v.length) : asM(a[0]); if (a[1]) return S(num(a[1]) === 1 ? m.r : num(a[1]) === 2 ? m.c : 1); if (no >= 2) return [S(m.r), S(m.c)]; return rowv([m.r, m.c]); };
-  FN.ndims = () => S(2);
-  FN.isempty = (I, a) => B(a[0] instanceof Cell ? !a[0].v.length : a[0] instanceof Str ? !a[0].s.length : asM(a[0]).n === 0);
+  FN.length = (I, a) => { const d = vshape(a[0]); return S(prod(d) ? Math.max(...d) : 0); };
+  FN.numel = (I, a) => S(prod(vshape(a[0])));
+  FN.size = (I, a, no) => {
+    const d = vshape(a[0]);
+    if (a[1]) { const k = num(a[1]); return S(k <= d.length ? d[k - 1] : 1); }
+    if (no >= 2) { const out = []; for (let k = 0; k < no; k++) out.push(S(k < no - 1 ? (k < d.length ? d[k] : 1) : prod(d.slice(k)))); return out; }
+    return rowv(d);
+  };
+  FN.ndims = (I, a) => S(vshape(a[0]).length);
+  FN.isempty = (I, a) => B(prod(vshape(a[0])) === 0);
   FN.isrow = (I, a) => B(asM(a[0]).r === 1); FN.iscolumn = (I, a) => B(asM(a[0]).c === 1);
   FN.isvector = (I, a) => { const m = asM(a[0]); return B(isVec(m) && m.n >= 1); }; FN.isscalar = (I, a) => B(asM(a[0]).n === 1);
   FN.isreal = (I, a) => B(!asM(a[0]).im); FN.ischar = FN.isstring = (I, a) => B(a[0] instanceof Str);
   FN.isequal = (I, a) => { const x = asM(a[0]), y = asM(a[1]); if (x.r !== y.r || x.c !== y.c) return B(false); for (let k = 0; k < x.n; k++) if (x.re[k] !== y.re[k] || (x.im ? x.im[k] : 0) !== (y.im ? y.im[k] : 0)) return B(false); return B(true); };
   // rút gọn theo chiều
+  const firstDim = m => (dimsOf(m).findIndex(x => x !== 1) + 1) || 1;
+  function reduceND(m, dim, f, init) {
+    const d = dimsOf(m); while (d.length < dim) d.push(1);
+    const od = d.slice(); od[dim - 1] = 1; const o = mkND(od), C = !!m.im; if (C) o.im = new Float64Array(o.n);
+    const before = prod(d.slice(0, dim - 1)), len = d[dim - 1], after = prod(d.slice(dim));
+    for (let a2 = 0; a2 < after; a2++) for (let b = 0; b < before; b++) {
+      let acc = [init, 0];
+      for (let t = 0; t < len; t++) { const k = b + t * before + a2 * before * len; acc = f(acc, m.re[k], C ? m.im[k] : 0); }
+      const q = b + a2 * before; o.re[q] = acc[0]; if (C) o.im[q] = acc[1];
+    }
+    return clean(o);
+  }
   function reduce(a, dimArg, f, init) {
-    const m = asM(a); let dim = dimArg ? num(dimArg) : (m.r === 1 ? 2 : 1);
+    const m0 = asM(a);
+    if (m0.dims || (dimArg && num(dimArg) >= 3)) return reduceND(m0, dimArg ? num(dimArg) : firstDim(m0), f, init);
+    const m = m0; let dim = dimArg ? num(dimArg) : (m.r === 1 ? 2 : 1);
     if (m.n === 0) return S(init);
     if (dim === 1) { const o = new Mat(1, m.c); if (m.im) o.im = new Float64Array(m.c); for (let j = 0; j < m.c; j++) { let acc = [init, 0]; for (let i = 0; i < m.r; i++) acc = f(acc, m.re[i + j * m.r], m.im ? m.im[i + j * m.r] : 0); o.re[j] = acc[0]; if (o.im) o.im[j] = acc[1]; } return clean(o); }
     const o = new Mat(m.r, 1); if (m.im) o.im = new Float64Array(m.r); for (let i = 0; i < m.r; i++) { let acc = [init, 0]; for (let j = 0; j < m.c; j++) acc = f(acc, m.re[i + j * m.r], m.im ? m.im[i + j * m.r] : 0); o.re[i] = acc[0]; if (o.im) o.im[i] = acc[1]; } return clean(o);
   }
   FN.sum = (I, a) => reduce(a[0], a[1], (s, x, y) => [s[0] + x, s[1] + y], 0);
   FN.prod = (I, a) => reduce(a[0], a[1], (s, x, y) => cmul(s[0], s[1], x, y), 1);
-  FN.mean = (I, a) => { const m = asM(a[0]); const s = FN.sum(I, a); const dim = a[1] ? num(a[1]) : (m.r === 1 ? 2 : 1); return rdiv(s, S(dim === 1 ? m.r : m.c)); };
+  FN.mean = (I, a) => { const m = asM(a[0]); const d = dimsOf(m); const dim = a[1] ? num(a[1]) : (m.dims ? firstDim(m) : (m.r === 1 ? 2 : 1)); return rdiv(FN.sum(I, [m, S(dim)]), S(dim <= d.length ? d[dim - 1] : 1)); };
   FN.rms = (I, a) => FN.sqrt(I, [FN.mean(I, [map(FN.abs(I, [a[0]]), x => x * x)])]);
   FN.var = (I, a) => { const x = reArr(a[0]), n = x.length, mu = x.reduce((s, v) => s + v, 0) / n; return S(x.reduce((s, v) => s + (v - mu) ** 2, 0) / Math.max(1, n - 1)); };
   FN.std = (I, a) => S(Math.sqrt(num(FN.var(I, a))));
@@ -3466,6 +3746,9 @@ const MLAB = (() => {
   FN.cumsum = cum('s'); FN.cumprod = cum('p');
   const minmax = sgn => (I, a, no) => {
     if (a.length >= 2 && asM(a[1]).n > 0) return ew(a[0], a[1], (x, y) => sgn * x > sgn * y ? x : y);
+    const pick = (s, x) => [sgn * x > sgn * s[0] ? x : s[0], 0];
+    if (a.length >= 3) return reduceND(asM(a[0]), num(a[2]), pick, sgn > 0 ? -Infinity : Infinity);
+    if (asM(a[0]).dims) return reduceND(asM(a[0]), firstDim(asM(a[0])), pick, sgn > 0 ? -Infinity : Infinity);
     const m = asM(a[0]); if (!m.n) return no >= 2 ? [EMPTY(), EMPTY()] : EMPTY();
     const key = k => m.im ? Math.hypot(m.re[k], m.im[k]) : m.re[k];
     const one = ks => { let bi = ks[0]; for (const k of ks) if (sgn * key(k) > sgn * key(bi) || Number.isNaN(key(bi))) bi = k; return bi; };
@@ -3619,7 +3902,7 @@ const MLAB = (() => {
   FN.xline = (I, a) => { const A = ax(I); for (const v of reArr(a[0])) A.series.push({ kind: 'xline', v, color: 'muted', dash: (a[1] instanceof Str && parseSpec(a[1].s).dash) || '--', label: a[2] instanceof Str ? texify(a[2].s) : '' }); };
   FN.yline = (I, a) => { const A = ax(I); for (const v of reArr(a[0])) A.series.push({ kind: 'yline', v, color: 'muted', dash: (a[1] instanceof Str && parseSpec(a[1].s).dash) || '--', label: a[2] instanceof Str ? texify(a[2].s) : '' }); };
   // chuỗi và in ấn
-  FN.disp = (I, a) => { const v = a[0]; if (v instanceof Str) I.print(v.s); else if (v instanceof Mat && v.n === 0) { } else if (v instanceof Mat && v.n === 1) I.print(fcx(v.re[0], v.im ? v.im[0] : null, I.long).trim()); else if (v instanceof Mat) I.print(fmtMat(v, I.long)); else I.print(display('', v).replace(/^ = /, '')); };
+  FN.disp = (I, a) => { const v = a[0]; if (v instanceof Struct || v instanceof Cell || (v instanceof Mat && v.dims)) { I.print(display('ans', v, I.long).replace(/^ans =\s*\n/, '').replace(/\n+$/, '')); return; } if (v instanceof Str) I.print(v.s); else if (v instanceof Mat && v.n === 0) { } else if (v instanceof Mat && v.n === 1) I.print(fcx(v.re[0], v.im ? v.im[0] : null, I.long).trim()); else if (v instanceof Mat) I.print(fmtMat(v, I.long)); else I.print(display('', v).replace(/^ = /, '')); };
   FN.fprintf = (I, a) => { let args = a; if (args[0] instanceof Mat && args[0].n === 1 && args[0].re[0] === 1) args = args.slice(1); if (!(args[0] instanceof Str)) { I.print(fmtMat(asM(args[0]))); return; } I.write(sprintfImpl(args[0].s, args.slice(1))); };
   FN.sprintf = (I, a) => new Str(sprintfImpl(str(a[0], 'Định dạng'), a.slice(1)));
   FN.num2str = (I, a) => {
@@ -3656,7 +3939,7 @@ const MLAB = (() => {
   FN.exist = (I, a) => S(I.vars.has(str(a[0])) ? 1 : FN[str(a[0])] ? 5 : 0);
   FN.feval = (I, a) => I.callValue(a[0] instanceof Str ? new FH(a[0].s) : a[0], a.slice(1), 1);
   FN.arrayfun = (I, a) => { const f = a[0], m = asM(a[1]); const o = new Mat(m.r, m.c); for (let k = 0; k < m.n; k++) o.re[k] = num(I.callValue(f, [S(m.re[k])], 1)); return o; };
-  FN.isa = () => B(false);
+  FN.isa = (I, a) => { const c = str(a[1], 'Tên kiểu'), t = typeName(a[0]); return B(c === t || (c === 'numeric' && t === 'double') || (c === 'float' && t === 'double')); };
   FN.help = I => I.print('Trình chạy MATLAB trên web hỗ trợ: ' + Object.keys(FN).filter(k => FN[k]).sort().join(', '));
   FN.floor2 = undefined; delete FN.floor2;
 
@@ -3711,25 +3994,26 @@ const MLAB = (() => {
             if (e.t === 'id' && this.vars.has(e.v)) { v = this.vars.get(e.v); if (s.show) this.print(display(e.v, v, this.long)); return; }
             v = this.eval(e, 0);
             if (Array.isArray(v)) v = v[0];
+            if (v instanceof CSL) { for (const x of v.v) { this.vars.set('ans', x); if (s.show) this.print(display('ans', x, this.long)); } return; }
             if (v !== undefined) { this.vars.set('ans', v); if (s.show) this.print(display('ans', v, this.long)); }
             return;
           }
           case 'assign': {
             const L = s.lhs; let v = this.eval(s.rhs, 1); if (Array.isArray(v)) v = v[0];
+            if (v instanceof CSL) { if (!v.v.length) err('Vế phải là danh sách rỗng'); v = v.v[0]; }
             if (v === undefined) err('Vế phải không trả về giá trị');
-            if (!L.args) { if (s.rhs.t === 'id') v = cloneV(v); this.vars.set(L.name, v); }
+            if (!L.chain.length) { if (['id', 'field', 'dfield', 'idx'].includes(s.rhs.t)) v = cloneV(v); this.vars.set(L.name, v); }
             else {
-              if (L.brace) err('Gán c{k} = ... chưa được hỗ trợ');
               const cur = this.vars.get(L.name);
-              if (cur instanceof Fun) err(`'${L.name}' là hàm, không gán chỉ số được`);
-              const args = this.evalArgs(L.args, cur || EMPTY());
-              this.vars.set(L.name, setIndex(cur, args, v, s.rhs.t === 'mat' && s.rhs.rows.length === 0));
+              if (cur instanceof Fun || cur instanceof FH) err(`'${L.name}' là hàm, không gán chỉ số được`);
+              if (v instanceof Mat || v instanceof Cell || v instanceof Struct) v = cloneV(v);
+              this.vars.set(L.name, this.assignPath(cur, L.chain, v, s.rhs.t === 'mat' && s.rhs.rows.length === 0));
             }
             if (s.show) this.print(display(L.name, this.vars.get(L.name), this.long));
             return;
           }
           case 'massign': {
-            let vs = this.eval(s.rhs, s.lhs.length); if (!Array.isArray(vs)) vs = [vs];
+            let vs = this.eval(s.rhs, s.lhs.length); if (vs instanceof CSL) vs = vs.v; if (!Array.isArray(vs)) vs = [vs];
             s.lhs.forEach((nm, k) => { if (nm === '~') return; if (vs[k] === undefined) err(`Hàm không trả về đủ ${s.lhs.length} giá trị`); this.vars.set(nm, vs[k]); if (s.show) this.print(display(nm, vs[k], this.long)); });
             return;
           }
@@ -3739,7 +4023,7 @@ const MLAB = (() => {
           }
           case 'for': {
             const v = this.eval(s.e, 1);
-            const items = v instanceof Cell ? v.v.map(x => new Cell([x])) : (() => { const m = asM(v); const r = []; for (let j = 0; j < m.c; j++) r.push(m.r === 1 ? (m.im ? CX(m.re[j], m.im[j]) : S(m.re[j])) : getIndex(m, [COLON, S(j + 1)])); return r; })();
+            const items = v instanceof Cell ? range(0, v.c - 1).map(j => new Cell(v.v.slice(j * v.r, (j + 1) * v.r), v.r, 1)) : v instanceof Struct ? v.el.map(mp => new Struct(1, 1, [mp])) : (() => { const m = asM(v); const r = []; for (let j = 0; j < m.c; j++) r.push(m.r === 1 ? (m.im ? CX(m.re[j], m.im[j]) : S(m.re[j])) : getIndex(m, [COLON, S(j + 1)])); return r; })();
             for (const it of items) {
               this.vars.set(s.v, it); this.tick();
               try { this.block(s.body); } catch (e) { if (e instanceof BreakSig) break; if (e instanceof ContSig) continue; throw e; }
@@ -3831,35 +4115,94 @@ const MLAB = (() => {
         case 'range': return colonRange(this.val(n.a), n.s ? this.val(n.s) : undefined, this.val(n.b));
         case 'mat': {
           if (!n.rows.length) return EMPTY();
-          return vert(n.rows.map(r => horz(r.map(e => this.val(e)))));
+          return vert(n.rows.map(r => horz(this.flat(r))));
         }
-        case 'cell': return new Cell(n.rows.flatMap(r => r.map(e => this.val(e))));
+        case 'cell': {
+          const rows = n.rows.map(r => this.flat(r)).filter(r => r.length);
+          if (!rows.length) return new Cell([], 0, 0);
+          const c = rows[0].length; if (rows.some(r => r.length !== c)) err('Các hàng của cell { } phải có cùng số phần tử');
+          const v = []; for (let j = 0; j < c; j++) for (let i = 0; i < rows.length; i++) v.push(rows[i][j]);
+          return new Cell(v, rows.length, c);
+        }
+        case 'field': case 'dfield': {
+          const b = this.val(n.e), name = n.t === 'field' ? n.name : str(this.val(n.ne), 'Tên trường động');
+          if (!(b instanceof Struct)) err(`Không truy cập được .${name}: giá trị là ${typeName(b)}, không phải struct`);
+          const get = mp => { if (!mp.has(name)) err(`Struct không có trường '${name}'` + (mp.size ? ` (các trường: ${[...mp.keys()].join(', ')})` : '')); return mp.get(name); };
+          if (b.el.length === 1) return get(b.el[0]);
+          return new CSL(b.el.map(get));
+        }
         case 'anon': return new Fun(n.params, n.body, new Map([...this.vars].map(([k, v]) => [k, cloneV(v)])), n.src);
         case 'fh': return new FH(n.v);
         case 'idx': {
           const tg = n.target;
-          if (tg.t === 'id' && this.vars.has(tg.v)) {
-            const v = this.vars.get(tg.v);
-            if (v instanceof Fun || v instanceof FH) return this.callValue(v, this.evalArgs(n.args, EMPTY()), no);
-            const args = this.evalArgs(n.args, v);
-            if (n.brace) { if (!(v instanceof Cell)) err(`'${tg.v}' không phải cell array, dùng ( ) thay vì { }`); const ii = idxList(args[0], v.v.length); if (ii[0] >= v.v.length) err('Chỉ số vượt quá kích thước cell'); return v.v[ii[0]]; }
-            return getIndex(v, args);
-          }
-          if (tg.t === 'id') {
+          if (tg.t === 'id' && !this.vars.has(tg.v)) {
+            if (n.brace) err(`Không có biến cell '${tg.v}'`);
             if (n.args.some(a => a.t === 'colon')) err(`Không có biến '${tg.v}' để lấy chỉ số`);
-            const args = n.args.map(a => this.val(a));
-            const r = this.callFn(tg.v, args, no);
+            const r = this.callFn(tg.v, this.flat(n.args), no);
             if (r === undefined && no >= 1) err(`Hàm '${tg.v}' không trả về giá trị (nó chỉ vẽ/in ra)`);
             return r;
           }
-          const v = this.val(tg);
-          if (v instanceof Fun || v instanceof FH) return this.callValue(v, n.args.map(a => this.val(a)), no);
-          return getIndex(v, this.evalArgs(n.args, v));
+          const v = tg.t === 'id' ? this.vars.get(tg.v) : this.val(tg);
+          if (v instanceof Fun || v instanceof FH) return this.callValue(v, this.flat(n.args), no);
+          const args = this.evalArgs(n.args, v);
+          if (n.brace) {
+            if (!(v instanceof Cell)) err(`Dấu { } chỉ dùng với cell array (giá trị đang là ${typeName(v)}); dùng ( )`);
+            const ks = linIdx(v, args, false);
+            return ks.length === 1 ? v.v[ks[0]] : new CSL(ks.map(k => v.v[k]));
+          }
+          return getIndex(v, args);
         }
       }
       err('Biểu thức không hỗ trợ');
     }
-    val(n) { const v = this.eval(n, 1); return Array.isArray(v) ? v[0] : v; }
+    val(n) { const v = this.eval(n, 1); if (Array.isArray(v)) return v[0]; if (v instanceof CSL) { if (!v.v.length) err('Danh sách giá trị rỗng (ví dụ c{:} với c rỗng)'); return v.v[0]; } return v; }
+    flat(list) { return list.flatMap(e => { const v = this.eval(e, 1); if (v instanceof CSL) return v.v; return [Array.isArray(v) ? v[0] : v]; }); }
+    // gán qua chuỗi truy cập: s.a.b = v, s(2).ten = v, c{3} = v, c{2}(4) = v, x(i, j) = v ...
+    assignPath(cur, chain, rhs, del) {
+      const [acc, ...rest] = chain;
+      const isEmpty = x => x === undefined || (x instanceof Mat && x.n === 0);
+      if (acc.k === 'field' || acc.k === 'dfield') {
+        const name = acc.k === 'field' ? acc.name : str(this.val(acc.e), 'Tên trường động');
+        if (!/^[A-Za-z]\w*$/.test(name)) err(`Tên trường không hợp lệ: '${name}'`);
+        let s = isEmpty(cur) ? new Struct(1, 1, [new Map()]) : cur;
+        if (!(s instanceof Struct)) err(`Không gán được .${name}: biến đang là ${typeName(s)}, không phải struct`);
+        if (s.el.length !== 1) err(`Mảng struct có ${s.el.length} phần tử: dùng s(k).${name} = ...`);
+        const mp = s.el[0];
+        mp.set(name, rest.length ? this.assignPath(mp.get(name), rest, rhs, del) : rhs);
+        return s;
+      }
+      if (acc.k === 'brace') {
+        const c = isEmpty(cur) ? new Cell([], 0, 0) : cur;
+        if (!(c instanceof Cell)) err(`Dấu { } chỉ dùng để gán cho cell array (biến đang là ${typeName(c)})`);
+        const args = this.evalArgs(acc.args, c);
+        let val = rhs;
+        if (rest.length) { const ks = linIdx(c, args, true); if (ks.length !== 1) err('Chỉ gán sâu vào một ô cell mỗi lần'); val = this.assignPath(ks[0] < c.n ? c.v[ks[0]] : undefined, rest, rhs, del); }
+        return cellAssign(c, args, [val]);
+      }
+      // dấu ( )
+      const structPath = cur instanceof Struct || (isEmpty(cur) && rest.length && rest[0].k !== 'paren') || (isEmpty(cur) && !rest.length && rhs instanceof Struct);
+      if (structPath) {
+        const s = cur instanceof Struct ? cur : new Struct(0, 0, []);
+        const args = this.evalArgs(acc.args, s);
+        if (!rest.length) {
+          if (del) { const kill = new Set(linIdx(s, args, false)); const el = s.el.filter((_, k) => !kill.has(k)); return s.c === 1 && s.r > 1 ? new Struct(el.length, 1, el) : new Struct(el.length ? 1 : 0, el.length, el); }
+          if (!(rhs instanceof Struct)) err('Gán s(k) = ... cần giá trị là struct');
+          return structAssign(s, args, rhs.el);
+        }
+        const ks = linIdx(s, args, true); if (ks.length !== 1) err('Chỉ gán trường cho một phần tử struct mỗi lần');
+        const ne = this.assignPath(ks[0] < s.n ? new Struct(1, 1, [s.el[ks[0]]]) : undefined, rest, rhs, del);
+        return structAssign(s, args, ne.el);
+      }
+      if (cur instanceof Cell) {
+        if (rest.length) err('Cú pháp c(i).x hoặc c(i){j} không hỗ trợ; dùng c{i}');
+        const args = this.evalArgs(acc.args, cur);
+        if (del) { const kill = new Set(linIdx(cur, args, false)); const v = cur.v.filter((_, k) => !kill.has(k)); return cur.c === 1 && cur.r > 1 ? new Cell(v, v.length, 1) : new Cell(v); }
+        if (!(rhs instanceof Cell)) err('Gán c(i) = ... cần giá trị cell, ví dụ c(2) = {5}; hoặc dùng c{2} = 5');
+        return cellAssign(cur, args, rhs.v);
+      }
+      if (rest.length) err('Không hỗ trợ cú pháp gán này (ví dụ x(i).ten khi x không phải struct)');
+      return setIndex(cur, this.evalArgs(acc.args, cur || EMPTY()), rhs, del);
+    }
   }
   function run(src, opts) {
     const I = new Interp(opts); let error = null;
@@ -3999,6 +4342,48 @@ function h = decay(n, a)
     end
     h = a.^n .* (n >= 0);
 end` },
+c0i: { title: 'Struct, cell array và mảng nhiều chiều', desc: 'struct gom các thông số có tên vào một biến (s.fc, s.order). Cell array {…} chứa các phần tử khác kiểu hoặc khác độ dài. Mảng 3 chiều hợp với dữ liệu nhiều kênh: (mẫu × khung × kênh).', code:
+`%% Struct: gom thông số của một bộ lọc vào một biến
+flt.name  = 'Thông thấp 1 kHz';
+flt.fs    = 8000;
+flt.fc    = 1000;
+flt.order = 4;
+[b, a] = butter(flt.order, flt.fc/(flt.fs/2));
+flt.b = b;  flt.a = a;
+flt
+
+%% Mảng struct: nhiều bộ lọc, duyệt bằng vòng lặp
+specs = struct('name', {'Thông thấp', 'Thông cao', 'Thông dải'}, ...
+               'type', {'low', 'high', 'bandpass'}, ...
+               'wn',   {0.2, 0.2, [0.3 0.5]});
+for k = 1:numel(specs)
+    if strcmp(specs(k).type, 'bandpass')
+        [b, a] = butter(3, specs(k).wn);
+    else
+        [b, a] = butter(3, specs(k).wn, specs(k).type);
+    end
+    [H, w] = freqz(b, a, 512);
+    plot(w/pi, 20*log10(abs(H))); hold on
+end
+hold off; grid on; ylim([-60 5]); xlabel('\\omega/\\pi')
+legend(specs.name)               % specs.name trả về danh sách 3 chuỗi
+
+%% Cell array: các tín hiệu có độ dài khác nhau
+sigs = {randn(1, 50), sin(0.2*pi*(0:99)), ones(1, 20)};
+do_dai    = cellfun(@length, sigs)
+nang_luong = cellfun(@(x) sum(x.^2), sigs)
+
+%% Mảng 3 chiều: (mẫu trong khung) × (khung) × (kênh)
+fs = 1000;  t = (0:999)/fs;  f0 = [50 120 200];
+X = zeros(100, 10, 3);
+for ch = 1:3
+    x = sin(2*pi*f0(ch)*t) .* (1 + t*ch);   % biên độ tăng dần theo thời gian
+    X(:, :, ch) = reshape(x, 100, 10);      % 10 khung, mỗi khung 100 mẫu
+end
+size(X)
+E = squeeze(sum(X.^2, 1));                  % năng lượng: 10 khung × 3 kênh
+figure; plot(1:10, E, 'o-'); grid on
+legend('kênh 50 Hz', 'kênh 120 Hz', 'kênh 200 Hz'); xlabel('khung'); title('Năng lượng từng khung')` },
 sandbox: { title: 'Sân chơi tự do', desc: 'Viết bất kỳ code nào bạn muốn thử. Ctrl + Enter để chạy. Gõ help để xem danh sách hàm được hỗ trợ.', code:
 `% Thử tạo tín hiệu của riêng bạn rồi xem phổ
 fs = 1000;  t = 0:1/fs:0.5;
