@@ -268,6 +268,13 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
 .ml-grid canvas { width: 100%; display: block; border-radius: 6px; }
 .ml-note { font-size: 12px; color: var(--muted); }
 .kbd { font-family: var(--f-mono); font-size: 11px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; background: var(--panel-2); }
+.ml-tabs { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+.ml-tab { font-family: var(--f-mono); font-size: 13px; border: 1px solid var(--line); background: var(--panel-2); color: var(--ink); border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+.ml-tab small { font-family: var(--f-body); font-size: 10px; color: var(--muted); margin-left: 4px; }
+.ml-tab.on { border-color: var(--trace); background: var(--hl); color: var(--trace); font-weight: 600; }
+.ml-tab.add { border-style: dashed; color: var(--muted); font-family: var(--f-body); }
+.ml-newfile { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: end; padding: 10px 12px; border: 1px dashed var(--line); border-radius: 8px; }
+[hidden] { display: none !important; }
 </style>
 </head>
 <body>
@@ -337,7 +344,7 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
 <section class="ch" id="c0" data-ch="0">
   <h2><span class="no">00</span>MATLAB cấp tốc cho xử lý tín hiệu</h2>
   <p class="lead">MATLAB là công cụ tiêu chuẩn trong học tập và nghiên cứu DSP: mọi thứ là ma trận, và các hàm như <code>fft</code>, <code>conv</code>, <code>filter</code>, <code>freqz</code>, <code>butter</code> đều có sẵn. Mỗi chương từ 1 đến 15 kết thúc bằng một đoạn MATLAB tái hiện lại thí nghiệm của chương đó.</p>
-  <div class="key"><b>Chạy được ngay trên trang.</b> Các khung code dưới đây chạy bằng một trình thông dịch MATLAB thu gọn viết bằng JavaScript: sửa code rồi bấm <b>▶ Chạy</b> (hoặc <span class="kbd">Ctrl</span> + <span class="kbd">Enter</span>) để xem kết quả và đồ thị. Trình chạy này hỗ trợ khoảng 200 hàm thường dùng trong DSP, gồm cả <code>function</code> ở cuối script, struct, cell array và mảng nhiều chiều; nhưng đây không phải MATLAB đầy đủ (không có lập trình hướng đối tượng, file .m riêng, và chỉ có một phần các toolbox). Mọi đoạn code đều viết đúng cú pháp MATLAB thật, nên bạn có thể bấm <b>Sao chép code</b> rồi chạy trong MATLAB, <a href="https://matlab.mathworks.com" target="_blank" rel="noopener">MATLAB Online</a> hoặc GNU Octave (Octave cần <code>pkg load signal</code>).</div>
+  <div class="key"><b>Chạy được ngay trên trang.</b> Các khung code dưới đây chạy bằng một trình thông dịch MATLAB thu gọn viết bằng JavaScript: sửa code rồi bấm <b>▶ Chạy</b> (hoặc <span class="kbd">Ctrl</span> + <span class="kbd">Enter</span>) để xem kết quả và đồ thị. Trình chạy này hỗ trợ khoảng 200 hàm thường dùng trong DSP, gồm cả <code>function</code>, struct, cell array, mảng nhiều chiều, file <code>.m</code> riêng và <code>classdef</code> (bài 10). Đây vẫn chưa phải MATLAB đầy đủ: chỉ có một phần các toolbox, và chưa có những phần nâng cao như sự kiện (events), enumeration, gói (package). Mọi đoạn code đều viết đúng cú pháp MATLAB thật, nên bạn có thể bấm <b>Sao chép code</b> rồi chạy trong MATLAB, <a href="https://matlab.mathworks.com" target="_blank" rel="noopener">MATLAB Online</a> hoặc GNU Octave (Octave cần <code>pkg load signal</code>).</div>
 
   <h3>1. Vector và ma trận</h3>
   <div class="mlab" data-ml="c0a"></div>
@@ -358,6 +365,16 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
   <div class="mlab" data-ml="c0h"></div>
   <h3>9. Struct, cell array và mảng nhiều chiều</h3>
   <div class="mlab" data-ml="c0i"></div>
+  <h3>10. File .m riêng và lập trình hướng đối tượng (classdef)</h3>
+  <div class="prose">
+    <p>Dự án MATLAB thật gồm nhiều file. Ba quy tắc cần nhớ:</p>
+    <ul>
+      <li><b>File hàm</b> bắt đầu bằng <code>function</code>, tên file phải trùng tên hàm (<code>nang_luong.m</code> chứa <code>function ... = nang_luong(...)</code>). Các hàm viết thêm phía dưới trong cùng file là <b>hàm phụ</b>, chỉ gọi được từ bên trong file đó.</li>
+      <li><b>File script</b> không có <code>function</code> ở đầu. Gọi bằng tên (<code>chuan_bi</code>) hoặc <code>run('chuan_bi')</code>; biến nó tạo ra nằm luôn trong workspace của người gọi.</li>
+      <li><b>File lớp</b> bắt đầu bằng <code>classdef TenLop</code>, gồm khối <code>properties</code> (thuộc tính, có thể có giá trị mặc định) và <code>methods</code> (phương thức; hàm trùng tên lớp là hàm khởi tạo). Lớp <b>giá trị</b> (mặc định) được sao chép khi gán, nên phương thức phải trả về đối tượng đã sửa. Lớp <b>handle</b> (<code>classdef Ten &lt; handle</code>) được dùng chung: mọi biến trỏ tới cùng một đối tượng, hợp với bộ lọc có trạng thái hay bộ đệm.</li>
+    </ul>
+  </div>
+  <div class="mlab" data-ml="workspace"></div>
 
   <h3>Bảng tra: công thức DSP và hàm MATLAB</h3>
   <div class="tbl"><table class="t">
@@ -2586,6 +2603,8 @@ const MLAB = (() => {
   class Cell { constructor(v, r, c) { this.v = v; this.r = r !== undefined ? r : (v.length ? 1 : 0); this.c = c !== undefined ? c : v.length; } get n() { return this.v.length; } }
   class Struct { constructor(r, c, el) { this.r = r; this.c = c; this.el = el; } get n() { return this.el.length; } }
   class CSL { constructor(v) { this.v = v; } }   // danh sách giá trị tách rời: c{:}, s.ten của mảng struct
+  class Obj { constructor(C, p) { this.C = C; this.p = p; } }   // đối tượng của lớp classdef (C: thông tin lớp, p: thuộc tính)
+  const isA = (C, name) => { for (let c = C; c; c = c.sup) if (c.name === name) return true; return name === 'handle' && C.isHandle; };
   class Fun { constructor(params, body, env, src) { Object.assign(this, { params, body, env, src }); } }
   class FH { constructor(name) { this.name = name; } }
   const COLON = { colon: true };
@@ -2600,6 +2619,7 @@ const MLAB = (() => {
     if (v instanceof Mat) { const m = new Mat(v.r, v.c, Float64Array.from(v.re), v.im ? Float64Array.from(v.im) : null); m.lg = v.lg; if (v.dims) m.dims = v.dims.slice(); return m; }
     if (v instanceof Cell) return new Cell(v.v.map(cloneV), v.r, v.c);
     if (v instanceof Struct) return new Struct(v.r, v.c, v.el.map(mp => new Map([...mp].map(([k, x]) => [k, cloneV(x)]))));
+    if (v instanceof Obj) return v.C.isHandle ? v : new Obj(v.C, new Map([...v.p].map(([k, x]) => [k, cloneV(x)])));   // handle: dùng chung
     return v;
   }
   /* mảng nhiều chiều: Mat lưu như ma trận r × (tích các chiều còn lại), kèm trường dims */
@@ -2610,7 +2630,7 @@ const MLAB = (() => {
   function withDims(m, d) { const o = cloneV(m); delete o.dims; const nd = normDims(d); o.r = nd[0]; o.c = prod(nd.slice(1)); if (nd.length > 2) o.dims = nd; return o; }
   const keepDims = (a, o) => { if (a.dims) o.dims = a.dims.slice(); return o; };
   const vshape = v => v instanceof Mat ? dimsOf(v) : v instanceof Str ? [v.s.length ? 1 : 0, v.s.length] : (v instanceof Cell || v instanceof Struct) ? [v.r, v.c] : [1, 1];
-  const typeName = v => v instanceof Str ? 'char' : v instanceof Cell ? 'cell' : v instanceof Struct ? 'struct' : (v instanceof Fun || v instanceof FH) ? 'function_handle' : (v instanceof Mat && v.lg) ? 'logical' : 'double';
+  const typeName = v => v instanceof Obj ? v.C.name : v instanceof Str ? 'char' : v instanceof Cell ? 'cell' : v instanceof Struct ? 'struct' : (v instanceof Fun || v instanceof FH) ? 'function_handle' : (v instanceof Mat && v.lg) ? 'logical' : 'double';
   function asM(v) {
     if (v instanceof Mat) return v;
     if (v instanceof Str) { const m = new Mat(v.s.length ? 1 : 0, v.s.length); for (let k = 0; k < v.s.length; k++) m.re[k] = v.s.charCodeAt(k); return m; }
@@ -2618,6 +2638,7 @@ const MLAB = (() => {
     if (v instanceof Fun || v instanceof FH) err('Không dùng được hàm như một số. Bạn có quên gọi hàm với đối số không?');
     if (v instanceof Cell) err('Không thể tính toán trực tiếp trên cell array; dùng c{k} để lấy phần tử.');
     if (v instanceof Struct) err('Không thể tính toán trên struct; lấy trường bằng s.ten');
+    if (v instanceof Obj) err(`Không tính toán trực tiếp được trên đối tượng lớp ${v.C.name}; dùng thuộc tính obj.ten`);
     if (v instanceof CSL) { if (!v.v.length) err('Danh sách giá trị rỗng'); return asM(v.v[0]); }
     if (v === COLON) err("Dấu ':' đứng một mình chỉ dùng được trong chỉ số, ví dụ x(:)");
     err('Giá trị không hợp lệ');
@@ -3130,6 +3151,7 @@ const MLAB = (() => {
           default: perr(`Từ khoá '${t.v}' đặt không đúng chỗ`);
         }
       }
+      if (t.t === 'id' && t.v === 'classdef') perr('classdef phải nằm ở đầu một file .m riêng có tên trùng tên lớp (tạo tệp mới trong Thư mục làm việc)');
       if (t.t === 'id' && CMDS.has(t.v) && t.sp && (peek(1).t === 'id' || peek(1).t === 'num') && peek(1).line === line && !(peek(2).t === 'op' && (peek(2).v === '=' || peek(2).v === '('))) {
         next(); const args = []; while ((peek().t === 'id' || peek().t === 'num') && peek().line === line) args.push(String(next().v));
         endStmt(); return { t: 'cmd', name: t.v, args, line };
@@ -3148,7 +3170,10 @@ const MLAB = (() => {
     }
     // vế trái: ten, rồi chuỗi truy cập (...) {...} .truong .(bieu_thuc)
     function tryLhs() {
-      const id = next(), chain = [];
+      const id = next(); const chain = parseChain(); if (!chain) return null; return { name: id.v, chain };
+    }
+    function parseChain() {
+      const chain = [];
       for (; ;) {
         if (isOp('(') || isOp('{')) {
           const brace = isOp('{'), close = brace ? '}' : ')'; next(); idxDepth++; const args = [];
@@ -3164,13 +3189,13 @@ const MLAB = (() => {
         }
         break;
       }
-      return { name: id.v, chain };
+      return chain;
     }
     function tryMulti() {
       next(); const names = [];
       while (!isOp(']')) {
         if (isOp(',')) { next(); continue; }
-        if (peek().t === 'id') names.push(next().v);
+        if (peek().t === 'id') { const nm = next().v, ch = parseChain(); if (!ch) return null; names.push({ name: nm, chain: ch }); }
         else if (isOp('~')) { next(); names.push('~'); }
         else return null;
       }
@@ -3253,6 +3278,47 @@ const MLAB = (() => {
       if (t.t === 'eof') perr('Biểu thức chưa hoàn chỉnh');
       perr(`Không mong đợi '${t.v}'` + (t.v === '=' ? ' (so sánh bằng phải viết là ==)' : ''));
     }
+    function parseAttrs() {
+      const at = new Set();
+      if (isOp('(')) { next(); while (!isOp(')')) { if (peek().t === 'eof') perr("Thiếu ')' trong thuộc tính"); const t = next(); if (t.t === 'id') at.add(t.v); } next(); }
+      return at;
+    }
+    // classdef Ten < handle ... properties ... methods ... end
+    function parseClassdef() {
+      const line = peek().line; next(); parseAttrs();
+      const nm = next(); if (nm.t !== 'id') perr('Thiếu tên lớp sau classdef');
+      const supers = [];
+      if (isOp('<')) { next(); const s = next(); if (s.t !== 'id') perr('Thiếu tên lớp cha'); supers.push(s.v); while (isOp('&')) { next(); supers.push(next().v); } }
+      const cd = { t: 'classdef', name: nm.v, supers, props: [], methods: [], line };
+      const skip = () => { while (peek().t === 'nl' || isOp(';') || isOp(',')) next(); };
+      for (; ;) {
+        skip();
+        if (isKw('end')) { next(); break; }
+        const t = peek();
+        if (t.t === 'eof') perr(`Thiếu 'end' đóng classdef ${nm.v}`);
+        if (t.t === 'id' && (t.v === 'properties' || t.v === 'methods' || t.v === 'events' || t.v === 'enumeration')) {
+          next(); const at = parseAttrs();
+          if (t.v === 'properties') {
+            for (; ;) {
+              skip(); if (isKw('end')) { next(); break; }
+              const p = next(); if (p.t !== 'id') perr('Tên thuộc tính không hợp lệ');
+              while (!(isOp('=') || peek().t === 'nl' || isOp(';') || isOp(',') || peek().t === 'eof' || isKw('end'))) next();  // bỏ qua kiểu/kích thước
+              let def = null; if (isOp('=')) { next(); def = expr(); }
+              cd.props.push({ name: p.v, def, constant: at.has('Constant') });
+            }
+          } else if (t.v === 'methods') {
+            for (; ;) {
+              skip(); if (isKw('end')) { next(); break; }
+              if (!isKw('function')) perr("Trong khối methods chỉ được khai báo function ... end");
+              const f = statement(); f.static = at.has('Static'); cd.methods.push(f);
+            }
+          } else { let depth = 0; for (; ;) { if (peek().t === 'eof') perr('Thiếu end'); if (isKw('end')) { next(); if (depth-- === 0) break; continue; } next(); } }
+          continue;
+        }
+        perr(`Không mong đợi '${t.v}' trong classdef (chỉ có properties, methods)`);
+      }
+      return cd;
+    }
     const mul = binl(unary, ['*', '/', '\\', '.*', './', '.\\']);
     const add = binl(mul, ['+', '-']);
     const cmp = binl(rangeE, ['<', '<=', '>', '>=', '==', '~=']);
@@ -3260,6 +3326,8 @@ const MLAB = (() => {
     const orE = binl(andE, ['|']);
     const andand = binl(orE, ['&&']);
     const oror = binl(andand, ['||']);
+    while (peek().t === 'nl' || isOp(';')) next();
+    if (peek().t === 'id' && peek().v === 'classdef') { const cd = parseClassdef(); return [cd, ...block(null)]; }
     return block(null);
   }
 
@@ -3304,6 +3372,7 @@ const MLAB = (() => {
     if (x instanceof Str) return `'${x.s}'`;
     if (x instanceof Cell) return `{${sz(x)} cell}`;
     if (x instanceof Struct) return `[${sz(x)} struct]`;
+    if (x instanceof Obj) return `[1×1 ${x.C.name}]`;
     if (x instanceof Fun) return `@(${x.params.join(',')}) ${x.src}`;
     if (x instanceof FH) return '@' + x.name;
     if (x instanceof Mat) {
@@ -3326,6 +3395,10 @@ const MLAB = (() => {
     if (v instanceof Fun) return `${name} = @(${v.params.join(',')}) ${v.src}`;
     if (v instanceof FH) return `${name} = @${v.name}`;
     if (v instanceof CSL) return v.v.map(x => display(name, x, long)).join('\n');
+    if (v instanceof Obj) {
+      const w = Math.max(0, ...[...v.p.keys()].map(k => k.length));
+      return `${name} = \n  ${v.C.name}${v.C.isHandle ? ' (lớp handle)' : ''} với các thuộc tính:\n\n` + [...v.p].map(([k, x]) => `    ${k.padStart(w)}: ${brief(x)}`).join('\n') + '\n';
+    }
     if (v instanceof Struct) {
       if (v.n === 1) {
         const mp = v.el[0], w = Math.max(0, ...[...mp.keys()].map(k => k.length));
@@ -3902,7 +3975,7 @@ const MLAB = (() => {
   FN.xline = (I, a) => { const A = ax(I); for (const v of reArr(a[0])) A.series.push({ kind: 'xline', v, color: 'muted', dash: (a[1] instanceof Str && parseSpec(a[1].s).dash) || '--', label: a[2] instanceof Str ? texify(a[2].s) : '' }); };
   FN.yline = (I, a) => { const A = ax(I); for (const v of reArr(a[0])) A.series.push({ kind: 'yline', v, color: 'muted', dash: (a[1] instanceof Str && parseSpec(a[1].s).dash) || '--', label: a[2] instanceof Str ? texify(a[2].s) : '' }); };
   // chuỗi và in ấn
-  FN.disp = (I, a) => { const v = a[0]; if (v instanceof Struct || v instanceof Cell || (v instanceof Mat && v.dims)) { I.print(display('ans', v, I.long).replace(/^ans =\s*\n/, '').replace(/\n+$/, '')); return; } if (v instanceof Str) I.print(v.s); else if (v instanceof Mat && v.n === 0) { } else if (v instanceof Mat && v.n === 1) I.print(fcx(v.re[0], v.im ? v.im[0] : null, I.long).trim()); else if (v instanceof Mat) I.print(fmtMat(v, I.long)); else I.print(display('', v).replace(/^ = /, '')); };
+  FN.disp = (I, a) => { const v = a[0]; if (v instanceof Obj && v.C.methods.has('disp')) { I.callUser(v.C.methods.get('disp'), [v], 0); return; } if (v instanceof Obj || v instanceof Struct || v instanceof Cell || (v instanceof Mat && v.dims)) { I.print(display('ans', v, I.long).replace(/^ans =\s*\n/, '').replace(/\n+$/, '')); return; } if (v instanceof Str) I.print(v.s); else if (v instanceof Mat && v.n === 0) { } else if (v instanceof Mat && v.n === 1) I.print(fcx(v.re[0], v.im ? v.im[0] : null, I.long).trim()); else if (v instanceof Mat) I.print(fmtMat(v, I.long)); else I.print(display('', v).replace(/^ = /, '')); };
   FN.fprintf = (I, a) => { let args = a; if (args[0] instanceof Mat && args[0].n === 1 && args[0].re[0] === 1) args = args.slice(1); if (!(args[0] instanceof Str)) { I.print(fmtMat(asM(args[0]))); return; } I.write(sprintfImpl(args[0].s, args.slice(1))); };
   FN.sprintf = (I, a) => new Str(sprintfImpl(str(a[0], 'Định dạng'), a.slice(1)));
   FN.num2str = (I, a) => {
@@ -3936,10 +4009,18 @@ const MLAB = (() => {
   FN.clear = (I, a) => { if (!a.length || a.some(v => /^all$/i.test(v.s))) I.vars.clear(); else a.forEach(v => I.vars.delete(v.s)); };
   FN.format = (I, a) => { I.long = a.length && /long/i.test(a[0].s); };
   FN.more = FN.pkg = () => { };
-  FN.exist = (I, a) => S(I.vars.has(str(a[0])) ? 1 : FN[str(a[0])] ? 5 : 0);
+  FN.exist = (I, a) => { const n = str(a[0]).replace(/\.m$/, ''); return S(I.vars.has(n) ? 1 : (I.files && I.files.has(n)) ? 2 : FN[n] ? 5 : 0); };
   FN.feval = (I, a) => I.callValue(a[0] instanceof Str ? new FH(a[0].s) : a[0], a.slice(1), 1);
   FN.arrayfun = (I, a) => { const f = a[0], m = asM(a[1]); const o = new Mat(m.r, m.c); for (let k = 0; k < m.n; k++) o.re[k] = num(I.callValue(f, [S(m.re[k])], 1)); return o; };
-  FN.isa = (I, a) => { const c = str(a[1], 'Tên kiểu'), t = typeName(a[0]); return B(c === t || (c === 'numeric' && t === 'double') || (c === 'float' && t === 'double')); };
+  FN.isa = (I, a) => { const c = str(a[1], 'Tên kiểu'), t = typeName(a[0]); if (a[0] instanceof Obj) return B(isA(a[0].C, c)); return B(c === t || (c === 'numeric' && t === 'double') || (c === 'float' && t === 'double')); };
+  // lớp và file
+  const objOrClass = (I, v) => v instanceof Obj ? v.C : (v instanceof Str ? (I.loadClass(v.s) || err(`Không có lớp '${v.s}'`)) : err('Cần một đối tượng hoặc tên lớp'));
+  FN.properties = (I, a) => { const C = objOrClass(I, a[0]); const ks = [...C.props.keys()]; return new Cell(ks.map(k => new Str(k)), ks.length, 1); };
+  FN.methods = (I, a) => { const C = objOrClass(I, a[0]); const ks = [...C.methods.keys(), ...C.statics.keys()]; return new Cell(ks.map(k => new Str(k)), ks.length, 1); };
+  FN.isprop = (I, a) => B(a[0] instanceof Obj && a[0].p.has(str(a[1])));
+  FN.ismethod = (I, a) => B(a[0] instanceof Obj && (a[0].C.methods.has(str(a[1])) || a[0].C.statics.has(str(a[1]))));
+  FN.isobject = (I, a) => B(a[0] instanceof Obj);
+  FN.run = (I, a) => { const nm = str(a[0], 'Tên script').replace(/\.m$/, ''); const fi = I.fileInfo(nm); if (!fi) err(`Không tìm thấy file ${nm}.m`); if (fi.kind !== 'script') err(`${nm}.m không phải script`); I.runScript(fi); };
   FN.help = I => I.print('Trình chạy MATLAB trên web hỗ trợ: ' + Object.keys(FN).filter(k => FN[k]).sort().join(', '));
   FN.floor2 = undefined; delete FN.floor2;
 
@@ -3947,6 +4028,8 @@ const MLAB = (() => {
   class Interp {
     constructor(o = {}) {
       this.vars = new Map(); this.out = ['']; this.figs = []; this.cf = -1; this.rand = rng(o.seed || 20241); this.endStack = [];
+      this.files = o.files instanceof Map ? o.files : new Map(Object.entries(o.files || {}));
+      this.fcache = new Map(); this.classes = new Map(); this.localStack = []; this.curFile = null;
       this.allowSound = !!o.allowSound; this.onSound = o.onSound; this.t0 = performance.now(); this.deadline = Date.now() + (o.timeout || 8000); this.ops = 0; this.long = false; this.depth = 0;
     }
     write(s) { const parts = s.split('\n'); this.out[this.out.length - 1] += parts[0]; for (let k = 1; k < parts.length; k++) this.out.push(parts[k]); }
@@ -3955,6 +4038,8 @@ const MLAB = (() => {
     tick() { if ((++this.ops & 1023) === 0 && Date.now() > this.deadline) throw new MErr('Hết thời gian chạy (quá 8 giây). Kiểm tra vòng lặp vô hạn hoặc giảm kích thước dữ liệu.'); }
     run(src) {
       const ast = parse(lex(src));
+      const cdef = ast.find(s => s.t === 'classdef');
+      if (cdef) throw new MErr(`classdef phải nằm trong file riêng tên ${cdef.name}.m (tạo tệp mới trong Thư mục làm việc), không đặt trong script`, cdef.line);
       this.ufuncs = new Map();
       for (const s of ast) if (s.t === 'func') {
         if (this.ufuncs.has(s.name)) throw new MErr(`Hàm '${s.name}' được khai báo hai lần`, s.line);
@@ -3962,7 +4047,63 @@ const MLAB = (() => {
       }
       try { this.block(ast); } catch (e) { if (e instanceof RetSig) return; if (e instanceof BreakSig || e instanceof ContSig) throw new MErr('break/continue chỉ dùng trong vòng lặp'); throw e; }
     }
-    callUser(f, args, no) {
+    /* ---- file .m riêng: hàm, script, classdef ---- */
+    fileInfo(name) {
+      if (!this.files || !this.files.has(name)) return null;
+      if (this.fcache.has(name)) return this.fcache.get(name);
+      let ast;
+      try { ast = parse(lex(this.files.get(name))); } catch (e) { if (e instanceof MErr) e.file = name; throw e; }
+      const funcs = ast.filter(s => s.t === 'func'), locals = new Map(funcs.map(f => [f.name, f]));
+      funcs.forEach(f => { f.file = name; f.locals = locals; });
+      let fi;
+      if (ast[0] && ast[0].t === 'classdef') { ast[0].methods.forEach(m => { m.file = name; m.locals = locals; }); fi = { kind: 'class', name, cd: ast[0], locals }; }
+      else if (ast[0] && ast[0].t === 'func') fi = { kind: 'func', name, main: ast[0], locals };
+      else fi = { kind: 'script', name, ast, locals };
+      this.fcache.set(name, fi); return fi;
+    }
+    runScript(fi) {
+      const sf = this.curFile; this.curFile = fi.name; this.localStack.push(fi.locals);
+      try { this.block(fi.ast); } catch (e) { if (!(e instanceof RetSig)) throw e; } finally { this.curFile = sf; this.localStack.pop(); }
+    }
+    isClassName(n) { const fi = this.fileInfo(n); return !!fi && fi.kind === 'class'; }
+    loadClass(name) {
+      if (this.classes.has(name)) return this.classes.get(name);
+      const fi = this.fileInfo(name); if (!fi || fi.kind !== 'class') return null;
+      const cd = fi.cd;
+      if (cd.name !== name) { const e = new MErr(`Tên lớp '${cd.name}' phải trùng tên file ${name}.m`, cd.line); e.file = name; throw e; }
+      const C = { name, sup: null, isHandle: false, props: new Map(), consts: new Map(), methods: new Map(), statics: new Map(), ctor: null };
+      for (const s of cd.supers) {
+        if (s === 'handle') { C.isHandle = true; continue; }
+        const P = this.loadClass(s); if (!P) err(`Không tìm thấy lớp cha '${s}' (cần file ${s}.m)`);
+        C.sup = P; if (P.isHandle) C.isHandle = true;
+        for (const [k, v] of P.props) C.props.set(k, v); for (const [k, v] of P.consts) C.consts.set(k, v);
+        for (const [k, v] of P.methods) C.methods.set(k, v); for (const [k, v] of P.statics) C.statics.set(k, v);
+      }
+      this.classes.set(name, C);
+      for (const p of cd.props) {
+        let v = EMPTY();
+        if (p.def) { const saved = this.vars; this.vars = new Map(); try { v = this.val(p.def); } catch (e) { if (e instanceof MErr) { e.line = e.line || cd.line; e.file = name; } throw e; } finally { this.vars = saved; } }
+        (p.constant ? C.consts : C.props).set(p.name, v);
+      }
+      for (const m of cd.methods) { if (m.name === name) C.ctor = m; else (m.static ? C.statics : C.methods).set(m.name, m); }
+      return C;
+    }
+    construct(C, args) {
+      const o = new Obj(C, new Map([...C.props].map(([k, v]) => [k, cloneV(v)])));
+      let cc = C; while (cc && !cc.ctor) cc = cc.sup;
+      if (!cc) { if (args.length) err(`Lớp ${C.name} không có hàm khởi tạo nên không nhận đối số`); return o; }
+      const out = cc.ctor.outs[0]; if (!out) err(`Hàm khởi tạo phải có dạng: function obj = ${cc.name}(...)`);
+      const r = this.callUser(cc.ctor, args, 1, { [out]: o });
+      if (!(r instanceof Obj)) err(`Hàm khởi tạo ${cc.name} phải trả về đối tượng`);
+      return r;
+    }
+    classMember(cls, name, argNodes, no) {
+      const C = this.loadClass(cls);
+      const sm = C.statics.get(name); if (sm) return this.callUser(sm, this.flat(argNodes), no);
+      if (C.consts.has(name)) { const v = C.consts.get(name); return argNodes.length ? getIndex(v, this.evalArgs(argNodes, v)) : v; }
+      err(`Lớp ${cls} không có phương thức tĩnh hay hằng số '${name}'`);
+    }
+    callUser(f, args, no, preset) {
       const np = f.params.length;
       if (args.length > np) err(`Hàm ${f.name} nhận tối đa ${np} đối số nhưng được gọi với ${args.length}`);
       if (no > Math.max(1, f.outs.length)) err(`Hàm ${f.name} chỉ trả về ${f.outs.length} giá trị`);
@@ -3970,7 +4111,10 @@ const MLAB = (() => {
       const scope = new Map();
       f.params.forEach((p, k) => { if (p !== '~' && args[k] !== undefined) scope.set(p, cloneV(args[k])); });
       scope.set('nargin', S(args.length)); scope.set('nargout', S(no));
-      const saved = this.vars; this.vars = scope;
+      if (preset) for (const k in preset) scope.set(k, preset[k]);
+      const saved = this.vars, savedFile = this.curFile; this.vars = scope;
+      if (f.file !== undefined) this.curFile = f.file;
+      if (f.locals) this.localStack.push(f.locals);
       try {
         try { this.block(f.body); }
         catch (e) { if (e instanceof RetSig) { } else if (e instanceof BreakSig || e instanceof ContSig) err('break/continue chỉ dùng trong vòng lặp'); else throw e; }
@@ -3981,7 +4125,7 @@ const MLAB = (() => {
           outs.push(scope.get(o));
         }
         return no >= 2 ? outs : outs[0];
-      } finally { this.vars = saved; this.depth--; }
+      } finally { this.vars = saved; this.depth--; this.curFile = savedFile; if (f.locals) this.localStack.pop(); }
     }
     block(list) { for (const s of list) this.exec(s); }
     exec(s) {
@@ -4014,7 +4158,13 @@ const MLAB = (() => {
           }
           case 'massign': {
             let vs = this.eval(s.rhs, s.lhs.length); if (vs instanceof CSL) vs = vs.v; if (!Array.isArray(vs)) vs = [vs];
-            s.lhs.forEach((nm, k) => { if (nm === '~') return; if (vs[k] === undefined) err(`Hàm không trả về đủ ${s.lhs.length} giá trị`); this.vars.set(nm, vs[k]); if (s.show) this.print(display(nm, vs[k], this.long)); });
+            s.lhs.forEach((L, k) => {
+              if (L === '~') return;
+              if (vs[k] === undefined) err(`Hàm không trả về đủ ${s.lhs.length} giá trị`);
+              if (!L.chain.length) this.vars.set(L.name, vs[k]);
+              else this.vars.set(L.name, this.assignPath(this.vars.get(L.name), L.chain, cloneV(vs[k]), false));
+              if (s.show) this.print(display(L.name, this.vars.get(L.name), this.long));
+            });
             return;
           }
           case 'if': {
@@ -4046,10 +4196,10 @@ const MLAB = (() => {
           case 'break': throw new BreakSig();
           case 'continue': throw new ContSig();
           case 'return': throw new RetSig();
-          case 'func': return;
+          case 'func': case 'classdef': return;
           case 'cmd': { const f = FN[s.name]; if (!f) err(`Không có lệnh '${s.name}'`); f(this, s.args.map(a => new Str(a)), 0); return; }
         }
-      } catch (e) { if (e instanceof MErr && e.line == null) e.line = s.line; throw e; }
+      } catch (e) { if (e instanceof MErr && e.line == null) { e.line = s.line; e.file = this.curFile; } throw e; }
     }
     evalArgs(args, target) {
       return args.map((a, k) => {
@@ -4059,8 +4209,7 @@ const MLAB = (() => {
       });
     }
     callValue(f, args, no) {
-      if (f instanceof FH && this.ufuncs && this.ufuncs.has(f.name)) return this.callUser(this.ufuncs.get(f.name), args, no);
-      if (f instanceof FH) { const g = FN[f.name]; if (!g) { if (this.vars.get(f.name) instanceof Fun) return this.callValue(this.vars.get(f.name), args, no); err(`Không có hàm '${f.name}'`); } return g(this, args, no); }
+      if (f instanceof FH) return this.callFn(f.name, args, no);
       if (f instanceof Fun) {
         if (args.length > f.params.length) err(`Hàm ẩn danh nhận ${f.params.length} đối số nhưng được gọi với ${args.length}`);
         if (++this.depth > 200) err('Đệ quy quá sâu');
@@ -4070,7 +4219,19 @@ const MLAB = (() => {
       err('Giá trị này không gọi như hàm được');
     }
     callFn(name, args, no) {
+      // thứ tự tìm: phương thức của đối tượng > hàm cục bộ trong file > hàm cuối script > file .m > hàm có sẵn
+      const ob = args.find(a => a instanceof Obj);
+      if (ob) { const m = ob.C.methods.get(name); if (m) return this.callUser(m, args, no); }
+      const loc = this.localStack[this.localStack.length - 1];
+      if (loc && loc.has(name)) return this.callUser(loc.get(name), args, no);
       if (this.ufuncs && this.ufuncs.has(name)) return this.callUser(this.ufuncs.get(name), args, no);
+      const fi = this.fileInfo(name);
+      if (fi) {
+        if (fi.kind === 'class') return this.construct(this.loadClass(name), args);
+        if (fi.kind === 'func') return this.callUser(fi.main, args, no);
+        if (args.length) err(`${name}.m là script nên không nhận đối số`);
+        this.runScript(fi); return undefined;
+      }
       const f = FN[name];
       if (!f) {
         const hint = { sum: '', length: '' }[name];
@@ -4125,7 +4286,15 @@ const MLAB = (() => {
           return new Cell(v, rows.length, c);
         }
         case 'field': case 'dfield': {
+          if (n.t === 'field' && n.e.t === 'id' && !this.vars.has(n.e.v) && this.isClassName(n.e.v)) return this.classMember(n.e.v, n.name, [], no);
           const b = this.val(n.e), name = n.t === 'field' ? n.name : str(this.val(n.ne), 'Tên trường động');
+          if (b instanceof Obj) {
+            if (b.p.has(name)) return b.p.get(name);
+            const m = b.C.methods.get(name); if (m) return this.callUser(m, [b], no);
+            const sm = b.C.statics.get(name); if (sm) return this.callUser(sm, [], no);
+            if (b.C.consts.has(name)) return b.C.consts.get(name);
+            err(`Lớp ${b.C.name} không có thuộc tính hay phương thức '${name}'`);
+          }
           if (!(b instanceof Struct)) err(`Không truy cập được .${name}: giá trị là ${typeName(b)}, không phải struct`);
           const get = mp => { if (!mp.has(name)) err(`Struct không có trường '${name}'` + (mp.size ? ` (các trường: ${[...mp.keys()].join(', ')})` : '')); return mp.get(name); };
           if (b.el.length === 1) return get(b.el[0]);
@@ -4135,6 +4304,14 @@ const MLAB = (() => {
         case 'fh': return new FH(n.v);
         case 'idx': {
           const tg = n.target;
+          if (tg.t === 'field') {   // obj.phuongThuc(...)  hoặc  TenLop.phuongThucTinh(...)
+            if (tg.e.t === 'id' && !this.vars.has(tg.e.v) && this.isClassName(tg.e.v)) return this.classMember(tg.e.v, tg.name, n.args, no);
+            const b0 = this.val(tg.e);
+            if (b0 instanceof Obj && !b0.p.has(tg.name)) {
+              const m = b0.C.methods.get(tg.name); if (m) return this.callUser(m, [b0, ...this.flat(n.args)], no);
+              const sm = b0.C.statics.get(tg.name); if (sm) return this.callUser(sm, this.flat(n.args), no);
+            }
+          }
           if (tg.t === 'id' && !this.vars.has(tg.v)) {
             if (n.brace) err(`Không có biến cell '${tg.v}'`);
             if (n.args.some(a => a.t === 'colon')) err(`Không có biến '${tg.v}' để lấy chỉ số`);
@@ -4164,6 +4341,11 @@ const MLAB = (() => {
       if (acc.k === 'field' || acc.k === 'dfield') {
         const name = acc.k === 'field' ? acc.name : str(this.val(acc.e), 'Tên trường động');
         if (!/^[A-Za-z]\w*$/.test(name)) err(`Tên trường không hợp lệ: '${name}'`);
+        if (cur instanceof Obj) {
+          if (!cur.p.has(name)) err(`Lớp ${cur.C.name} không có thuộc tính '${name}'` + (cur.C.props.size ? ` (các thuộc tính: ${[...cur.C.props.keys()].join(', ')})` : ''));
+          cur.p.set(name, rest.length ? this.assignPath(cur.p.get(name), rest, rhs, del) : rhs);
+          return cur;
+        }
         let s = isEmpty(cur) ? new Struct(1, 1, [new Map()]) : cur;
         if (!(s instanceof Struct)) err(`Không gán được .${name}: biến đang là ${typeName(s)}, không phải struct`);
         if (s.el.length !== 1) err(`Mảng struct có ${s.el.length} phần tử: dùng s(k).${name} = ...`);
@@ -4207,7 +4389,7 @@ const MLAB = (() => {
   function run(src, opts) {
     const I = new Interp(opts); let error = null;
     try { I.run(src); } catch (e) {
-      if (e instanceof MErr) error = { msg: e.message, line: e.line };
+      if (e instanceof MErr) error = { msg: e.message, line: e.line, file: e.file || null };
       else { error = { msg: 'Lỗi nội bộ: ' + (e && e.message), line: null }; if (typeof console !== 'undefined') console.error(e); }
     }
     return { text: I.text(), figs: I.figs.filter(f => f.axes.length), error, vars: I.vars, I };
@@ -4745,7 +4927,7 @@ legend('lý tưởng', 'wrap', 'saturate'); grid on; title('Khuếch đại 1.4 
 };
 
 /* ================= MATLAB: giao diện soạn thảo, chạy và vẽ ================= */
-const ML_KW = new Set(['if', 'elseif', 'else', 'end', 'for', 'while', 'break', 'continue', 'return', 'function', 'switch', 'case', 'otherwise']);
+const ML_KW = new Set(['if', 'elseif', 'else', 'end', 'for', 'while', 'break', 'continue', 'return', 'function', 'switch', 'case', 'otherwise', 'classdef', 'properties', 'methods', 'events']);
 const ML_FN = new Set(MLAB.BUILTINS);
 const escH = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 function mlHighlight(src, errLine) {
@@ -4946,7 +5128,7 @@ document.querySelectorAll('.mlab[data-ml]').forEach(box => {
   ta.addEventListener('input', () => { errLine = null; paint(); });
   const run = (user) => {
     const t0 = performance.now();
-    const r = MLAB.run(ta.value, { allowSound: user, onSound: (x, fs) => playSamples(x, fs), seed: 2024 });
+    const r = MLAB.run(ta.value, { allowSound: user, onSound: (x, fs) => playSamples(x, fs), seed: 2024, files: mlFilesMap() });
     const ms = performance.now() - t0;
     let txt = escH(r.text.replace(/\s+$/, ''));
     if (r.error) txt += (txt ? '\n' : '') + `<span class="e">Lỗi${r.error.line ? ' ở dòng ' + r.error.line : ''}: ${escH(r.error.msg)}</span>`;
@@ -4967,6 +5149,205 @@ document.querySelectorAll('.mlab[data-ml]').forEach(box => {
     try { await navigator.clipboard.writeText(ta.value); st.className = 'st'; st.textContent = 'Đã sao chép. Dán vào MATLAB hoặc Octave để chạy.'; }
     catch (e) { ta.focus(); ta.select(); st.className = 'st'; st.textContent = 'Đã chọn toàn bộ code, nhấn Ctrl + C để sao chép.'; }
   };
+  mlObs.observe(box);
+});
+
+/* ================= THƯ MỤC LÀM VIỆC: nhiều file .m (hàm, script, classdef) ================= */
+const ML_DEFAULT_FILES = {
+main: `%% main.m: script chính, gọi hàm và lớp nằm trong các file .m khác
+x = sin(2*pi*0.05*(0:199)) + 0.4*randn(1, 200);
+
+% 1) Hàm trong file riêng nang_luong.m (có hàm phụ bên trong file)
+[E, P] = nang_luong(x);
+fprintf('Năng lượng %.2f, công suất %.3f\\n', E, P);
+
+% 2) Lớp giá trị BoLocFIR (file BoLocFIR.m)
+lp = BoLocFIR(31, 0.1)            % gọi hàm khởi tạo
+y  = lp.loc(x);                   % gọi phương thức: obj.phuongThuc(...)
+lp2 = lp.doiTanSo(0.3);           % lớp giá trị: thay đổi trả về đối tượng MỚI
+fprintf('lp.wc = %.2f (không đổi), lp2.wc = %.2f\\n', lp.wc, lp2.wc);
+
+% 3) Phương thức tĩnh và hằng số của lớp
+h = BoLocFIR.thongThap(0.25);
+fprintf('%s, %d hệ số\\n', BoLocFIR.MO_TA, h.N);
+
+% 4) Lớp tham chiếu BoDem < handle (file BoDem.m)
+d = BoDem();
+d.tang();  tang(d, 10);           % hai cách gọi phương thức
+d2 = d;    d2.tang();             % d2 và d là CÙNG một đối tượng
+disp(d)                           % dùng phương thức disp tự định nghĩa
+
+% 5) Gán nhiều đầu ra thẳng vào trường struct
+[cfg.b, cfg.a] = butter(4, 0.2);
+fprintf('cfg.a có %d hệ số\\n', numel(cfg.a));
+
+plot(x); hold on; plot(y, 'LineWidth', 2); hold off; grid on
+legend('x', 'lp.loc(x)'); title('Hàm và lớp trong các file .m riêng')`,
+nang_luong: `function [E, P] = nang_luong(x)
+% NANG_LUONG  Năng lượng và công suất trung bình của tín hiệu
+%   [E, P] = nang_luong(x)
+    E = tong_binh_phuong(x);
+    P = E / numel(x);
+end
+
+function s = tong_binh_phuong(x)
+% Hàm phụ: chỉ gọi được từ bên trong file nang_luong.m
+    s = sum(abs(x).^2);
+end`,
+BoLocFIR: `classdef BoLocFIR
+% BOLOCFIR  Bộ lọc FIR thông thấp thiết kế bằng cửa sổ Hamming (lớp giá trị)
+    properties
+        N = 31          % số hệ số
+        wc = 0.2        % tần số cắt, chuẩn hoá theo Nyquist
+        h               % các hệ số
+    end
+    properties (Constant)
+        MO_TA = 'FIR thông thấp, cửa sổ Hamming'
+    end
+    methods
+        function obj = BoLocFIR(N, wc)
+            % Hàm khởi tạo: đối số là tuỳ chọn
+            if nargin >= 1, obj.N = N; end
+            if nargin >= 2, obj.wc = wc; end
+            obj.h = fir1(obj.N - 1, obj.wc);
+        end
+        function y = loc(obj, x)
+            y = filter(obj.h, 1, x);
+        end
+        function obj = doiTanSo(obj, wc)
+            % Lớp giá trị: phải trả về obj đã sửa
+            obj.wc = wc;
+            obj.h = fir1(obj.N - 1, wc);
+        end
+    end
+    methods (Static)
+        function obj = thongThap(wc)
+            obj = BoLocFIR(51, wc);
+        end
+    end
+end`,
+BoDem: `classdef BoDem < handle
+% BODEM  Bộ đếm (lớp handle): mọi biến cùng trỏ tới một đối tượng
+    properties
+        giaTri = 0
+    end
+    methods
+        function tang(obj, k)
+            if nargin < 2, k = 1; end
+            obj.giaTri = obj.giaTri + k;   % sửa trực tiếp, không cần trả về
+        end
+        function disp(obj)
+            fprintf('BoDem đang ở %d\\n', obj.giaTri);
+        end
+    end
+end`
+};
+const ML_FILES_KEY = 'dsp-lab-files-v1';
+let mlFiles = (() => {
+  try { const s = JSON.parse(localStorage.getItem(ML_FILES_KEY) || 'null'); if (s && typeof s === 'object' && typeof s.main === 'string') return s; } catch (e) { }
+  return Object.assign({}, ML_DEFAULT_FILES);
+})();
+let mlSaveT = 0;
+const mlSaveFiles = () => { clearTimeout(mlSaveT); mlSaveT = setTimeout(() => { try { localStorage.setItem(ML_FILES_KEY, JSON.stringify(mlFiles)); } catch (e) { } }, 300); };
+function mlFilesMap() { return new Map(Object.entries(mlFiles)); }
+const mlKind = src => { const s = src.replace(/^(\s*%[^\n]*\n|\s*\n)*/, ''); return /^\s*classdef\b/.test(s) ? 'class' : /^\s*function\b/.test(s) ? 'func' : 'script'; };
+const ML_KIND_LABEL = { class: 'lớp', func: 'hàm', script: 'script' };
+
+document.querySelectorAll('.mlab[data-ml=workspace]').forEach(box => {
+  box.innerHTML = `<div class="lab-h"><b>Thư mục làm việc: nhiều file .m</b><span class="tag">MATLAB · chạy ngay trên trang</span></div>
+  <div class="ml-body">
+    <p class="ml-desc">Mỗi tab là một file. Nút Chạy luôn chạy <code>main.m</code> (hoặc file script đang mở). Các file được lưu trên trình duyệt này, và mọi khung code khác trên trang cũng gọi được các hàm, lớp ở đây.</p>
+    <div class="ml-tabs" role="tablist" aria-label="Các file .m"></div>
+    <div class="ml-newfile" hidden>
+      <label class="ctl"><span class="lbl">Tên file (chữ, số, _ ; bắt đầu bằng chữ)</span><input type="text" id="mlNewName" placeholder="vd: loc_trung_binh" autocomplete="off"></label>
+      <label class="ctl"><span class="lbl">Loại</span><select id="mlNewKind"><option value="func">Hàm (function)</option><option value="class">Lớp (classdef)</option><option value="handle">Lớp handle</option><option value="script">Script</option></select></label>
+      <div class="btns"><button class="btn" type="button" data-a="create">Tạo file</button><button class="btn ghost" type="button" data-a="cancel">Huỷ</button></div>
+      <span class="ml-note" id="mlNewMsg" aria-live="polite"></span>
+    </div>
+    <div class="ml-ed"><div class="ml-wrap"><pre class="ml-hl" aria-hidden="true"></pre><textarea class="ml-ta" id="ml-workspace" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off" aria-label="Nội dung file .m đang mở"></textarea></div></div>
+    <div class="ml-bar">
+      <button class="btn" type="button" data-a="run">▶ Chạy main.m</button>
+      <button class="btn ghost" type="button" data-a="del">Xoá file này</button>
+      <button class="btn ghost" type="button" data-a="restore">Khôi phục file mẫu</button>
+      <button class="btn ghost" type="button" data-a="copy">Sao chép file</button>
+      <span class="st" aria-live="polite"></span>
+    </div>
+    <pre class="ml-con" hidden></pre>
+    <div class="ml-figs"></div>
+  </div>`;
+  const $q = s => box.querySelector(s);
+  const tabs = $q('.ml-tabs'), ta = $q('textarea'), hl = $q('.ml-hl'), con = $q('.ml-con'), figs = $q('.ml-figs'), st = $q('.st');
+  const runB = $q('[data-a=run]'), delB = $q('[data-a=del]'), resB = $q('[data-a=restore]'), form = $q('.ml-newfile');
+  let cur = 'main', errLine = null, arm = null;
+  const disarm = () => { arm = null; delB.textContent = 'Xoá file này'; resB.textContent = 'Khôi phục file mẫu'; };
+  const paint = () => { hl.innerHTML = mlHighlight(ta.value, errLine); };
+  const renderTabs = () => {
+    tabs.innerHTML = Object.keys(mlFiles).map(n => `<button type="button" role="tab" class="ml-tab${n === cur ? ' on' : ''}" aria-selected="${n === cur}" data-f="${escH(n)}">${escH(n)}.m <small>${ML_KIND_LABEL[mlKind(mlFiles[n])]}</small></button>`).join('') +
+      '<button type="button" class="ml-tab add" data-new="1">+ Tệp mới</button>';
+  };
+  const open = n => {
+    cur = n; ta.value = mlFiles[n]; errLine = null; disarm(); paint(); renderTabs();
+    const k = mlKind(mlFiles[n]);
+    runB.textContent = k === 'script' ? `▶ Chạy ${n}.m` : '▶ Chạy main.m';
+    delB.disabled = n === 'main';
+  };
+  tabs.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.new) { form.hidden = false; $q('#mlNewMsg').textContent = ''; $q('#mlNewName').focus(); return; }
+    open(b.dataset.f);
+  });
+  ta.addEventListener('input', () => { mlFiles[cur] = ta.value; mlSaveFiles(); errLine = null; paint(); const k = mlKind(ta.value); runB.textContent = k === 'script' ? `▶ Chạy ${cur}.m` : '▶ Chạy main.m'; });
+  ta.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); run(true); return; }
+    if (e.key === 'Tab' && !e.shiftKey) { e.preventDefault(); ta.setRangeText('    ', ta.selectionStart, ta.selectionEnd, 'end'); ta.dispatchEvent(new Event('input')); }
+  });
+  const run = user => {
+    disarm();
+    const target = mlKind(mlFiles[cur]) === 'script' ? cur : 'main';
+    if (mlFiles[target] === undefined) { st.className = 'st bad'; st.textContent = 'Không có main.m: hãy tạo một file script tên main'; return; }
+    const t0 = performance.now();
+    const r = MLAB.run(mlFiles[target], { allowSound: user, onSound: (x, fs) => playSamples(x, fs), seed: 2024, files: mlFilesMap() });
+    const ms = performance.now() - t0;
+    let txt = escH(r.text.replace(/\s+$/, ''));
+    if (r.error) {
+      const ef = r.error.file || target;
+      txt += (txt ? '\n' : '') + `<span class="e">Lỗi${r.error.line ? ` ở dòng ${r.error.line}` : ''} của ${escH(ef)}.m: ${escH(r.error.msg)}</span>`;
+      if (ef !== cur && mlFiles[ef] !== undefined) open(ef);
+      errLine = ef === cur ? r.error.line : null; paint();
+    } else { errLine = null; paint(); }
+    con.innerHTML = txt; con.hidden = !txt;
+    mlRenderFigs(figs, r.figs);
+    st.className = 'st' + (r.error ? ' bad' : '');
+    st.textContent = r.error ? 'Có lỗi, xem bên dưới' : `Đã chạy ${target}.m trong ${ms < 1 ? '<1' : Math.round(ms)} ms`;
+  };
+  box._mlRun = run;
+  runB.onclick = () => run(true);
+  $q('[data-a=cancel]').onclick = () => { form.hidden = true; };
+  $q('[data-a=create]').onclick = () => {
+    const name = $q('#mlNewName').value.trim().replace(/\.m$/, ''), kind = $q('#mlNewKind').value, msg = $q('#mlNewMsg');
+    if (!/^[A-Za-z]\w{0,62}$/.test(name)) { msg.textContent = 'Tên không hợp lệ: chỉ dùng chữ không dấu, số và _, bắt đầu bằng chữ.'; return; }
+    if (mlFiles[name] !== undefined) { msg.textContent = `Đã có file ${name}.m.`; return; }
+    const tpl = kind === 'func' ? `function y = ${name}(x)\n% ${name.toUpperCase()}  Mô tả ngắn về hàm\n    y = x;\nend\n`
+      : kind === 'script' ? `% ${name}.m: script\ndisp('Xin chào từ ${name}.m')\n`
+        : `classdef ${name}${kind === 'handle' ? ' < handle' : ''}\n    properties\n        giaTri = 0\n    end\n    methods\n        function obj = ${name}(v)\n            if nargin >= 1, obj.giaTri = v; end\n        end\n        function hienThi(obj)\n            fprintf('${name}: %g\\n', obj.giaTri);\n        end\n    end\nend\n`;
+    mlFiles[name] = tpl; mlSaveFiles(); form.hidden = true; $q('#mlNewName').value = '';
+    open(name);
+    st.className = 'st'; st.textContent = MLAB.BUILTINS.includes(name) ? `Đã tạo ${name}.m (chú ý: tên này che hàm có sẵn ${name})` : `Đã tạo ${name}.m. Gọi nó từ main.m: ${kind === 'script' ? name : kind === 'func' ? name + '(3)' : 'o = ' + name + '(5); o.hienThi()'}`;
+  };
+  delB.onclick = () => {
+    if (cur === 'main') return;
+    if (arm !== 'del') { disarm(); arm = 'del'; delB.textContent = `Bấm lần nữa để xoá ${cur}.m`; return; }
+    delete mlFiles[cur]; mlSaveFiles(); open('main'); st.className = 'st'; st.textContent = 'Đã xoá file.';
+  };
+  resB.onclick = () => {
+    if (arm !== 'restore') { disarm(); arm = 'restore'; resB.textContent = 'Bấm lần nữa: mọi thay đổi sẽ mất'; return; }
+    mlFiles = Object.assign({}, ML_DEFAULT_FILES); mlSaveFiles(); open('main'); run(false); st.textContent = 'Đã khôi phục các file mẫu.';
+  };
+  $q('[data-a=copy]').onclick = async () => {
+    try { await navigator.clipboard.writeText(ta.value); st.className = 'st'; st.textContent = `Đã sao chép ${cur}.m. Trong MATLAB, lưu thành file ${cur}.m cùng thư mục.`; }
+    catch (e) { ta.focus(); ta.select(); st.className = 'st'; st.textContent = 'Đã chọn toàn bộ, nhấn Ctrl + C để sao chép.'; }
+  };
+  open('main');
   mlObs.observe(box);
 });
 
