@@ -113,7 +113,7 @@ main { min-width: 0; padding-block: 24px 80px; }
 .hero p { color: var(--muted); max-width: 60ch; }
 .hero .scope { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 10px; }
 .hero .scope .cap { font-family: var(--f-mono); font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 2px 4px 6px; }
-.roadmap { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 24px; }
+.roadmap { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 24px; }
 .roadmap a { text-decoration: none; color: inherit; border: 1px solid var(--line); background: var(--panel); border-radius: var(--r); padding: 12px 14px; display: block; }
 .roadmap a:hover { border-color: var(--trace); }
 .roadmap b { font-family: var(--f-display); display: block; font-size: 15px; }
@@ -224,7 +224,7 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
   nav.toc { position: fixed; z-index: 25; top: calc(env(safe-area-inset-top, 0px) + 52px); left: 0; bottom: 0; width: min(300px, 86vw); max-height: none; background: var(--panel); border-right: 1px solid var(--line); padding: 16px; padding-left: max(16px, env(safe-area-inset-left, 0px)); transform: translateX(-105%); transition: transform .25s; }
   nav.toc.open { transform: none; }
   .hero { grid-template-columns: minmax(0, 1fr); }
-  .roadmap { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
 }
 @media (max-width: 640px) {
   .cols, .cols3 { grid-template-columns: minmax(0, 1fr); }
@@ -234,6 +234,40 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
   .stepper li { grid-template-columns: minmax(0, 1fr); }
   .stepper li::before { display: none; }
 }
+</style>
+<style>
+/* ---------- MATLAB: trình soạn thảo + kết quả ---------- */
+.mlab { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.mlab .lab-h .tag { color: var(--a4); }
+.ml-body { padding: 12px 16px 16px; display: grid; gap: 10px; }
+.ml-desc { font-size: 14px; color: var(--muted); max-width: 80ch; }
+.ml-ed { border: 1px solid var(--line); border-radius: 8px; background: var(--panel-2); overflow-x: auto; max-width: 100%; }
+.ml-ed:focus-within { border-color: var(--trace); }
+.ml-wrap { position: relative; display: inline-block; min-width: 100%; vertical-align: top; }
+.ml-hl, .ml-ta { font-family: var(--f-mono); font-size: 13px; line-height: 1.6; padding: 12px 14px 12px 50px; margin: 0; white-space: pre; tab-size: 4; letter-spacing: 0; font-variant-ligatures: none; }
+.ml-hl { color: var(--ink); pointer-events: none; min-height: 3em; counter-reset: ln; }
+.ml-hl .ln { display: block; position: relative; }
+.ml-hl .ln::before { counter-increment: ln; content: counter(ln); position: absolute; left: -42px; width: 30px; text-align: right; color: var(--muted); opacity: .55; }
+.ml-hl .ln.errl { background: color-mix(in srgb, var(--bad) 16%, transparent); }
+.ml-ta { position: absolute; inset: 0; width: 100%; height: 100%; background: transparent; color: transparent; caret-color: var(--ink); border: 0; outline: none; resize: none; overflow: hidden; }
+.ml-ta::selection { background: color-mix(in srgb, var(--trace) 30%, transparent); color: transparent; }
+.ml-hl .k { color: var(--a4); font-weight: 600; }
+.ml-hl .s { color: var(--a3); }
+.ml-hl .c { color: var(--muted); font-style: italic; }
+.ml-hl .n { color: var(--sample); }
+.ml-hl .f { color: var(--trace); }
+.ml-bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.ml-bar .st { font-size: 12px; color: var(--muted); margin-left: auto; font-variant-numeric: tabular-nums; }
+.ml-bar .st.bad { color: var(--bad); }
+.ml-con { font-family: var(--f-mono); font-size: 12.5px; line-height: 1.5; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin: 0; white-space: pre; overflow-x: auto; max-height: 340px; overflow-y: auto; }
+.ml-con .e { color: var(--bad); white-space: pre-wrap; }
+.ml-figs { display: grid; gap: 12px; }
+.ml-fig { overflow-x: auto; max-width: 100%; }
+.ml-fig .ft { font-family: var(--f-display); font-size: 14px; text-align: center; margin-bottom: 4px; }
+.ml-grid { display: grid; gap: 8px; }
+.ml-grid canvas { width: 100%; display: block; border-radius: 6px; }
+.ml-note { font-size: 12px; color: var(--muted); }
+.kbd { font-family: var(--f-mono); font-size: 11px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; background: var(--panel-2); }
 </style>
 </head>
 <body>
@@ -245,12 +279,14 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
     <span>Phòng Lab Tín Hiệu Số</span>
   </div>
   <div class="progress" title="Tiến độ: số chương đã làm xong câu đố"><i id="progBar"></i></div>
-  <span class="prog-txt" id="progTxt">0/15 chương</span>
+  <span class="prog-txt" id="progTxt">0/16 chương</span>
   <button class="iconbtn" id="themeBtn" aria-label="Đổi giao diện sáng/tối">◐ Giao diện</button>
 </header>
 
 <div class="shell">
 <nav class="toc" id="toc" aria-label="Mục lục">
+  <h4>Phần 0 · Công cụ</h4>
+  <a href="#c0"><span class="n">00</span>MATLAB cấp tốc<span class="ok">✓</span></a>
   <h4>Phần I · Nền tảng</h4>
   <a href="#c1"><span class="n">01</span>Tín hiệu &amp; hệ thống<span class="ok">✓</span></a>
   <a href="#c2"><span class="n">02</span>Lấy mẫu &amp; Nyquist<span class="ok">✓</span></a>
@@ -277,9 +313,9 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
 <main>
 <section class="hero" id="top">
   <div>
-    <div class="eyebrow">Khoá học tương tác · 15 chương</div>
+    <div class="eyebrow">Khoá học tương tác · 16 chương · có MATLAB</div>
     <h1>Xử lý tín hiệu số, từ mẫu đầu tiên đến mạch FPGA</h1>
-    <p>Mỗi chương gồm bốn phần: lý thuyết ngắn gọn, dẫn giải công thức <b>từng bước</b> (bấm “Bước tiếp”), một phòng thí nghiệm để bạn kéo thanh trượt và quan sát, và vài câu hỏi kiểm tra có giải thích. Mọi đồ thị đều được tính trực tiếp trong trình duyệt.</p>
+    <p>Mỗi chương gồm năm phần: lý thuyết ngắn gọn, dẫn giải công thức <b>từng bước</b> (bấm “Bước tiếp”), một phòng thí nghiệm để bạn kéo thanh trượt và quan sát, một đoạn <b>MATLAB chạy ngay trên trang</b> tái hiện thí nghiệm đó, và vài câu hỏi kiểm tra có giải thích. Mọi đồ thị đều được tính trực tiếp trong trình duyệt.</p>
   </div>
   <div class="scope">
     <div class="cap"><span>CH1 x(t) liên tục</span><span>CH2 x[n] đã lấy mẫu</span><span id="heroCap">f = 3 Hz · fs = 20 Hz</span></div>
@@ -287,11 +323,70 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
   </div>
 </section>
 <div class="roadmap">
+  <a href="#c0"><b>0. MATLAB</b><span>Cú pháp, đồ thị, hàm DSP, sân chơi</span></a>
   <a href="#c1"><b>I. Nền tảng</b><span>Tín hiệu, lấy mẫu, lượng tử, tích chập</span></a>
   <a href="#c6"><b>II. Miền tần số</b><span>DTFT, DFT, FFT, biến đổi Z</span></a>
   <a href="#c10"><b>III. Bộ lọc</b><span>Thiết kế FIR cửa sổ, IIR Butterworth</span></a>
   <a href="#c12"><b>IV. Nâng cao</b><span>STFT, đa tốc độ, LMS, fixed-point</span></a>
 </div>
+
+<!-- ===================== PHẦN 0 ===================== -->
+<div class="part-title">Phần 0 · Công cụ</div>
+
+<!-- ========== C0 ========== -->
+<section class="ch" id="c0" data-ch="0">
+  <h2><span class="no">00</span>MATLAB cấp tốc cho xử lý tín hiệu</h2>
+  <p class="lead">MATLAB là công cụ tiêu chuẩn trong học tập và nghiên cứu DSP: mọi thứ là ma trận, và các hàm như <code>fft</code>, <code>conv</code>, <code>filter</code>, <code>freqz</code>, <code>butter</code> đều có sẵn. Mỗi chương từ 1 đến 15 kết thúc bằng một đoạn MATLAB tái hiện lại thí nghiệm của chương đó.</p>
+  <div class="key"><b>Chạy được ngay trên trang.</b> Các khung code dưới đây chạy bằng một trình thông dịch MATLAB thu gọn viết bằng JavaScript: sửa code rồi bấm <b>▶ Chạy</b> (hoặc <span class="kbd">Ctrl</span> + <span class="kbd">Enter</span>) để xem kết quả và đồ thị. Trình chạy này hỗ trợ khoảng 200 hàm thường dùng trong DSP, nhưng không phải MATLAB đầy đủ (chưa có <code>function</code> trong file, struct, ma trận nhiều chiều). Mọi đoạn code đều viết đúng cú pháp MATLAB thật, nên bạn có thể bấm <b>Sao chép code</b> rồi chạy trong MATLAB, <a href="https://matlab.mathworks.com" target="_blank" rel="noopener">MATLAB Online</a> hoặc GNU Octave (Octave cần <code>pkg load signal</code>).</div>
+
+  <h3>1. Vector và ma trận</h3>
+  <div class="mlab" data-ml="c0a"></div>
+  <h3>2. Phép toán từng phần tử</h3>
+  <div class="prose"><p>Trong DSP, tín hiệu là vector. Nhân hai tín hiệu (ví dụ nhân cửa sổ) là nhân <b>từng mẫu</b>, nên phải dùng <code>.*</code>. Dấu <code>*</code> không có chấm là nhân ma trận theo đại số tuyến tính.</p></div>
+  <div class="mlab" data-ml="c0b"></div>
+  <h3>3. Chỉ số và cắt mảng</h3>
+  <div class="mlab" data-ml="c0c"></div>
+  <h3>4. Số phức</h3>
+  <div class="mlab" data-ml="c0d"></div>
+  <h3>5. Vẽ đồ thị</h3>
+  <div class="mlab" data-ml="c0e"></div>
+  <h3>6. Vòng lặp và vector hoá</h3>
+  <div class="mlab" data-ml="c0f"></div>
+  <h3>7. Hàm ẩn danh và in kết quả</h3>
+  <div class="mlab" data-ml="c0g"></div>
+
+  <h3>Bảng tra: công thức DSP và hàm MATLAB</h3>
+  <div class="tbl"><table class="t">
+    <thead><tr><th>Phép toán</th><th>Công thức</th><th>MATLAB</th><th>Lưu ý</th></tr></thead>
+    <tbody>
+      <tr><td>Tích chập</td><td>\(y = x * h\)</td><td><code>y = conv(x, h)</code></td><td>Độ dài \(L_x + L_h - 1\)</td></tr>
+      <tr><td>Phương trình sai phân</td><td>\(\sum a_k y[n-k] = \sum b_k x[n-k]\)</td><td><code>y = filter(b, a, x)</code></td><td>Độ dài bằng x; <code>a(1)</code> phải khác 0</td></tr>
+      <tr><td>DFT / FFT</td><td>\(X[k] = \sum x[n]e^{-j2\pi kn/N}\)</td><td><code>X = fft(x, N)</code></td><td>Bin k nằm ở <code>X(k+1)</code>; tần số \(k f_s/N\)</td></tr>
+      <tr><td>DFT ngược</td><td>\(x[n] = \frac1N\sum X[k]e^{j2\pi kn/N}\)</td><td><code>x = ifft(X)</code></td><td></td></tr>
+      <tr><td>Đáp ứng tần số</td><td>\(H(e^{j\omega})\)</td><td><code>[H, w] = freqz(b, a, 512)</code></td><td>Thêm <code>fs</code> để trục theo Hz</td></tr>
+      <tr><td>Đáp ứng xung</td><td>\(h[n]\)</td><td><code>h = impz(b, a, N)</code></td><td></td></tr>
+      <tr><td>Cực / không</td><td>nghiệm của \(A(z)\), \(B(z)\)</td><td><code>roots(a)</code>, <code>zplane(b, a)</code></td><td><code>poly(r)</code> làm ngược lại</td></tr>
+      <tr><td>Cửa sổ</td><td>\(w[n]\)</td><td><code>hamming(N)</code>, <code>hann(N)</code>, <code>blackman(N)</code>, <code>kaiser(N, β)</code></td><td>Trả về vector <b>cột</b></td></tr>
+      <tr><td>FIR cửa sổ</td><td>\(h_d[n]w[n]\)</td><td><code>h = fir1(n, Wn)</code></td><td>n là bậc (n + 1 hệ số), \(W_n = f_c/(f_s/2)\)</td></tr>
+      <tr><td>Butterworth</td><td>song tuyến</td><td><code>[b, a] = butter(N, Wn)</code></td><td><code>'high'</code> cho thông cao</td></tr>
+      <tr><td>Đổi tốc độ</td><td>\(x[Mn]\), chèn 0</td><td><code>downsample(x, M)</code>, <code>upsample(x, L)</code></td><td>Nhớ lọc chống chồng phổ / xoá ảnh</td></tr>
+      <tr><td>Phổ đồ</td><td>STFT</td><td><code>spectrogram(x, win, nov, nfft, fs, 'yaxis')</code></td><td></td></tr>
+      <tr><td>Decibel</td><td>\(20\log_{10}|x|\)</td><td><code>20*log10(abs(x))</code> hoặc <code>mag2db(x)</code></td><td></td></tr>
+    </tbody></table></div>
+
+  <h3>Năm lỗi hay gặp khi chuyển công thức DSP sang MATLAB</h3>
+  <div class="prose"><ol>
+    <li><b>Chỉ số từ 1:</b> \(x[0]\) là <code>x(1)</code>, \(X[k]\) là <code>X(k+1)</code>. Trục vẽ nên là <code>n = 0:N-1</code>, không phải <code>1:N</code>.</li>
+    <li><b>Quên dấu chấm:</b> <code>x*w</code> báo lỗi kích thước hoặc ra tích vô hướng; đúng là <code>x.*w</code>.</li>
+    <li><b>Hàng hay cột:</b> cửa sổ, <code>freqz</code>, <code>roots</code> trả về cột. Nhân cột với hàng bằng <code>.*</code> tạo ra cả một ma trận (mở rộng ngầm) thay vì báo lỗi. Dùng <code>w'</code> hoặc <code>x(:)</code> cho đồng nhất.</li>
+    <li><b>Tần số chuẩn hoá:</b> <code>fir1</code>, <code>butter</code> dùng \(W_n\) chuẩn hoá theo <b>Nyquist</b> (1 ứng với \(f_s/2\), tức \(\omega = \pi\)), không theo \(f_s\).</li>
+    <li><b>Dấu của hệ số a:</b> \(y[n] = x[n] + 0.8y[n-1]\) ứng với <code>a = [1 -0.8]</code>, vì <code>filter</code> đưa các số hạng y sang vế trái.</li>
+  </ol></div>
+
+  <h3>Sân chơi</h3>
+  <div class="mlab" data-ml="sandbox"></div>
+  <div class="quiz" data-quiz="0"></div>
+</section>
 
 <!-- ===================== PHẦN I ===================== -->
 <div class="part-title">Phần I · Nền tảng</div>
@@ -368,6 +463,8 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
       <tr><td><b>Nhân quả</b></td><td>\(y[n]\) chỉ phụ thuộc \(x[m]\) với \(m\le n\)</td><td>\(y[n]=x[n]+x[n-1]\)</td><td>\(y[n]=x[n+1]\)</td></tr>
       <tr><td><b>Ổn định BIBO</b></td><td>Đầu vào bị chặn ⇒ đầu ra bị chặn</td><td>\(y[n]=0.5y[n-1]+x[n]\)</td><td>\(y[n]=y[n-1]+x[n]\) (bộ tích luỹ)</td></tr>
     </tbody></table></div>
+  <h3>Mô phỏng bằng MATLAB</h3>
+  <div class="mlab" data-ml="c1"></div>
   <div class="quiz" data-quiz="1"></div>
 </section>
 
@@ -406,6 +503,8 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
     <p><b>Trong thực tế:</b> trước bộ ADC luôn có bộ lọc thông thấp tương tự (<i>anti-aliasing filter</i>) để cắt bỏ thành phần trên \(f_s/2\), vì sau khi lấy mẫu thì không còn cách nào phân biệt tần số thật với tần số bí danh. Âm thanh CD dùng \(f_s = 44{,}1\) kHz để bao trùm tai người (~20 kHz) và chừa khoảng chuyển tiếp cho bộ lọc.</p>
     <p><b>Khôi phục lý tưởng</b> dùng nội suy sinc: \(x(t) = \sum_n x[n]\,\operatorname{sinc}\!\big((t-nT_s)/T_s\big)\). Bộ DAC thực tế dùng giữ bậc 0 (zero-order hold) rồi lọc làm trơn.</p>
   </div>
+  <h3>Mô phỏng bằng MATLAB</h3>
+  <div class="mlab" data-ml="c2"></div>
   <div class="quiz" data-quiz="2"></div>
 </section>
 
@@ -438,6 +537,8 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
     </div>
   </div>
   <div class="key warn"><b>Lưu ý:</b> khi biên độ nhỏ hơn toàn thang, SQNR giảm khoảng 6 dB mỗi lần biên độ giảm một nửa. Vì vậy cần đặt khuếch đại sao cho tín hiệu dùng hết dải ADC mà không bị cắt (clipping).</div>
+  <h3>Mô phỏng bằng MATLAB</h3>
+  <div class="mlab" data-ml="c3"></div>
   <div class="quiz" data-quiz="3"></div>
 </section>
 
@@ -476,6 +577,8 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
     <p><b>Ổn định và nhân quả theo \(h[n]\):</b> hệ LTI ổn định BIBO khi và chỉ khi \(\sum_n |h[n]| \lt \infty\); nhân quả khi và chỉ khi \(h[n] = 0\) với mọi \(n \lt 0\).</p>
     <p><b>FIR và IIR:</b> nếu \(h[n]\) có hữu hạn mẫu khác 0, hệ là FIR (Finite Impulse Response). Nếu vô hạn (ví dụ \(h[n] = a^n u[n]\)), hệ là IIR.</p>
   </div>
+  <h3>Mô phỏng bằng MATLAB</h3>
+  <div class="mlab" data-ml="c4"></div>
   <div class="quiz" data-quiz="4"></div>
 </section>
 
@@ -509,6 +612,8 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
       <div class="tbl"><table class="t" id="s5tab"></table></div>
     </div>
   </div>
+  <h3>Mô phỏng bằng MATLAB</h3>
+  <div class="mlab" data-ml="c5"></div>
   <div class="quiz" data-quiz="5"></div>
 </section>
 
@@ -552,6 +657,8 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
       <div class="readout wrap" id="s6info"></div>
     </div>
   </div>
+  <h3>Mô phỏng bằng MATLAB</h3>
+  <div class="mlab" data-ml="c6"></div>
   <div class="quiz" data-quiz="6"></div>
 </section>
 
@@ -597,6 +704,8 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
     </div>
   </div>
   <div class="key"><b>Mẹo hình học:</b> mỗi số hạng \(x[n]e^{-j2\pi kn/N}\) là một vectơ dài \(|x[n]|\), quay \(2\pi k/N\) mỗi bước. Nếu tín hiệu “bắt nhịp” với tốc độ quay, các vectơ cùng chỉ một hướng và cộng thành vectơ dài: bin đó lớn. Nếu không, chúng xoay vòng và triệt tiêu nhau.</div>
+  <h3>Mô phỏng bằng MATLAB</h3>
+  <div class="mlab" data-ml="c7"></div>
   <div class="quiz" data-quiz="7"></div>
 </section>
 
@@ -633,6 +742,8 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
       <div class="readout" id="s8cmp"></div>
     </div>
   </div>
+  <h3>Mô phỏng bằng MATLAB</h3>
+  <div class="mlab" data-ml="c8"></div>
   <div class="quiz" data-quiz="8"></div>
 </section>
 
@@ -680,6 +791,8 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
       <div class="readout wrap" id="s9info"></div>
     </div>
   </div>
+  <h3>Mô phỏng bằng MATLAB</h3>
+  <div class="mlab" data-ml="c9"></div>
   <div class="quiz" data-quiz="9"></div>
 </section>
 
@@ -730,6 +843,8 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
       <tr><td>Kaiser</td><td>\(I_0\!\big(\beta\sqrt{1-(2n/(N-1)-1)^2}\big)/I_0(\beta)\)</td><td colspan="3">Điều chỉnh được qua β: β lớn thì suy hao cao, chuyển tiếp rộng</td></tr>
     </tbody></table></div>
   <div class="prose"><p><b>Thông cao và thông dải</b> suy ra từ thông thấp: thông cao \(h_{HP}[n] = \delta[n - \tfrac{N-1}{2}] - h_{LP}[n]\) (đảo phổ); thông dải là hiệu hai bộ thông thấp, hoặc nhân thông thấp với \(2\cos(\omega_0 n)\) để dời dải thông lên \(\omega_0\). Ngoài phương pháp cửa sổ còn có thuật toán tối ưu Parks–McClellan (equiripple) cho bộ lọc ngắn hơn với cùng yêu cầu.</p></div>
+  <h3>Mô phỏng bằng MATLAB</h3>
+  <div class="mlab" data-ml="c10"></div>
   <div class="quiz" data-quiz="10"></div>
 </section>
 
@@ -775,6 +890,8 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
       <tr><td>Dùng khi</td><td>Âm thanh chất lượng cao, truyền thông số, xử lý ảnh</td><td>Điều khiển, cân bằng âm (EQ), tài nguyên hạn chế</td></tr>
     </tbody></table></div>
   <div class="prose"><p>Các họ IIR khác: <b>Chebyshev I</b> (gợn ở dải thông, dốc hơn), <b>Chebyshev II</b> (gợn ở dải chặn), <b>Elliptic</b> (gợn cả hai dải, dốc nhất với cùng bậc).</p></div>
+  <h3>Mô phỏng bằng MATLAB</h3>
+  <div class="mlab" data-ml="c11"></div>
   <div class="quiz" data-quiz="11"></div>
 </section>
 
@@ -826,6 +943,8 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
       <div class="cap" id="s12cap"></div>
     </div>
   </div>
+  <h3>Mô phỏng bằng MATLAB</h3>
+  <div class="mlab" data-ml="c12"></div>
   <div class="quiz" data-quiz="12"></div>
 </section>
 
@@ -865,6 +984,8 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
       <div class="readout wrap" id="s13info"></div>
     </div>
   </div>
+  <h3>Mô phỏng bằng MATLAB</h3>
+  <div class="mlab" data-ml="c13"></div>
   <div class="quiz" data-quiz="13"></div>
 </section>
 
@@ -901,6 +1022,8 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
     </div>
   </div>
   <div class="prose"><p>Ứng dụng: khử tiếng vọng điện thoại (echo cancellation), tai nghe chống ồn (ANC), cân bằng kênh trong modem và 5G, nhận dạng hệ thống, dự đoán tuyến tính. Biến thể mạnh hơn: RLS hội tụ nhanh hơn nhiều nhưng tốn \(O(M^2)\) phép tính mỗi mẫu.</p></div>
+  <h3>Mô phỏng bằng MATLAB</h3>
+  <div class="mlab" data-ml="c14"></div>
   <div class="quiz" data-quiz="14"></div>
 </section>
 
@@ -983,6 +1106,8 @@ module fir_tdf #(parameter N = 8) (
   end
 endmodule</pre>
   </div>
+  <h3>Mô phỏng bằng MATLAB</h3>
+  <div class="mlab" data-ml="c15"></div>
   <div class="quiz" data-quiz="15"></div>
 </section>
 
@@ -1434,7 +1559,7 @@ document.querySelectorAll('.stepper').forEach(st => {
 }
 
 /* ================= TIẾN ĐỘ, MỤC LỤC, GIAO DIỆN ================= */
-const TOTAL = 15;
+const TOTAL = 16;
 let done = {};
 try { done = JSON.parse(localStorage.getItem('dsp-lab-done') || '{}') || {}; } catch (e) { done = {}; }
 function saveDone() { try { localStorage.setItem('dsp-lab-done', JSON.stringify(done)); } catch (e) { } }
@@ -1442,7 +1567,7 @@ function updateProgress() {
   const n = Object.keys(done).filter(k => done[k]).length;
   $('progBar').style.width = (100 * n / TOTAL) + '%';
   $('progTxt').textContent = `${n}/${TOTAL} chương`;
-  document.querySelectorAll('#toc a').forEach(a => { const id = a.getAttribute('href').slice(2); a.classList.toggle('done', !!done[id]); });
+  document.querySelectorAll('#toc a').forEach(a => { const id = a.getAttribute('href').slice(1); a.classList.toggle('done', !!done[id]); });
 }
 const tocLinks = [...document.querySelectorAll('#toc a')];
 const io = new IntersectionObserver(ents => {
@@ -2335,6 +2460,12 @@ bind(['s15g'], demos[demos.length - 1]);
 
 /* ================= CÂU HỎI KIỂM TRA ================= */
 const QUIZ = {
+  0: [
+    ['Cho x = [10 20 30 40]. Biểu thức nào trả về 10?', ['x(0)', 'x(1)', 'x[0]', 'x(end-4)'], 1, 'MATLAB đánh chỉ số từ 1. x(0) báo lỗi; x[0] sai cú pháp (MATLAB dùng ngoặc tròn).'],
+    ['Muốn nhân tín hiệu x (vector hàng 1×N) với cửa sổ Hamming cùng độ dài, viết:', ['x * hamming(N)', 'x .* hamming(N)', "x .* hamming(N)'", 'hamming(x)'], 2, "hamming(N) trả về vector cột N×1. x .* hamming(N) không báo lỗi mà mở rộng ngầm thành ma trận N×N. Phải chuyển vị: hamming(N)'."],
+    ['fs = 8000 Hz, muốn FIR thông thấp 61 hệ số, tần số cắt 1 kHz. Lệnh đúng là:', ['fir1(61, 1000)', 'fir1(60, 1000/8000)', 'fir1(60, 1000/4000)', 'fir1(61, 0.125)'], 2, 'fir1 nhận BẬC n = số hệ số − 1 = 60 và Wn chuẩn hoá theo Nyquist fs/2 = 4000 Hz: Wn = 0.25.'],
+    ['Phương trình y[n] = x[n] + 0.9·y[n−1] ứng với lệnh nào?', ['filter(1, [1 0.9], x)', 'filter(1, [1 -0.9], x)', 'filter([1 0.9], 1, x)', 'conv(x, [1 0.9])'], 1, 'Chuyển y sang vế trái: y[n] − 0.9y[n−1] = x[n], nên a = [1 −0.9], b = 1.']
+  ],
   1: [
     ['Hệ y[n] = n·x[n] có tính chất nào?', ['Tuyến tính và bất biến thời gian', 'Tuyến tính nhưng biến thiên theo thời gian', 'Phi tuyến và bất biến', 'Phi tuyến và biến thiên'], 1, 'Nhân với hằng số và cộng vẫn giữ nguyên (tuyến tính). Nhưng trễ đầu vào n₀ cho n·x[n−n₀], khác với đầu ra trễ (n−n₀)·x[n−n₀], nên không bất biến.'],
     ['Biểu thức nào bằng δ[n]?', ['u[n] + u[n−1]', 'u[n] − u[n−1]', 'u[n]·u[−n−1]', 'n·u[n]'], 1, 'u[n] − u[n−1] chỉ khác 0 tại n = 0, nơi u[0] = 1 còn u[−1] = 0.'],
@@ -2435,6 +2566,1875 @@ document.querySelectorAll('.quiz[data-quiz]').forEach(box => {
   });
 });
 updateProgress();
+
+/* ================= MINI-MATLAB: trình thông dịch tập con MATLAB chạy trong trình duyệt ================= */
+const MLAB = (() => {
+  class MErr extends Error { constructor(m, line) { super(m); this.line = line; } }
+  const err = m => { throw new MErr(m); };
+  class BreakSig { } class ContSig { } class RetSig { }
+
+  /* ---------- kiểu giá trị ---------- */
+  class Mat {
+    constructor(r, c, re, im) { this.r = r; this.c = c; this.re = re || new Float64Array(r * c); this.im = im || null; this.lg = false; }
+    get n() { return this.r * this.c; }
+  }
+  class Str { constructor(s) { this.s = s; } }
+  class Cell { constructor(v) { this.v = v; } }
+  class Fun { constructor(params, body, env, src) { Object.assign(this, { params, body, env, src }); } }
+  class FH { constructor(name) { this.name = name; } }
+  const COLON = { colon: true };
+  const S = v => new Mat(1, 1, Float64Array.of(v));
+  const CX = (re, im) => clean(new Mat(1, 1, Float64Array.of(re), Float64Array.of(im)));
+  const rowv = a => new Mat(1, a.length, Float64Array.from(a));
+  const colv = a => new Mat(a.length, 1, Float64Array.from(a));
+  const EMPTY = () => new Mat(0, 0);
+  const B = v => { const m = S(v ? 1 : 0); m.lg = true; return m; };
+  function clean(m) { if (m.im) { let z = true; for (let k = 0; k < m.im.length; k++) if (m.im[k] !== 0) { z = false; break; } if (z) m.im = null; } return m; }
+  function cloneV(v) {
+    if (v instanceof Mat) { const m = new Mat(v.r, v.c, Float64Array.from(v.re), v.im ? Float64Array.from(v.im) : null); m.lg = v.lg; return m; }
+    if (v instanceof Cell) return new Cell(v.v.slice());
+    return v;
+  }
+  function asM(v) {
+    if (v instanceof Mat) return v;
+    if (v instanceof Str) { const m = new Mat(v.s.length ? 1 : 0, v.s.length); for (let k = 0; k < v.s.length; k++) m.re[k] = v.s.charCodeAt(k); return m; }
+    if (typeof v === 'number') return S(v);
+    if (v instanceof Fun || v instanceof FH) err('Không dùng được hàm như một số. Bạn có quên gọi hàm với đối số không?');
+    if (v instanceof Cell) err('Không thể tính toán trực tiếp trên cell array; dùng c{k} để lấy phần tử.');
+    if (v === COLON) err("Dấu ':' đứng một mình chỉ dùng được trong chỉ số, ví dụ x(:)");
+    err('Giá trị không hợp lệ');
+  }
+  const num = (v, what) => { const m = asM(v); if (!m.n) err(`${what || 'Đối số'} đang rỗng`); return m.re[0]; };
+  const isStr = v => v instanceof Str;
+  const str = (v, what) => { if (v instanceof Str) return v.s; err(`${what || 'Đối số'} phải là chuỗi ký tự '...'`); };
+  const truthy = v => { const m = asM(v); if (!m.n) return false; for (let k = 0; k < m.n; k++) if (m.re[k] === 0 && !(m.im && m.im[k] !== 0)) return false; return true; };
+  const isVec = m => m.r === 1 || m.c === 1;
+  const like = (src, arr, im) => { const m = (src.r === 1 || src.n === 0) ? new Mat(1, arr.length, Float64Array.from(arr)) : new Mat(arr.length, 1, Float64Array.from(arr)); if (im) m.im = Float64Array.from(im); return clean(m); };
+  const same = (src, fill) => new Mat(src.r, src.c);
+
+  /* ---------- số phức ---------- */
+  const cmul = (a, b, c, d) => [a * c - b * d, a * d + b * c];
+  const cdiv = (a, b, c, d) => { const q = c * c + d * d; return [(a * c + b * d) / q, (b * c - a * d) / q]; };
+  const cexp = (a, b) => { const e = Math.exp(a); return [e * Math.cos(b), e * Math.sin(b)]; };
+  const clog = (a, b) => [Math.log(Math.hypot(a, b)), Math.atan2(b, a)];
+  const cpow = (a, b, c, d) => {
+    if (a === 0 && b === 0) return (c === 0 && d === 0) ? [1, 0] : [0, 0];
+    if (d === 0 && b === 0 && Number.isInteger(c) && Math.abs(c) <= 64) { // luỹ thừa nguyên chính xác
+      let r = [1, 0], base = [a, b], e = Math.abs(c);
+      while (e) { if (e & 1) r = cmul(r[0], r[1], base[0], base[1]); base = cmul(base[0], base[1], base[0], base[1]); e >>= 1; }
+      return c < 0 ? cdiv(1, 0, r[0], r[1]) : r;
+    }
+    const [lr, li] = clog(a, b); const [x, y] = cmul(lr, li, c, d); return cexp(x, y);
+  };
+
+  /* ---------- phép toán từng phần tử có mở rộng ngầm (implicit expansion) ---------- */
+  function bshape(a, b) {
+    const r = a.r === b.r ? a.r : a.r === 1 ? b.r : b.r === 1 ? a.r : -1;
+    const c = a.c === b.c ? a.c : a.c === 1 ? b.c : b.c === 1 ? a.c : -1;
+    if (r < 0 || c < 0) err(`Kích thước không khớp: ${a.r}×${a.c} và ${b.r}×${b.c}. Gợi ý: kiểm tra vector hàng/cột (dùng ' hoặc (:)), hoặc dùng .* ./ .^ cho phép tính từng phần tử.`);
+    return [r, c];
+  }
+  function ew(a, b, fr, fc, forceC) {
+    a = asM(a); b = asM(b);
+    const [r, c] = bshape(a, b), o = new Mat(r, c);
+    const useC = !!(a.im || b.im || forceC);
+    if (useC) o.im = new Float64Array(r * c);
+    for (let j = 0; j < c; j++) for (let i = 0; i < r; i++) {
+      const ia = (a.r === 1 ? 0 : i) + (a.c === 1 ? 0 : j) * a.r, ib = (b.r === 1 ? 0 : i) + (b.c === 1 ? 0 : j) * b.r, k = i + j * r;
+      if (useC) { const z = fc(a.re[ia], a.im ? a.im[ia] : 0, b.re[ib], b.im ? b.im[ib] : 0); o.re[k] = z[0]; o.im[k] = z[1]; }
+      else o.re[k] = fr(a.re[ia], b.re[ib]);
+    }
+    return clean(o);
+  }
+  function map(a, fr, fc) {
+    a = asM(a); const o = new Mat(a.r, a.c);
+    if (a.im && fc) { o.im = new Float64Array(a.n); for (let k = 0; k < a.n; k++) { const z = fc(a.re[k], a.im[k]); o.re[k] = z[0]; o.im[k] = z[1]; } return clean(o); }
+    for (let k = 0; k < a.n; k++) o.re[k] = fr(a.re[k]);
+    return o;
+  }
+  // map có thể sinh số phức từ đầu vào thực (sqrt, log của số âm)
+  function mapC(a, needC, fr, fc) {
+    a = asM(a); let anyC = !!a.im;
+    if (!anyC) for (let k = 0; k < a.n; k++) if (needC(a.re[k])) { anyC = true; break; }
+    if (!anyC) return map(a, fr);
+    const o = new Mat(a.r, a.c); o.im = new Float64Array(a.n);
+    for (let k = 0; k < a.n; k++) { const z = fc(a.re[k], a.im ? a.im[k] : 0); o.re[k] = z[0]; o.im[k] = z[1]; }
+    return clean(o);
+  }
+  const plus = (a, b) => ew(a, b, (x, y) => x + y, (a1, b1, c1, d1) => [a1 + c1, b1 + d1]);
+  const minus = (a, b) => ew(a, b, (x, y) => x - y, (a1, b1, c1, d1) => [a1 - c1, b1 - d1]);
+  const times = (a, b) => ew(a, b, (x, y) => x * y, cmul);
+  const rdiv = (a, b) => ew(a, b, (x, y) => x / y, cdiv);
+  function power(a, b) {
+    a = asM(a); b = asM(b); let need = false;
+    if (!a.im && !b.im) {
+      const [r, c] = bshape(a, b);
+      for (let j = 0; j < c && !need; j++) for (let i = 0; i < r; i++) {
+        const x = a.re[(a.r === 1 ? 0 : i) + (a.c === 1 ? 0 : j) * a.r], y = b.re[(b.r === 1 ? 0 : i) + (b.c === 1 ? 0 : j) * b.r];
+        if (x < 0 && !Number.isInteger(y)) { need = true; break; }
+      }
+    }
+    return ew(a, b, Math.pow, cpow, need);
+  }
+  const cmpOp = f => (a, b) => { const o = ew(a, b, (x, y) => f(x, y) ? 1 : 0, (p, q, r, s) => [f(p, r) ? 1 : 0, 0]); o.im = null; o.lg = true; return o; };
+  const eqOp = neg => (a, b) => { const o = ew(a, b, (x, y) => ((x === y) !== neg) ? 1 : 0, (p, q, r, s) => [(((p === r) && (q === s)) !== neg) ? 1 : 0, 0]); o.im = null; o.lg = true; return o; };
+  const OPS = {
+    '+': plus, '-': minus, '.*': times, './': rdiv, '.\\': (a, b) => rdiv(b, a), '.^': power,
+    '<': cmpOp((x, y) => x < y), '<=': cmpOp((x, y) => x <= y), '>': cmpOp((x, y) => x > y), '>=': cmpOp((x, y) => x >= y),
+    '==': eqOp(false), '~=': eqOp(true),
+    '&': (a, b) => { const o = ew(a, b, (x, y) => (x !== 0 && y !== 0) ? 1 : 0); o.lg = true; return o; },
+    '|': (a, b) => { const o = ew(a, b, (x, y) => (x !== 0 || y !== 0) ? 1 : 0); o.lg = true; return o; },
+    '*': mtimes, '/': mrdiv, '\\': (a, b) => { a = asM(a); if (a.n === 1) return rdiv(b, a); err('Phép chia trái A\\b cho ma trận chưa được hỗ trợ.'); }, '^': mpower
+  };
+  function mtimes(a, b) {
+    a = asM(a); b = asM(b);
+    if (a.n === 1 || b.n === 1) return times(a, b);
+    if (a.c !== b.r) err(`Nhân ma trận cần số cột vế trái (${a.c}) = số hàng vế phải (${b.r}). Muốn nhân từng phần tử hãy dùng .*`);
+    const o = new Mat(a.r, b.c), C = a.im || b.im; if (C) o.im = new Float64Array(a.r * b.c);
+    for (let i = 0; i < a.r; i++) for (let j = 0; j < b.c; j++) {
+      let sr = 0, si = 0;
+      for (let k = 0; k < a.c; k++) {
+        const ar = a.re[i + k * a.r], ai = a.im ? a.im[i + k * a.r] : 0, br = b.re[k + j * b.r], bi = b.im ? b.im[k + j * b.r] : 0;
+        sr += ar * br - ai * bi; si += ar * bi + ai * br;
+      }
+      o.re[i + j * a.r] = sr; if (C) o.im[i + j * a.r] = si;
+    }
+    return clean(o);
+  }
+  function mrdiv(a, b) { b = asM(b); if (b.n === 1) return rdiv(a, b); err('Phép chia ma trận A/B chưa được hỗ trợ; muốn chia từng phần tử hãy dùng ./'); }
+  function mpower(a, b) {
+    a = asM(a); b = asM(b);
+    if (a.n === 1 && b.n === 1) return power(a, b);
+    if (a.r === a.c && b.n === 1 && Number.isInteger(b.re[0]) && b.re[0] >= 1) { let r = a; for (let k = 1; k < b.re[0]; k++) r = mtimes(r, a); return r; }
+    err('Phép ^ trên vector là luỹ thừa ma trận. Muốn luỹ thừa từng phần tử hãy dùng .^');
+  }
+  function transpose(a, conj) {
+    if (a instanceof Str) return a.s.length <= 1 ? a : err('Chuyển vị chuỗi chưa được hỗ trợ');
+    a = asM(a); const o = new Mat(a.c, a.r); if (a.im) o.im = new Float64Array(a.n);
+    for (let i = 0; i < a.r; i++) for (let j = 0; j < a.c; j++) { o.re[j + i * a.c] = a.re[i + j * a.r]; if (a.im) o.im[j + i * a.c] = conj ? -a.im[i + j * a.r] : a.im[i + j * a.r]; }
+    o.lg = a.lg; return o;
+  }
+  function colonRange(a, s, b) {
+    a = num(a, 'Đầu dải'); b = num(b, 'Cuối dải'); s = s === undefined ? 1 : num(s, 'Bước');
+    if (s === 0 || (s > 0 && a > b) || (s < 0 && a < b)) return new Mat(1, 0);
+    const n = Math.floor((b - a) / s + 1e-10) + 1;
+    if (n > 5e6) err('Dải số quá lớn (> 5 triệu phần tử)');
+    const o = new Mat(1, n); for (let k = 0; k < n; k++) o.re[k] = a + k * s; return o;
+  }
+  function horz(list) {
+    if (list.some(isStr)) {
+      return new Str(list.map(v => v instanceof Str ? v.s : String.fromCharCode(...Array.from(asM(v).re))).join(''));
+    }
+    if (list.some(v => v instanceof Cell)) return new Cell(list.flatMap(v => v instanceof Cell ? v.v : [v]));
+    const ms = list.map(asM).filter(m => m.n > 0 || m.r > 0 && m.c > 0);
+    const ne = ms.filter(m => m.n > 0); if (!ne.length) return ms.length ? ms[0] : EMPTY();
+    const r = ne[0].r; for (const m of ne) if (m.r !== r) err(`Ghép ngang [a, b] cần cùng số hàng (${r} và ${m.r}).`);
+    const c = ne.reduce((s, m) => s + m.c, 0), o = new Mat(r, c), C = ne.some(m => m.im); if (C) o.im = new Float64Array(r * c);
+    let off = 0; for (const m of ne) { o.re.set(m.re, off); if (C && m.im) o.im.set(m.im, off); off += m.n; }
+    o.lg = ne.every(m => m.lg); return o;
+  }
+  function vert(list) {
+    if (list.length === 1) return list[0];
+    if (list.some(isStr)) { if (list.every(isStr)) return new Str(list.map(v => v.s).join('\n')); err('Không ghép dọc chuỗi với số được'); }
+    const ne = list.map(asM).filter(m => m.n > 0); if (!ne.length) return EMPTY();
+    const c = ne[0].c; for (const m of ne) if (m.c !== c) err(`Ghép dọc [a; b] cần cùng số cột (${c} và ${m.c}).`);
+    const r = ne.reduce((s, m) => s + m.r, 0), o = new Mat(r, c), C = ne.some(m => m.im); if (C) o.im = new Float64Array(r * c);
+    let roff = 0;
+    for (const m of ne) { for (let j = 0; j < c; j++) for (let i = 0; i < m.r; i++) { o.re[roff + i + j * r] = m.re[i + j * m.r]; if (C && m.im) o.im[roff + i + j * r] = m.im[i + j * m.r]; } roff += m.r; }
+    return o;
+  }
+
+  /* ---------- chỉ số (đánh từ 1!) ---------- */
+  function idxList(v, len) {
+    if (v === COLON) { const a = new Array(len); for (let k = 0; k < len; k++) a[k] = k; return a; }
+    const m = asM(v), out = [];
+    if (m.lg) { for (let k = 0; k < m.n; k++) if (m.re[k] !== 0) { if (k >= len) err(`Chỉ số logic dài hơn mảng (${m.n} > ${len})`); out.push(k); } return out; }
+    for (let k = 0; k < m.n; k++) {
+      const x = m.re[k];
+      if (!Number.isInteger(x) || x < 1) err(x === 0 ? 'Chỉ số 0 không hợp lệ: MATLAB đánh chỉ số từ 1, phần tử đầu tiên là x(1).' : `Chỉ số phải là số nguyên dương (đang là ${+x.toFixed(4)}).`);
+      out.push(x - 1);
+    }
+    return out;
+  }
+  function getIndex(v, args) {
+    if (v instanceof Str) { const r = getIndex(asM(v), args); return new Str(String.fromCharCode(...Array.from(r.re))); }
+    if (v instanceof Cell) { const ii = idxList(args[0], v.v.length); return new Cell(ii.map(k => v.v[k])); }
+    const m = asM(v);
+    if (args.length === 0) return m;
+    if (args.length === 1) {
+      const ii = idxList(args[0], m.n);
+      for (const k of ii) if (k >= m.n) err(`Chỉ số vượt quá kích thước: truy cập phần tử ${k + 1} nhưng mảng chỉ có ${m.n} phần tử.`);
+      let r, c;
+      if (args[0] === COLON) { r = ii.length; c = 1; }
+      else {
+        const im = asM(args[0]);
+        if (m.r === 1 && (isVec(im) || im.lg)) { r = 1; c = ii.length; }
+        else if (m.c === 1 && (isVec(im) || im.lg)) { r = ii.length; c = 1; }
+        else if (im.lg) { r = ii.length; c = 1; }
+        else { r = im.r; c = im.c; }
+      }
+      const o = new Mat(r, c); if (m.im) o.im = new Float64Array(r * c);
+      ii.forEach((k, t) => { o.re[t] = m.re[k]; if (m.im) o.im[t] = m.im[k]; });
+      o.lg = m.lg; return clean(o);
+    }
+    if (args.length === 2) {
+      const ri = idxList(args[0], m.r), ci = idxList(args[1], m.c);
+      for (const k of ri) if (k >= m.r) err(`Chỉ số hàng ${k + 1} vượt quá số hàng (${m.r}).`);
+      for (const k of ci) if (k >= m.c) err(`Chỉ số cột ${k + 1} vượt quá số cột (${m.c}).`);
+      const o = new Mat(ri.length, ci.length); if (m.im) o.im = new Float64Array(o.n);
+      ci.forEach((cj, j) => ri.forEach((rk, i) => { o.re[i + j * o.r] = m.re[rk + cj * m.r]; if (m.im) o.im[i + j * o.r] = m.im[rk + cj * m.r]; }));
+      o.lg = m.lg; return clean(o);
+    }
+    err('Chỉ hỗ trợ tối đa 2 chiều chỉ số (hàng, cột).');
+  }
+  function setIndex(t, args, rhs, del) {
+    if (t instanceof Cell || rhs instanceof Cell) err('Gán vào cell array chưa được hỗ trợ.');
+    if (t instanceof Str) t = asM(t);
+    let m = t ? asM(t) : EMPTY();
+    if (rhs instanceof Str) rhs = asM(rhs);
+    const R = asM(rhs);
+    if (del) {
+      if (args.length !== 1) err('Xoá phần tử x(idx) = [] chỉ hỗ trợ chỉ số tuyến tính.');
+      const kill = new Set(idxList(args[0], m.n)), keep = [];
+      for (let k = 0; k < m.n; k++) if (!kill.has(k)) keep.push(k);
+      const o = m.c === 1 && m.r > 1 ? new Mat(keep.length, 1) : new Mat(1, keep.length); if (m.im) o.im = new Float64Array(keep.length);
+      keep.forEach((k, t2) => { o.re[t2] = m.re[k]; if (m.im) o.im[t2] = m.im[k]; }); return o;
+    }
+    if (args.length === 1) {
+      const ii = idxList(args[0], m.n);
+      if (R.n !== 1 && R.n !== ii.length) err(`Gán không khớp số phần tử: vế trái ${ii.length}, vế phải ${R.n}.`);
+      const mx = ii.length ? Math.max(...ii) : -1;
+      if (mx >= m.n) {
+        if (m.n === 0 || m.r === 1) m = grow(m, 1, mx + 1); else if (m.c === 1) m = grow(m, mx + 1, 1);
+        else err(`Không thể mở rộng ma trận ${m.r}×${m.c} bằng chỉ số tuyến tính ${mx + 1}.`);
+      }
+      if (R.im && !m.im) m.im = new Float64Array(m.n);
+      ii.forEach((k, t2) => { const s = R.n === 1 ? 0 : t2; m.re[k] = R.re[s]; if (m.im) m.im[k] = R.im ? R.im[s] : 0; });
+      m.lg = false; return clean(m);
+    }
+    if (args.length === 2) {
+      const ri = idxList(args[0], m.r), ci = idxList(args[1], m.c);
+      if (R.n !== 1 && R.n !== ri.length * ci.length) err(`Gán không khớp kích thước: vế trái ${ri.length}×${ci.length}, vế phải ${R.r}×${R.c}.`);
+      const mr = Math.max(m.r, ...ri.map(k => k + 1)), mc = Math.max(m.c, ...ci.map(k => k + 1));
+      if (mr > m.r || mc > m.c) m = grow(m, mr, mc);
+      if (R.im && !m.im) m.im = new Float64Array(m.n);
+      let t2 = 0;
+      for (const cj of ci) for (const rk of ri) { const s = R.n === 1 ? 0 : t2; m.re[rk + cj * m.r] = R.re[s]; if (m.im) m.im[rk + cj * m.r] = R.im ? R.im[s] : 0; t2++; }
+      m.lg = false; return clean(m);
+    }
+    err('Chỉ hỗ trợ tối đa 2 chiều chỉ số.');
+  }
+  function grow(m, r, c) {
+    const o = new Mat(r, c); if (m.im) o.im = new Float64Array(r * c);
+    for (let j = 0; j < m.c; j++) for (let i = 0; i < m.r; i++) { o.re[i + j * r] = m.re[i + j * m.r]; if (m.im) o.im[i + j * r] = m.im[i + j * m.r]; }
+    return o;
+  }
+
+  /* ---------- bộ tách từ (lexer) ---------- */
+  const KW = new Set(['if', 'elseif', 'else', 'end', 'for', 'while', 'break', 'continue', 'return', 'function', 'switch', 'case', 'otherwise']);
+  function lex(src) {
+    const toks = [], st = []; let i = 0, line = 1; const L = src.length;
+    const inMat = () => st.length && (st[st.length - 1] === '[' || st[st.length - 1] === '{');
+    const prev = () => toks[toks.length - 1];
+    const valEnd = t => t && (t.t === 'num' || t.t === 'id' || t.t === 'str' || (t.t === 'op' && [')', ']', '}', "'", ".'"].includes(t.v)) || (t.t === 'kw' && t.v === 'end'));
+    const push = (t, v, x) => { const o = { t, v, line }; if (x) Object.assign(o, x); toks.push(o); return o; };
+    while (i < L) {
+      const ch = src[i];
+      if (ch === '.' && src.startsWith('...', i)) { while (i < L && src[i] !== '\n') i++; i++; line++; continue; }
+      if (ch === ' ' || ch === '\t' || ch === '\r') {
+        let j = i; while (j < L && (src[j] === ' ' || src[j] === '\t' || src[j] === '\r')) j++;
+        if (inMat() && valEnd(prev()) && j < L) {
+          const a = src[j], b = src[j + 1] || '';
+          let starts = /[0-9A-Za-z_(\[{'"@]/.test(a) || (a === '.' && /[0-9]/.test(b));
+          if ((a === '+' || a === '-') && b !== ' ' && b !== '\t' && b !== '=') starts = true;
+          if (a === '~' && b !== '=') starts = true;
+          if (a === '.' && src.startsWith('...', j)) starts = false;
+          if (starts) push('op', ',');
+        }
+        i = j; continue;
+      }
+      if (ch === '%') {
+        const ls = src.lastIndexOf('\n', i - 1) + 1, le = src.indexOf('\n', i) < 0 ? L : src.indexOf('\n', i);
+        if (src.startsWith('%{', i) && src.slice(ls, le).trim() === '%{') {
+          const endm = src.slice(i).search(/\n[ \t]*%\}[ \t]*(\n|$)/);
+          const stop = endm < 0 ? L : i + endm + 1;
+          for (let k = i; k < stop; k++) if (src[k] === '\n') line++;
+          i = src.indexOf('\n', stop) < 0 ? L : src.indexOf('\n', stop); continue;
+        }
+        while (i < L && src[i] !== '\n') i++; continue;
+      }
+      if (ch === '\n') {
+        if (inMat()) { const p = prev(); if (p && !(p.t === 'op' && (p.v === ';' || p.v === ',' || p.v === '[' || p.v === '{'))) push('op', ';'); }
+        else push('nl', '\n');
+        line++; i++; continue;
+      }
+      if (/[0-9]/.test(ch) || (ch === '.' && /[0-9]/.test(src[i + 1] || ''))) {
+        let j = i; while (/[0-9]/.test(src[j] || '')) j++;
+        if (src[j] === '.' && !/[*\/\\^']/.test(src[j + 1] || '')) { j++; while (/[0-9]/.test(src[j] || '')) j++; }
+        if (/[eE]/.test(src[j] || '')) { let k = j + 1; if (src[k] === '+' || src[k] === '-') k++; if (/[0-9]/.test(src[k] || '')) { j = k; while (/[0-9]/.test(src[j] || '')) j++; } }
+        const v = parseFloat(src.slice(i, j)); let imag = false;
+        if ((src[j] === 'i' || src[j] === 'j') && !/[0-9A-Za-z_]/.test(src[j + 1] || '')) { imag = true; j++; }
+        push('num', v, { imag }); i = j; continue;
+      }
+      if (/[A-Za-z_]/.test(ch)) {
+        let j = i; while (/[A-Za-z0-9_]/.test(src[j] || '')) j++;
+        const w = src.slice(i, j);
+        push(KW.has(w) ? 'kw' : 'id', w, { sp: src[j] === ' ' || src[j] === '\t' }); i = j; continue;
+      }
+      if (ch === "'") {
+        const pc = src[i - 1];
+        if (valEnd(prev()) && !(inMat() && (pc === ' ' || pc === '\t'))) { push('op', "'"); i++; continue; }
+        let j = i + 1, s = '';
+        while (true) {
+          if (j >= L || src[j] === '\n') throw new MErr("Chuỗi ký tự chưa đóng dấu nháy '", line);
+          if (src[j] === "'") { if (src[j + 1] === "'") { s += "'"; j += 2; continue; } break; }
+          s += src[j++];
+        }
+        push('str', s); i = j + 1; continue;
+      }
+      if (ch === '"') {
+        let j = i + 1, s = '';
+        while (true) {
+          if (j >= L || src[j] === '\n') throw new MErr('Chuỗi ký tự chưa đóng dấu nháy kép "', line);
+          if (src[j] === '"') { if (src[j + 1] === '"') { s += '"'; j += 2; continue; } break; }
+          s += src[j++];
+        }
+        push('str', s); i = j + 1; continue;
+      }
+      const two = src.substr(i, 2);
+      if (['==', '~=', '!=', '<=', '>=', '&&', '||', '.*', './', '.\\', '.^', ".'"].includes(two)) { push('op', two === '!=' ? '~=' : two); i += 2; continue; }
+      if ('+-*/\\^<>=&|~!(),;:[]{}@.'.includes(ch)) {
+        if (ch === '(' || ch === '[' || ch === '{') st.push(ch);
+        if (ch === ')' || ch === ']' || ch === '}') st.pop();
+        if (inMat() && ch === ',' ) { const p = prev(); if (p && p.t === 'op' && p.v === ',') { i++; continue; } }
+        push('op', ch === '!' ? '~' : ch); i++; continue;
+      }
+      throw new MErr(`Ký tự không hợp lệ '${ch}'`, line);
+    }
+    push('eof', '');
+    return toks;
+  }
+
+  /* ---------- bộ phân tích cú pháp (parser) ---------- */
+  const CMDS = new Set(['hold', 'grid', 'axis', 'close', 'clear', 'clc', 'format', 'figure', 'clf', 'box', 'warning', 'more', 'rng', 'legend', 'colorbar', 'colormap', 'disp', 'pkg']);
+  function parse(toks) {
+    let p = 0, idxDepth = 0;
+    const peek = (o = 0) => toks[Math.min(p + o, toks.length - 1)];
+    const next = () => toks[p++];
+    const isOp = (v, o = 0) => peek(o).t === 'op' && peek(o).v === v;
+    const isKw = v => peek().t === 'kw' && peek().v === v;
+    const perr = m => { throw new MErr(m, peek().line); };
+    const expectOp = v => { if (!isOp(v)) perr(`Thiếu '${v}'` + (peek().t === 'eof' ? ' ở cuối chương trình' : ` (gặp '${peek().v}')`)); next(); };
+    const expectKw = v => { if (!isKw(v)) perr(`Thiếu từ khoá '${v}'`); next(); };
+    function block(terms) {
+      const out = [];
+      for (; ;) {
+        const t = peek();
+        if (t.t === 'eof') { if (terms) perr(`Thiếu 'end' để đóng khối lệnh`); break; }
+        if (t.t === 'kw' && terms && terms.includes(t.v)) break;
+        if (t.t === 'nl' || (t.t === 'op' && (t.v === ';' || t.v === ','))) { next(); continue; }
+        out.push(statement());
+      }
+      return out;
+    }
+    function endStmt() {
+      const t = peek();
+      if (t.t === 'op' && t.v === ';') { next(); return false; }
+      if (t.t === 'op' && t.v === ',') { next(); return true; }
+      if (t.t === 'nl') { next(); return true; }
+      if (t.t === 'eof') return true;
+      if (t.t === 'kw' && ['end', 'else', 'elseif', 'case', 'otherwise'].includes(t.v)) return true;
+      perr(`Cú pháp không hợp lệ gần '${t.v}'` + (t.v === '=' ? " (so sánh bằng phải viết là ==)" : ''));
+    }
+    function statement() {
+      const t = peek(), line = t.line;
+      if (t.t === 'kw') {
+        switch (t.v) {
+          case 'if': {
+            next(); const clauses = []; let cond = expr(); let body = block(['elseif', 'else', 'end']); clauses.push({ cond, body });
+            while (isKw('elseif')) { next(); cond = expr(); body = block(['elseif', 'else', 'end']); clauses.push({ cond, body }); }
+            let els = null; if (isKw('else')) { next(); els = block(['end']); }
+            expectKw('end'); return { t: 'if', clauses, els, line };
+          }
+          case 'for': {
+            next(); const par = isOp('('); if (par) next();
+            const v = next(); if (v.t !== 'id') perr('Thiếu tên biến sau for');
+            expectOp('='); const e = expr(); if (par) expectOp(')');
+            const body = block(['end']); expectKw('end'); return { t: 'for', v: v.v, e, body, line };
+          }
+          case 'while': { next(); const cond = expr(); const body = block(['end']); expectKw('end'); return { t: 'while', cond, body, line }; }
+          case 'break': next(); endStmt(); return { t: 'break', line };
+          case 'continue': next(); endStmt(); return { t: 'continue', line };
+          case 'return': next(); endStmt(); return { t: 'return', line };
+          case 'switch': {
+            next(); const e = expr(); const cases = []; let other = null;
+            while (peek().t === 'nl' || isOp(';') || isOp(',')) next();
+            while (isKw('case')) { next(); const v = expr(); const body = block(['case', 'otherwise', 'end']); cases.push({ v, body }); }
+            if (isKw('otherwise')) { next(); other = block(['end']); }
+            expectKw('end'); return { t: 'switch', e, cases, other, line };
+          }
+          case 'function': perr('Trình chạy trên web chưa hỗ trợ khai báo function trong script. Hãy dùng hàm ẩn danh, ví dụ f = @(x) x.^2;');
+          default: perr(`Từ khoá '${t.v}' đặt không đúng chỗ`);
+        }
+      }
+      if (t.t === 'id' && CMDS.has(t.v) && t.sp && (peek(1).t === 'id' || peek(1).t === 'num') && peek(1).line === line && !(peek(2).t === 'op' && (peek(2).v === '=' || peek(2).v === '('))) {
+        next(); const args = []; while ((peek().t === 'id' || peek().t === 'num') && peek().line === line) args.push(String(next().v));
+        endStmt(); return { t: 'cmd', name: t.v, args, line };
+      }
+      if (isOp('[')) {
+        const save = p, lhs = tryMulti();
+        if (lhs) { const rhs = expr(); const show = endStmt(); return { t: 'massign', lhs, rhs, show, line }; }
+        p = save;
+      }
+      if (t.t === 'id') {
+        const save = p, lhs = tryLhs();
+        if (lhs && isOp('=')) { next(); const rhs = expr(); const show = endStmt(); return { t: 'assign', lhs, rhs, show, line }; }
+        p = save;
+      }
+      const e = expr(); const show = endStmt(); return { t: 'expr', e, show, line };
+    }
+    function tryLhs() {
+      const id = next(); let args = null, brace = false;
+      if (isOp('(') || isOp('{')) {
+        brace = isOp('{'); const close = brace ? '}' : ')'; next(); idxDepth++; args = [];
+        try { if (!isOp(close)) { args.push(arg()); while (isOp(',')) { next(); args.push(arg()); } } }
+        catch (e) { idxDepth--; return null; }
+        idxDepth--; if (!isOp(close)) return null; next();
+      }
+      return { name: id.v, args, brace };
+    }
+    function tryMulti() {
+      next(); const names = [];
+      while (!isOp(']')) {
+        if (isOp(',')) { next(); continue; }
+        if (peek().t === 'id') names.push(next().v);
+        else if (isOp('~')) { next(); names.push('~'); }
+        else return null;
+      }
+      next(); if (!isOp('=')) return null; next();
+      return names.length ? names : null;
+    }
+    function arg() {
+      if (isOp(':') && (isOp(',', 1) || isOp(')', 1) || isOp('}', 1))) { next(); return { t: 'colon' }; }
+      return expr();
+    }
+    const expr = () => oror();
+    function binl(sub, ops) { return () => { let l = sub(); while (peek().t === 'op' && ops.includes(peek().v)) { const op = next().v; l = { t: 'bin', op, l, r: sub() }; } return l; }; }
+    function rangeE() {
+      const a = add();
+      if (isOp(':') && !(isOp(',', 1) || isOp(')', 1))) {
+        next(); const b = add();
+        if (isOp(':')) { next(); const c = add(); return { t: 'range', a, s: b, b: c }; }
+        return { t: 'range', a, s: null, b };
+      }
+      return a;
+    }
+    function unary() {
+      if (isOp('-') || isOp('+') || isOp('~')) { const op = next().v; return { t: 'un', op, e: unary() }; }
+      return powE();
+    }
+    function powOperand() {
+      if (isOp('-') || isOp('+') || isOp('~')) { const op = next().v; return { t: 'un', op, e: powOperand() }; }
+      return postfix();
+    }
+    function powE() {
+      let l = postfix();
+      while (isOp('^') || isOp('.^')) { const op = next().v; l = { t: 'bin', op, l, r: powOperand() }; }
+      return l;
+    }
+    function postfix() {
+      let e = primary();
+      for (; ;) {
+        if (isOp("'") || isOp(".'")) { const op = next().v; e = { t: 'tr', conj: op === "'", e }; continue; }
+        if (isOp('(') || isOp('{')) {
+          const brace = isOp('{'), close = brace ? '}' : ')'; next(); idxDepth++;
+          const args = [];
+          if (!isOp(close)) { args.push(arg()); while (isOp(',')) { next(); args.push(arg()); } }
+          idxDepth--; expectOp(close);
+          e = { t: 'idx', target: e, args, brace }; continue;
+        }
+        break;
+      }
+      return e;
+    }
+    function primary() {
+      const t = peek();
+      if (t.t === 'num') { next(); return { t: 'num', v: t.v, imag: t.imag }; }
+      if (t.t === 'str') { next(); return { t: 'str', v: t.v }; }
+      if (t.t === 'id') { next(); return { t: 'id', v: t.v }; }
+      if (t.t === 'kw' && t.v === 'end' && idxDepth > 0) { next(); return { t: 'end' }; }
+      if (isOp('(')) { next(); const d = idxDepth; idxDepth = d; const e = expr(); expectOp(')'); return { t: 'paren', e }; }
+      if (isOp('[') || isOp('{')) {
+        const cell = isOp('{'), close = cell ? '}' : ']'; next(); const rows = [[]];
+        while (!isOp(close)) {
+          if (peek().t === 'eof') perr(`Thiếu '${close}'`);
+          if (isOp(';')) { next(); rows.push([]); continue; }
+          if (isOp(',')) { next(); continue; }
+          rows[rows.length - 1].push(expr());
+        }
+        next(); return { t: cell ? 'cell' : 'mat', rows: rows.filter(r => r.length) };
+      }
+      if (isOp('@')) {
+        next();
+        if (isOp('(')) {
+          next(); const params = [];
+          while (!isOp(')')) { if (isOp(',')) { next(); continue; } const v = next(); if (v.t !== 'id') perr('Tham số của hàm ẩn danh phải là tên biến'); params.push(v.v); }
+          next(); const s0 = p; const body = expr();
+          const src = toks.slice(s0, p).map(x => x.t === 'str' ? `'${x.v}'` : (x.t === 'num' && x.imag ? x.v + 'i' : x.v)).join(' ').replace(/ ([,)\]])/g, '$1').replace(/([([]) /g, '$1');
+          return { t: 'anon', params, body, src };
+        }
+        const v = next(); if (v.t !== 'id') perr('Sau @ cần tên hàm hoặc (tham số)'); return { t: 'fh', v: v.v };
+      }
+      if (t.t === 'eof') perr('Biểu thức chưa hoàn chỉnh');
+      perr(`Không mong đợi '${t.v}'` + (t.v === '=' ? ' (so sánh bằng phải viết là ==)' : ''));
+    }
+    const mul = binl(unary, ['*', '/', '\\', '.*', './', '.\\']);
+    const add = binl(mul, ['+', '-']);
+    const cmp = binl(rangeE, ['<', '<=', '>', '>=', '==', '~=']);
+    const andE = binl(cmp, ['&']);
+    const orE = binl(andE, ['|']);
+    const andand = binl(orE, ['&&']);
+    const oror = binl(andand, ['||']);
+    return block(null);
+  }
+
+  /* ---------- định dạng hiển thị ---------- */
+  function fnum(x, long) {
+    if (Number.isNaN(x)) return 'NaN';
+    if (!isFinite(x)) return x > 0 ? 'Inf' : '-Inf';
+    if (Number.isInteger(x) && Math.abs(x) < 1e10) return String(x);
+    const a = Math.abs(x);
+    if (long) return (a >= 1e5 || a < 1e-4) ? x.toExponential(14) : x.toFixed(15).replace(/0+$/, '').replace(/\.$/, '.0');
+    if (a >= 1e5 || a < 1e-4) return x.toExponential(4).replace(/e([+-])(\d)$/, 'e$10$2');
+    return x.toFixed(4);
+  }
+  function fixedAll(m, long) { // mọi phần tử cùng một kiểu như MATLAB 'format short'
+    let mx = 0; for (let k = 0; k < m.n; k++) { if (isFinite(m.re[k])) mx = Math.max(mx, Math.abs(m.re[k])); if (m.im && isFinite(m.im[k])) mx = Math.max(mx, Math.abs(m.im[k])); }
+    const d = long ? 15 : 4, useE = mx >= 1e5 || (mx > 0 && mx < 1e-3);
+    const f = x => !isFinite(x) ? fnum(x) : useE ? x.toExponential(d).replace(/e([+-])(\d)$/, 'e$10$2') : x.toFixed(d);
+    return (re, im) => im === null || im === undefined ? f(re) : f(re) + (im < 0 || Object.is(im, -0) ? ' - ' : ' + ') + f(Math.abs(im)) + 'i';
+  }
+  function fcx(re, im, long) {
+    if (im === undefined || im === null) return fnum(re, long);
+    return fnum(re, long) + (im < 0 || Object.is(im, -0) ? ' - ' : ' + ') + fnum(Math.abs(im), long) + 'i';
+  }
+  function fmtMat(m, long) {
+    if (m.n === 0) return '     []';
+    const allInt = Array.from(m.re).every(x => Number.isInteger(x) || !isFinite(x)) && (!m.im || Array.from(m.im).every(x => Number.isInteger(x)));
+    const F = allInt ? (re, im) => fcx(re, im, long) : fixedAll(m, long);
+    const cells = [];
+    for (let i = 0; i < m.r; i++) { const row = []; for (let j = 0; j < m.c; j++) { const k = i + j * m.r; row.push(F(m.re[k], m.im ? m.im[k] : null)); } cells.push(row); }
+    const w = Math.max(...cells.flat().map(s => s.length)) + (allInt ? 3 : 3);
+    const per = Math.max(1, Math.floor(76 / w));
+    let out = '';
+    for (let c0 = 0; c0 < m.c; c0 += per) {
+      const c1 = Math.min(m.c, c0 + per);
+      if (m.c > per) out += (c0 ? '\n' : '') + `  Cột ${c0 + 1}${c1 - c0 > 1 ? ` đến ${c1}` : ''}:\n\n`;
+      for (let i = 0; i < m.r; i++) out += cells[i].slice(c0, c1).map(s => s.padStart(w)).join('') + '\n';
+    }
+    return out.replace(/\n$/, '');
+  }
+  function display(name, v, long) {
+    if (v instanceof Str) return `${name} = '${v.s}'`;
+    if (v instanceof Fun) return `${name} = @(${v.params.join(',')}) ${v.src}`;
+    if (v instanceof FH) return `${name} = @${v.name}`;
+    if (v instanceof Cell) return `${name} = {` + v.v.map(x => x instanceof Str ? `'${x.s}'` : x instanceof Mat ? (x.n === 1 ? fcx(x.re[0], x.im ? x.im[0] : null) : `[${x.r}×${x.c} double]`) : '…').join(', ') + '}';
+    const m = asM(v);
+    if (m.n === 1) return `${name} = ${fcx(m.re[0], m.im ? m.im[0] : null, long)}`;
+    if (m.n === 0) return `${name} =\n     []  (${m.r}×${m.c})`;
+    return `${name} =\n\n${fmtMat(m, long)}\n`;
+  }
+  function gfmt(x, p) {
+    if (!isFinite(x)) return Number.isNaN(x) ? 'NaN' : (x > 0 ? 'Inf' : '-Inf');
+    if (x === 0) return '0';
+    p = p === undefined ? 6 : Math.max(1, p);
+    const e = Math.floor(Math.log10(Math.abs(x)));
+    if (e < -4 || e >= p) { let s = x.toExponential(p - 1); s = s.replace(/\.?0+e/, 'e'); return s.replace(/e([+-])(\d)$/, 'e$10$2'); }
+    let s = x.toFixed(Math.max(0, p - 1 - e)); if (s.includes('.')) s = s.replace(/\.?0+$/, ''); return s;
+  }
+  function sprintfImpl(fmt, args) {
+    const items = [];
+    for (const a of args) { if (a instanceof Str) items.push(a.s); else { const m = asM(a); for (let k = 0; k < m.n; k++) items.push(m.re[k]); } }
+    fmt = fmt.replace(/\\n/g, '\n').replace(/\\t/g, '\t').replace(/\\\\/g, '\\');
+    const re = /%([-+ 0#]*)(\d+)?(?:\.(\d+))?([dicfeEgGsxXu%])/g;
+    let out = '', ai = 0, first = true;
+    while (first || ai < items.length) {
+      let used = false;
+      out += fmt.replace(re, (all, flags, width, prec, conv) => {
+        if (conv === '%') return '%';
+        if (ai >= items.length) { if (!first) return ''; return ''; }
+        used = true; const v = items[ai++]; let s;
+        const P = prec !== undefined ? +prec : undefined;
+        if (conv === 's') s = typeof v === 'string' ? v : gfmt(v, P || 6);
+        else if (typeof v === 'string') s = v;
+        else if (conv === 'd' || conv === 'i' || conv === 'u') s = Number.isInteger(v) ? String(v) : v.toExponential(6);
+        else if (conv === 'c') s = String.fromCharCode(v);
+        else if (conv === 'f') s = v.toFixed(P === undefined ? 6 : P);
+        else if (conv === 'e' || conv === 'E') { s = v.toExponential(P === undefined ? 6 : P).replace(/e([+-])(\d)$/, 'e$10$2'); if (conv === 'E') s = s.toUpperCase(); }
+        else if (conv === 'g' || conv === 'G') { s = gfmt(v, P); if (conv === 'G') s = s.toUpperCase(); }
+        else if (conv === 'x' || conv === 'X') { s = Math.round(v).toString(16); if (conv === 'X') s = s.toUpperCase(); }
+        if (flags.includes('+') && typeof v === 'number' && v >= 0 && conv !== 's') s = '+' + s;
+        if (width) { const w = +width; if (flags.includes('-')) s = s.padEnd(w); else if (flags.includes('0') && conv !== 's') { const neg = s[0] === '-'; s = (neg ? '-' : '') + s.slice(neg ? 1 : 0).padStart(w - (neg ? 1 : 0), '0'); } else s = s.padStart(w); }
+        return s;
+      });
+      first = false;
+      if (!used) break;
+    }
+    return out.replace(/−/g, '-');
+  }
+  function texify(s) {
+    const G = { alpha: 'α', beta: 'β', gamma: 'γ', delta: 'δ', Delta: 'Δ', epsilon: 'ε', theta: 'θ', lambda: 'λ', mu: 'μ', pi: 'π', Pi: 'Π', sigma: 'σ', Sigma: 'Σ', tau: 'τ', phi: 'φ', omega: 'ω', Omega: 'Ω', infty: '∞', leq: '≤', geq: '≥', times: '×', cdot: '·', rightarrow: '→', approx: '≈', pm: '±' };
+    const SUP = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹', '+': '⁺', '-': '⁻', 'n': 'ⁿ', 'j': 'ʲ', 'i': 'ⁱ', '(': '⁽', ')': '⁾', 'k': 'ᵏ', 'N': 'ᴺ', 'x': 'ˣ', 'm': 'ᵐ' };
+    const SUB = { '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄', '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉', '+': '₊', '-': '₋', 'n': 'ₙ', 'k': 'ₖ', 'a': 'ₐ', 'e': 'ₑ', 'o': 'ₒ', 'x': 'ₓ', 's': 'ₛ', 'd': 'd', 'c': 'c' };
+    s = s.replace(/\\([A-Za-z]+)/g, (a, w) => G[w] || w);
+    const conv = (txt, M, mark) => [...txt].every(c => M[c]) ? [...txt].map(c => M[c]).join('') : mark + txt;
+    s = s.replace(/\^\{([^}]*)\}/g, (a, t) => conv(t, SUP, '^')).replace(/\^(.)/g, (a, t) => conv(t, SUP, '^'));
+    s = s.replace(/_\{([^}]*)\}/g, (a, t) => conv(t, SUB, '_')).replace(/_(.)/g, (a, t) => conv(t, SUB, '_'));
+    return s;
+  }
+
+  /* ---------- mô hình đồ thị ---------- */
+  function newFig(I) { I.figs.push({ axes: [], cur: null, title: '' }); I.cf = I.figs.length - 1; return I.figs[I.cf]; }
+  function fig(I) { return I.cf >= 0 ? I.figs[I.cf] : newFig(I); }
+  function newAx(m, n, ps) { return { m, n, ps, series: [], title: '', xl: '', yl: '', legend: null, grid: false, hold: false, xlim: null, ylim: null, equal: false, ci: 0, freqAxisPi: false }; }
+  function ax(I) { const f = fig(I); if (!f.cur) { f.cur = newAx(1, 1, [1]); f.axes.push(f.cur); } return f.cur; }
+  const PALETTE = ['trace', 'sample', 'a3', 'a4', 'warn', 'bad', 'ink'];
+  const CMAP = { b: 'trace', r: 'bad', g: 'a3', m: 'a4', k: 'ink', c: 'trace', y: 'warn', w: 'panel' };
+  function parseSpec(s) {
+    const o = {}; let t = s;
+    const ls = t.match(/--|-\.|-|:/); if (ls) { o.dash = ls[0]; t = t.replace(ls[0], ''); }
+    const mk = t.match(/[ox+*.sd^v<>ph]/); if (mk) { o.marker = mk[0]; t = t.replace(mk[0], ''); }
+    const cl = t.match(/[rgbcmykw]/); if (cl) o.color = CMAP[cl[0]];
+    if (o.marker && !ls) o.dash = 'none';
+    return o;
+  }
+  const isSpec = v => v instanceof Str && /^[-.:rgbcmykwox+*sd^v<>ph]{1,4}$/.test(v.s) && !/^(on|off)$/.test(v.s);
+  function nameVals(args, o) {
+    for (let k = 0; k < args.length - 1; k += 2) {
+      const nm = args[k] instanceof Str ? args[k].s.toLowerCase() : ''; const v = args[k + 1];
+      if (nm === 'linewidth') o.lw = num(v); else if (nm === 'displayname') o.name = str(v); else if (nm === 'markersize') o.ms = num(v);
+      else if (nm === 'color') { if (v instanceof Str) o.color = CMAP[v.s[0]] || o.color; }
+      else if (nm === 'markerfacecolor') o.filled = true;
+    }
+  }
+  function addSeries(I, kind, args, opts = {}) {
+    const A = ax(I);
+    if (!A.hold) { A.series = []; A.ci = 0; A.legend = null; }
+    // tách các nhóm (x, y, spec)
+    const groups = []; let k = 0; const extra = {};
+    while (k < args.length) {
+      if (args[k] instanceof Str) {
+        if (kind === 'stem' && /^filled$/i.test(args[k].s)) { extra.filled = true; k++; continue; }
+        if (isSpec(args[k]) && groups.length) { Object.assign(groups[groups.length - 1].o, parseSpec(args[k].s)); k++; continue; }
+        nameVals(args.slice(k), extra); break;
+      }
+      const a = asM(args[k]), b = args[k + 1];
+      if (b !== undefined && !(b instanceof Str)) { groups.push({ x: a, y: asM(b), o: {} }); k += 2; }
+      else { groups.push({ x: null, y: a, o: {} }); k += 1; }
+    }
+    for (const g of groups) {
+      let { x, y } = g;
+      if (!x && y.im && kind === 'line') { x = new Mat(y.r, y.c, Float64Array.from(y.re)); y = new Mat(y.r, y.c, Float64Array.from(y.im)); }
+      const cols = isVec(y) ? [Array.from(y.re)] : Array.from({ length: y.c }, (_, j) => Array.from(y.re.slice(j * y.r, (j + 1) * y.r)));
+      cols.forEach(yy => {
+        const xx = x ? Array.from(x.re) : yy.map((_, t) => t + 1);
+        if (xx.length !== yy.length) err(`${kind === 'stem' ? 'stem' : 'plot'}(x, y): x có ${xx.length} phần tử nhưng y có ${yy.length} phần tử.`);
+        const s = Object.assign({ kind, x: xx, y: yy, color: PALETTE[A.ci++ % PALETTE.length], dash: kind === 'line' ? '-' : 'none', lw: kind === 'line' || kind === 'stairs' ? 1.6 : 1.4 }, opts, g.o, extra);
+        A.series.push(s);
+      });
+    }
+  }
+
+  /* ---------- tiện ích DSP ---------- */
+  const reArr = v => Array.from(asM(v).re);
+  function fftV(x, N) {
+    x = asM(x); const L = N || x.n; const re = new Float64Array(L), im = new Float64Array(L);
+    for (let k = 0; k < Math.min(L, x.n); k++) { re[k] = x.re[k]; im[k] = x.im ? x.im[k] : 0; }
+    if (L && (L & (L - 1)) === 0) fft(re, im);
+    else { const D = dft(Array.from(re), Array.from(im)); re.set(D.re); im.set(D.im); }
+    return { re, im };
+  }
+  function vecOut(src, re, im) { const m = (src.r === 1) ? new Mat(1, re.length, Float64Array.from(re)) : new Mat(re.length, 1, Float64Array.from(re)); if (im) m.im = Float64Array.from(im); return clean(m); }
+  function polyC(rootsRe, rootsIm) { // Π(x - r) với r phức, trả hệ số bậc cao trước
+    let pr = [1], pi = [0];
+    for (let k = 0; k < rootsRe.length; k++) {
+      const nr = new Array(pr.length + 1).fill(0), ni = new Array(pr.length + 1).fill(0);
+      for (let i = 0; i < pr.length; i++) { nr[i] += pr[i]; ni[i] += pi[i]; nr[i + 1] -= pr[i] * rootsRe[k] - pi[i] * rootsIm[k]; ni[i + 1] -= pr[i] * rootsIm[k] + pi[i] * rootsRe[k]; }
+      pr = nr; pi = ni;
+    }
+    const mx = Math.max(1e-300, ...pr.map(Math.abs)); if (pi.every(v => Math.abs(v) < 1e-10 * mx)) pi = null;
+    return { re: pr, im: pi };
+  }
+  function rootsOf(p) {
+    let c = reArr(p); while (c.length && c[0] === 0) c.shift();
+    let nz = 0; while (c.length && c[c.length - 1] === 0) { c.pop(); nz++; }
+    const r = c.length > 1 ? polyRoots(c) : [];
+    for (let k = 0; k < nz; k++) r.push([0, 0]);
+    const sc = Math.max(1, ...r.map(z => Math.hypot(z[0], z[1])));
+    return r.map(z => [z[0], Math.abs(z[1]) < 1e-9 * sc ? 0 : z[1]]);
+  }
+  function filterV(b, a, x) {
+    const bb = reArr(b), aa = reArr(a); if (!aa.length || aa[0] === 0) err('filter: a(1) phải khác 0');
+    const a0 = aa[0], bn = bb.map(v => v / a0), an = aa.map(v => v / a0);
+    x = asM(x);
+    const yr = filt(bn, an, x.re), yi = x.im ? filt(bn, an, x.im) : null;
+    const o = new Mat(x.r, x.c, Float64Array.from(yr)); if (yi) o.im = Float64Array.from(yi); return clean(o);
+  }
+  function freqzV(b, a, n, whole) {
+    const bb = reArr(b), aa = reArr(a), w = [], hr = [], hi = [];
+    for (let k = 0; k < n; k++) { const om = (whole ? 2 : 1) * PI * k / n; const z = H_at(bb, aa, om); w.push(om); hr.push(z[0]); hi.push(z[1]); }
+    return { w, hr, hi };
+  }
+  function winCol(name, N, beta) { if (!(N >= 1) || !Number.isInteger(N)) err(`${name}(N): N phải là số nguyên dương`); return colv(N === 1 ? [1] : windowFn(name, N, beta)); }
+  function fir1V(n, Wn, type, win) {
+    if (!Number.isInteger(n) || n < 1) err('fir1(n, Wn): n là BẬC bộ lọc (số hệ số = n + 1), phải là số nguyên dương');
+    const w = reArr(Wn); if (w.some(v => v <= 0 || v >= 1)) err('fir1: Wn phải nằm trong khoảng (0, 1) — chuẩn hoá theo tần số Nyquist fs/2. Ví dụ fc = 1000 Hz, fs = 8000 Hz thì Wn = 1000/4000 = 0.25');
+    type = type || (w.length === 2 ? 'bandpass' : 'low');
+    if ((type === 'high' || type === 'stop') && n % 2) { n++; }
+    const N = n + 1, al = n / 2, lp = wc => { const h = new Array(N); for (let k = 0; k < N; k++) { const m = k - al; h[k] = m === 0 ? wc / PI : Math.sin(wc * m) / (PI * m); } return h; };
+    let h;
+    if (type === 'low') h = lp(w[0] * PI);
+    else if (type === 'high') h = lp(w[0] * PI).map((v, k) => (k === al ? 1 : 0) - v);
+    else if (type === 'bandpass') { const a = lp(w[1] * PI), b = lp(w[0] * PI); h = a.map((v, k) => v - b[k]); }
+    else if (type === 'stop') { const a = lp(w[1] * PI), b = lp(w[0] * PI); h = a.map((v, k) => (k === al ? 1 : 0) - (v - b[k])); }
+    else err(`fir1: loại '${type}' không hỗ trợ (dùng 'low', 'high', 'bandpass', 'stop')`);
+    const wv = win ? reArr(win) : windowFn('hamming', N);
+    if (wv.length !== N) err(`fir1: cửa sổ phải có ${N} phần tử (= n + 1)`);
+    h = h.map((v, k) => v * wv[k]);
+    const f0 = type === 'low' || type === 'stop' ? 0 : type === 'high' ? PI : (w[0] + w[1]) / 2 * PI;
+    const g = Math.hypot(...H_at(h, [1], f0)); h = h.map(v => v / g);
+    return { h, n };
+  }
+  function butterV(n, Wn, type) {
+    if (!Number.isInteger(n) || n < 1) err('butter(n, Wn): n là bậc (số nguyên dương)');
+    let w = num(Wn); if (asM(Wn).n > 1) err("butter: bộ lọc thông dải chưa hỗ trợ; dùng 'low' hoặc 'high'");
+    if (w <= 0 || w >= 1) err('butter: Wn phải nằm trong (0, 1), chuẩn hoá theo Nyquist: Wn = fc / (fs/2)');
+    const hp = type === 'high';
+    const Bt = butter(n, (hp ? 1 - w : w) * PI);
+    let p = Bt.zPoles.map(z => hp ? [-z[0], -z[1]] : z), zr = new Array(n).fill(hp ? 1 : -1);
+    const A = polyC(p.map(z => z[0]), p.map(z => z[1])).re, Bp = polyC(zr, new Array(n).fill(0)).re;
+    const at = hp ? PI : 0, num0 = Math.hypot(...H_at(Bp, A, at)), k = 1 / num0;
+    return { b: Bp.map(v => v * k), a: A, z: zr, p, k };
+  }
+  const NOT_FN = new Set(['plot', 'stem', 'stairs', 'bar', 'title', 'xlabel', 'ylabel']);
+
+  /* ---------- thư viện hàm có sẵn ---------- */
+  const FN = {};
+  const def = (names, f) => names.split(' ').forEach(n => FN[n] = f);
+  const elem = (names, fr, fc) => def(names, (I, a) => { if (!a.length) err('Thiếu đối số'); return map(a[0], fr, fc); });
+  // toán học cơ bản
+  elem('sin', Math.sin, (a, b) => [Math.sin(a) * Math.cosh(b), Math.cos(a) * Math.sinh(b)]);
+  elem('cos', Math.cos, (a, b) => [Math.cos(a) * Math.cosh(b), -Math.sin(a) * Math.sinh(b)]);
+  elem('tan', Math.tan); elem('asin', Math.asin); elem('acos', Math.acos); elem('atan', Math.atan);
+  elem('sinh', Math.sinh); elem('cosh', Math.cosh); elem('tanh', Math.tanh);
+  elem('exp', Math.exp, cexp);
+  def('log', (I, a) => mapC(a[0], x => x < 0, Math.log, clog));
+  def('log10', (I, a) => mapC(a[0], x => x < 0, Math.log10, (x, y) => { const z = clog(x, y); return [z[0] / Math.LN10, z[1] / Math.LN10]; }));
+  def('log2', (I, a) => map(a[0], Math.log2));
+  def('sqrt', (I, a) => mapC(a[0], x => x < 0, Math.sqrt, (x, y) => y === 0 ? (x < 0 ? [0, Math.sqrt(-x)] : [Math.sqrt(x), 0]) : cpow(x, y, 0.5, 0)));
+  def('abs', (I, a) => { const m = asM(a[0]); const o = new Mat(m.r, m.c); for (let k = 0; k < m.n; k++) o.re[k] = m.im ? Math.hypot(m.re[k], m.im[k]) : Math.abs(m.re[k]); return o; });
+  def('angle', (I, a) => { const m = asM(a[0]); const o = new Mat(m.r, m.c); for (let k = 0; k < m.n; k++) o.re[k] = Math.atan2(m.im ? m.im[k] : 0, m.re[k]); return o; });
+  def('real', (I, a) => { const m = asM(a[0]); return new Mat(m.r, m.c, Float64Array.from(m.re)); });
+  def('imag', (I, a) => { const m = asM(a[0]); return new Mat(m.r, m.c, m.im ? Float64Array.from(m.im) : null); });
+  def('conj', (I, a) => { const m = cloneV(asM(a[0])); if (m.im) for (let k = 0; k < m.n; k++) m.im[k] = -m.im[k]; return m; });
+  def('complex', (I, a) => ew(a[0], a[1] || S(0), null, (p, q, r) => [p, r], true));
+  def('round', (I, a) => { const d = a[1] ? num(a[1]) : 0, f = Math.pow(10, d); const r = x => Math.sign(x) * Math.round(Math.abs(x) * f) / f; return map(a[0], r, (x, y) => [r(x), r(y)]); });
+  elem('floor', Math.floor, (x, y) => [Math.floor(x), Math.floor(y)]); elem('ceil', Math.ceil, (x, y) => [Math.ceil(x), Math.ceil(y)]); elem('fix', Math.trunc, (x, y) => [Math.trunc(x), Math.trunc(y)]);
+  elem('sign', Math.sign);
+  def('mod', (I, a) => ew(a[0], a[1], (x, y) => y === 0 ? x : x - Math.floor(x / y) * y));
+  def('rem', (I, a) => ew(a[0], a[1], (x, y) => y === 0 ? x : x - Math.trunc(x / y) * y));
+  def('atan2', (I, a) => ew(a[0], a[1], Math.atan2));
+  def('hypot', (I, a) => ew(a[0], a[1], Math.hypot));
+  def('power', (I, a) => power(a[0], a[1])); def('times', (I, a) => times(a[0], a[1])); def('plus', (I, a) => plus(a[0], a[1])); def('minus', (I, a) => minus(a[0], a[1]));
+  def('sinc', (I, a) => map(a[0], x => x === 0 ? 1 : Math.sin(PI * x) / (PI * x)));
+  def('deg2rad', (I, a) => map(a[0], x => x * PI / 180)); def('rad2deg', (I, a) => map(a[0], x => x * 180 / PI));
+  def('isnan', (I, a) => { const o = map(a[0], x => Number.isNaN(x) ? 1 : 0); o.lg = true; return o; });
+  def('isinf', (I, a) => { const o = map(a[0], x => (!isFinite(x) && !Number.isNaN(x)) ? 1 : 0); o.lg = true; return o; });
+  def('isfinite', (I, a) => { const o = map(a[0], x => isFinite(x) ? 1 : 0); o.lg = true; return o; });
+  def('gcd', (I, a) => ew(a[0], a[1], (x, y) => gcd(x, y))); def('lcm', (I, a) => ew(a[0], a[1], (x, y) => x * y / gcd(x, y)));
+  def('nextpow2', (I, a) => map(a[0], x => x === 0 ? 0 : Math.ceil(Math.log2(Math.abs(x)))));
+  def('factorial', (I, a) => map(a[0], x => { let r = 1; for (let k = 2; k <= x; k++) r *= k; return r; }));
+  // hằng số
+  FN.pi = () => S(PI); FN.eps = () => S(Number.EPSILON); FN.Inf = FN.inf = () => S(Infinity); FN.NaN = FN.nan = () => S(NaN);
+  FN.i = FN.j = FN['1i'] = () => CX(0, 1);
+  // tạo mảng
+  const dims = (a, f) => {
+    if (!a.length) return [1, 1];
+    if (a.length === 1) { const m = asM(a[0]); if (m.n >= 2) return [m.re[0], m.re[1]]; return [m.re[0], m.re[0]]; }
+    return [num(a[0]), num(a[1])];
+  };
+  const filled = f => (I, a) => { const [r, c] = dims(a.filter(v => !(v instanceof Str))); if (r * c > 2e7) err('Mảng quá lớn'); const o = new Mat(Math.max(0, r), Math.max(0, c)); for (let k = 0; k < o.n; k++) o.re[k] = f(I); return o; };
+  FN.zeros = filled(() => 0); FN.ones = filled(() => 1);
+  FN.rand = filled(I => I.rand()); FN.randn = filled(I => I.rand.n());
+  FN.randi = (I, a) => { const mx = num(a[0]); return filled(I2 => 1 + Math.floor(I2.rand() * mx))(I, a.slice(1)); };
+  FN.true = (I, a) => { const o = filled(() => 1)(I, a); o.lg = true; return o; };
+  FN.false = (I, a) => { const o = filled(() => 0)(I, a); o.lg = true; return o; };
+  FN.eye = (I, a) => { const [r, c] = dims(a); const o = new Mat(r, c); for (let k = 0; k < Math.min(r, c); k++) o.re[k + k * r] = 1; return o; };
+  FN.rng = (I, a) => { if (a.length && !(a[0] instanceof Str)) I.rand = rng(Math.floor(num(a[0])) + 1); };
+  FN.linspace = (I, a) => { const x0 = num(a[0]), x1 = num(a[1]), n = a[2] ? Math.floor(num(a[2])) : 100; const o = new Mat(1, n); for (let k = 0; k < n; k++) o.re[k] = n === 1 ? x1 : x0 + (x1 - x0) * k / (n - 1); return o; };
+  FN.logspace = (I, a) => { const l = FN.linspace(I, a); return map(l, x => Math.pow(10, x)); };
+  FN.colon = (I, a) => colonRange(a[0], a.length > 2 ? a[1] : undefined, a[a.length - 1]);
+  FN.repmat = (I, a) => { const m = asM(a[0]); const [rr, cc] = dims(a.slice(1)); let row = horz(new Array(cc).fill(m)); return vert(new Array(rr).fill(row)); };
+  FN.reshape = (I, a) => { const m = asM(a[0]); let [r, c] = dims(a.slice(1)); if (r * c !== m.n) err(`reshape: không thể đổi ${m.n} phần tử thành ${r}×${c}`); const o = cloneV(m); o.r = r; o.c = c; return o; };
+  FN.horzcat = (I, a) => horz(a); FN.vertcat = (I, a) => vert(a);
+  FN.double = FN.single = (I, a) => a[0] instanceof Str ? asM(a[0]) : cloneV(asM(a[0]));
+  FN.logical = (I, a) => { const o = map(a[0], x => x !== 0 ? 1 : 0); o.lg = true; return o; };
+  const intc = (lo, hi) => (I, a) => map(a[0], x => clamp(Math.round(x), lo, hi));
+  FN.int8 = intc(-128, 127); FN.int16 = intc(-32768, 32767); FN.int32 = intc(-2147483648, 2147483647); FN.uint8 = intc(0, 255); FN.uint16 = intc(0, 65535);
+  // kích thước
+  FN.length = (I, a) => { const v = a[0]; if (v instanceof Str) return S(v.s.length); if (v instanceof Cell) return S(v.v.length); const m = asM(v); return S(m.n ? Math.max(m.r, m.c) : 0); };
+  FN.numel = (I, a) => { const v = a[0]; if (v instanceof Cell) return S(v.v.length); return S(asM(v).n); };
+  FN.size = (I, a, no) => { const m = a[0] instanceof Cell ? new Mat(1, a[0].v.length) : asM(a[0]); if (a[1]) return S(num(a[1]) === 1 ? m.r : num(a[1]) === 2 ? m.c : 1); if (no >= 2) return [S(m.r), S(m.c)]; return rowv([m.r, m.c]); };
+  FN.ndims = () => S(2);
+  FN.isempty = (I, a) => B(a[0] instanceof Cell ? !a[0].v.length : a[0] instanceof Str ? !a[0].s.length : asM(a[0]).n === 0);
+  FN.isrow = (I, a) => B(asM(a[0]).r === 1); FN.iscolumn = (I, a) => B(asM(a[0]).c === 1);
+  FN.isvector = (I, a) => { const m = asM(a[0]); return B(isVec(m) && m.n >= 1); }; FN.isscalar = (I, a) => B(asM(a[0]).n === 1);
+  FN.isreal = (I, a) => B(!asM(a[0]).im); FN.ischar = FN.isstring = (I, a) => B(a[0] instanceof Str);
+  FN.isequal = (I, a) => { const x = asM(a[0]), y = asM(a[1]); if (x.r !== y.r || x.c !== y.c) return B(false); for (let k = 0; k < x.n; k++) if (x.re[k] !== y.re[k] || (x.im ? x.im[k] : 0) !== (y.im ? y.im[k] : 0)) return B(false); return B(true); };
+  // rút gọn theo chiều
+  function reduce(a, dimArg, f, init) {
+    const m = asM(a); let dim = dimArg ? num(dimArg) : (m.r === 1 ? 2 : 1);
+    if (m.n === 0) return S(init);
+    if (dim === 1) { const o = new Mat(1, m.c); if (m.im) o.im = new Float64Array(m.c); for (let j = 0; j < m.c; j++) { let acc = [init, 0]; for (let i = 0; i < m.r; i++) acc = f(acc, m.re[i + j * m.r], m.im ? m.im[i + j * m.r] : 0); o.re[j] = acc[0]; if (o.im) o.im[j] = acc[1]; } return clean(o); }
+    const o = new Mat(m.r, 1); if (m.im) o.im = new Float64Array(m.r); for (let i = 0; i < m.r; i++) { let acc = [init, 0]; for (let j = 0; j < m.c; j++) acc = f(acc, m.re[i + j * m.r], m.im ? m.im[i + j * m.r] : 0); o.re[i] = acc[0]; if (o.im) o.im[i] = acc[1]; } return clean(o);
+  }
+  FN.sum = (I, a) => reduce(a[0], a[1], (s, x, y) => [s[0] + x, s[1] + y], 0);
+  FN.prod = (I, a) => reduce(a[0], a[1], (s, x, y) => cmul(s[0], s[1], x, y), 1);
+  FN.mean = (I, a) => { const m = asM(a[0]); const s = FN.sum(I, a); const dim = a[1] ? num(a[1]) : (m.r === 1 ? 2 : 1); return rdiv(s, S(dim === 1 ? m.r : m.c)); };
+  FN.rms = (I, a) => FN.sqrt(I, [FN.mean(I, [map(FN.abs(I, [a[0]]), x => x * x)])]);
+  FN.var = (I, a) => { const x = reArr(a[0]), n = x.length, mu = x.reduce((s, v) => s + v, 0) / n; return S(x.reduce((s, v) => s + (v - mu) ** 2, 0) / Math.max(1, n - 1)); };
+  FN.std = (I, a) => S(Math.sqrt(num(FN.var(I, a))));
+  FN.norm = (I, a) => { const m = asM(a[0]); let s = 0; for (let k = 0; k < m.n; k++) s += m.re[k] ** 2 + (m.im ? m.im[k] ** 2 : 0); return S(Math.sqrt(s)); };
+  FN.dot = (I, a) => { const x = asM(a[0]), y = asM(a[1]); if (x.n !== y.n) err('dot: hai vector phải cùng độ dài'); let s = 0; for (let k = 0; k < x.n; k++) s += x.re[k] * y.re[k]; return S(s); };
+  const cum = f => (I, a) => { const m = asM(a[0]); const o = cloneV(m); if (!isVec(m)) err('Chỉ hỗ trợ vector'); let acc = [f === 'p' ? 1 : 0, 0]; for (let k = 0; k < m.n; k++) { acc = f === 'p' ? cmul(acc[0], acc[1], m.re[k], m.im ? m.im[k] : 0) : [acc[0] + m.re[k], acc[1] + (m.im ? m.im[k] : 0)]; o.re[k] = acc[0]; if (o.im) o.im[k] = acc[1]; } return o; };
+  FN.cumsum = cum('s'); FN.cumprod = cum('p');
+  const minmax = sgn => (I, a, no) => {
+    if (a.length >= 2 && asM(a[1]).n > 0) return ew(a[0], a[1], (x, y) => sgn * x > sgn * y ? x : y);
+    const m = asM(a[0]); if (!m.n) return no >= 2 ? [EMPTY(), EMPTY()] : EMPTY();
+    const key = k => m.im ? Math.hypot(m.re[k], m.im[k]) : m.re[k];
+    const one = ks => { let bi = ks[0]; for (const k of ks) if (sgn * key(k) > sgn * key(bi) || Number.isNaN(key(bi))) bi = k; return bi; };
+    if (isVec(m)) { const ks = range(0, m.n - 1), bi = one(ks); const v = m.im ? CX(m.re[bi], m.im[bi]) : S(m.re[bi]); return no >= 2 ? [v, S(bi + 1)] : v; }
+    const o = new Mat(1, m.c), ix = new Mat(1, m.c); for (let j = 0; j < m.c; j++) { const bi = one(range(j * m.r, j * m.r + m.r - 1)); o.re[j] = m.re[bi]; ix.re[j] = bi - j * m.r + 1; }
+    return no >= 2 ? [o, ix] : o;
+  };
+  FN.max = minmax(1); FN.min = minmax(-1);
+  FN.sort = (I, a, no) => { const m = asM(a[0]); const desc = a[1] instanceof Str && /desc/i.test(a[1].s); const key = k => m.im ? Math.hypot(m.re[k], m.im[k]) : m.re[k]; const ks = range(0, m.n - 1).sort((p, q) => desc ? key(q) - key(p) : key(p) - key(q)); const o = vecOut(m, ks.map(k => m.re[k]), m.im ? ks.map(k => m.im[k]) : null); return no >= 2 ? [o, vecOut(m, ks.map(k => k + 1))] : o; };
+  FN.find = (I, a) => { const m = asM(a[0]); const lim = a[1] ? num(a[1]) : Infinity; const out = []; for (let k = 0; k < m.n && out.length < lim; k++) if (m.re[k] !== 0 || (m.im && m.im[k] !== 0)) out.push(k + 1); return m.r === 1 ? rowv(out) : colv(out); };
+  FN.any = (I, a) => { const m = asM(a[0]); for (let k = 0; k < m.n; k++) if (m.re[k] !== 0) return B(true); return B(false); };
+  FN.all = (I, a) => { const m = asM(a[0]); for (let k = 0; k < m.n; k++) if (m.re[k] === 0) return B(false); return B(true); };
+  FN.diff = (I, a) => { const m = asM(a[0]); if (!isVec(m)) err('diff: chỉ hỗ trợ vector'); const r = []; for (let k = 1; k < m.n; k++) r.push(m.re[k] - m.re[k - 1]); return vecOut(m, r); };
+  FN.fliplr = FN.flip = (I, a) => { const m = asM(a[0]); if (isVec(m)) { const o = cloneV(m); o.re.reverse(); if (o.im) o.im.reverse(); return o; } const o = new Mat(m.r, m.c); for (let j = 0; j < m.c; j++) for (let i = 0; i < m.r; i++) o.re[i + j * m.r] = m.re[i + (m.c - 1 - j) * m.r]; return o; };
+  FN.flipud = (I, a) => { const m = asM(a[0]); const o = new Mat(m.r, m.c); for (let j = 0; j < m.c; j++) for (let i = 0; i < m.r; i++) o.re[i + j * m.r] = m.re[m.r - 1 - i + j * m.r]; return o; };
+  FN.circshift = (I, a) => { const m = asM(a[0]); if (!isVec(m)) err('circshift: chỉ hỗ trợ vector'); const k = num(a[1]), n = m.n; const o = cloneV(m); for (let t = 0; t < n; t++) { const s = ((t - k) % n + n) % n; o.re[t] = m.re[s]; if (o.im) o.im[t] = m.im[s]; } return o; };
+  FN.unwrap = (I, a) => { const x = reArr(a[0]); const o = x.slice(); for (let k = 1; k < x.length; k++) { let d = x[k] - x[k - 1]; d -= TAU * Math.round(d / TAU); o[k] = o[k - 1] + d; } return vecOut(asM(a[0]), o); };
+  FN.floor2 = null;
+  // đa thức
+  FN.roots = (I, a) => { const r = rootsOf(a[0]); return clean(new Mat(r.length, 1, Float64Array.from(r.map(z => z[0])), Float64Array.from(r.map(z => z[1])))); };
+  FN.poly = (I, a) => { const m = asM(a[0]); const P = polyC(Array.from(m.re), m.im ? Array.from(m.im) : new Array(m.n).fill(0)); const o = rowv(P.re); if (P.im) o.im = Float64Array.from(P.im); return o; };
+  FN.polyval = (I, a) => { const p = asM(a[0]); return ew(a[1], S(0), null, (x, y) => { let r = [0, 0]; for (let k = 0; k < p.n; k++) { r = cmul(r[0], r[1], x, y); r[0] += p.re[k]; r[1] += p.im ? p.im[k] : 0; } return r; }, true); };
+  FN.conv = (I, a) => { const x = asM(a[0]), h = asM(a[1]); const L = x.n + h.n - 1; if (!x.n || !h.n) return EMPTY(); const yr = new Float64Array(L), yi = new Float64Array(L); const C = x.im || h.im; for (let i = 0; i < x.n; i++) for (let j = 0; j < h.n; j++) { const z = cmul(x.re[i], x.im ? x.im[i] : 0, h.re[j], h.im ? h.im[j] : 0); yr[i + j] += z[0]; yi[i + j] += z[1]; } return vecOut(x.r === 1 && h.r === 1 || x.r === 1 && x.n > 1 ? { r: 1 } : (x.n === 1 ? h : x), yr, C ? yi : null); };
+  FN.filter = (I, a) => filterV(a[0], a[1], a[2]);
+  // FFT
+  FN.fft = (I, a) => { const x = asM(a[0]); if (!isVec(x)) err('fft: trình chạy web chỉ hỗ trợ vector'); const N = a[1] ? num(a[1]) : x.n; const { re, im } = fftV(x, N); return vecOut(x.r === 1 ? x : { r: 0 }, re, im); };
+  FN.ifft = (I, a) => { const x = asM(a[0]); const N = a[1] ? num(a[1]) : x.n; const c = cloneV(x); if (c.im) for (let k = 0; k < c.n; k++) c.im[k] = -c.im[k]; const { re, im } = fftV(c, N); for (let k = 0; k < N; k++) { re[k] /= N; im[k] = -im[k] / N; } const mx = Math.max(1e-300, ...Array.from(re).map(Math.abs)); const isR = Array.from(im).every(v => Math.abs(v) < 1e-10 * mx); return vecOut(x.r === 1 ? x : { r: 0 }, re, isR ? null : im); };
+  FN.fftshift = (I, a) => { const m = asM(a[0]); return FN.circshift(I, [m, S(Math.floor(m.n / 2))]); };
+  FN.ifftshift = (I, a) => { const m = asM(a[0]); return FN.circshift(I, [m, S(-Math.floor(m.n / 2))]); };
+  FN.bitrevorder = (I, a) => { const m = asM(a[0]), N = m.n, b = Math.log2(N); if (!Number.isInteger(b)) err('bitrevorder: độ dài phải là luỹ thừa của 2'); const ord = range(0, N - 1).map(k => { let r = 0; for (let t = 0; t < b; t++) if (k & (1 << t)) r |= 1 << (b - 1 - t); return r; }); return vecOut(m, ord.map(k => m.re[k]), m.im ? ord.map(k => m.im[k]) : null); };
+  // cửa sổ (trả về VECTOR CỘT như MATLAB)
+  FN.hamming = (I, a) => winCol('hamming', num(a[0])); FN.hann = (I, a) => winCol('hann', num(a[0])); FN.blackman = (I, a) => winCol('blackman', num(a[0]));
+  FN.rectwin = (I, a) => winCol('rect', num(a[0])); FN.kaiser = (I, a) => winCol('kaiser', num(a[0]), a[1] ? num(a[1]) : 0.5);
+  FN.hanning = (I, a) => { const N = num(a[0]); return colv(range(1, N).map(k => 0.5 - 0.5 * Math.cos(TAU * k / (N + 1)))); };
+  FN.bartlett = FN.triang = (I, a) => { const N = num(a[0]); return colv(range(0, N - 1).map(k => 1 - Math.abs(2 * k / (N - 1) - 1))); };
+  // thiết kế bộ lọc
+  FN.fir1 = (I, a) => { const n = num(a[0]); let type, win; for (const v of a.slice(2)) { if (v instanceof Str) type = v.s.toLowerCase().replace('pass', '') === 'band' ? 'bandpass' : v.s.toLowerCase(); else win = v; } if (type === 'low' || type === 'high' || type === 'stop' || type === 'bandpass' || !type); else if (type === 'band') type = 'bandpass'; const R = fir1V(n, a[1], type, win); if (R.n !== n) I.print(`Cảnh báo: bộ lọc thông cao/chắn dải cần bậc chẵn, đã tăng bậc lên ${R.n}.`); return rowv(R.h); };
+  FN.butter = (I, a, no) => { const type = a[2] instanceof Str ? a[2].s.toLowerCase() : 'low'; const R = butterV(num(a[0]), a[1], type); if (no >= 3) return [colv(R.z), clean(new Mat(R.p.length, 1, Float64Array.from(R.p.map(z => z[0])), Float64Array.from(R.p.map(z => z[1])))), S(R.k)]; return [rowv(R.b), rowv(R.a)]; };
+  FN.freqz = (I, a, no) => {
+    const b = a[0], aa = a[1] && !(a[1] instanceof Str) ? a[1] : S(1);
+    let n = 512, fs = null, whole = false;
+    const rest = a.slice(2); if (rest[0] && !(rest[0] instanceof Str)) n = num(rest[0]);
+    for (const v of rest.slice(1)) { if (v instanceof Str) whole = /whole/i.test(v.s); else fs = num(v); }
+    const R = freqzV(b, aa, n, whole);
+    const H = new Mat(n, 1, Float64Array.from(R.hr), Float64Array.from(R.hi));
+    const W = colv(fs ? R.w.map(w => w / TAU * fs) : R.w);
+    if (no >= 1) return [clean(H), W];
+    const f = fig(I); f.axes = []; f.cur = null;
+    const xs = fs ? R.w.map(w => w / TAU * fs) : R.w.map(w => w / PI);
+    const A1 = newAx(2, 1, [1]); A1.series.push({ kind: 'line', x: xs, y: R.hr.map((r, k) => dB(Math.hypot(r, R.hi[k]))), color: 'trace', dash: '-', lw: 1.6 }); A1.grid = true; A1.yl = 'Biên độ (dB)'; A1.xl = fs ? 'Tần số (Hz)' : 'Tần số chuẩn hoá (×π rad/mẫu)';
+    const A2 = newAx(2, 1, [2]); const ph = FN.unwrap(I, [rowv(R.hr.map((r, k) => Math.atan2(R.hi[k], r)))]); A2.series.push({ kind: 'line', x: xs, y: Array.from(ph.re).map(v => v * 180 / PI), color: 'trace', dash: '-', lw: 1.6 }); A2.grid = true; A2.yl = 'Pha (độ)'; A2.xl = A1.xl;
+    f.axes.push(A1, A2); f.cur = A2;
+  };
+  FN.impz = (I, a, no) => {
+    const b = a[0], aa = a[1] && !(a[1] instanceof Str) ? a[1] : S(1); const n = a[2] ? num(a[2]) : (asM(aa).n === 1 ? asM(b).n : 64);
+    const d = new Float64Array(n); d[0] = 1; const h = filterV(b, aa, new Mat(n, 1, d));
+    if (no >= 1) return no >= 2 ? [h, colv(range(0, n - 1))] : h;
+    addSeries(I, 'stem', [rowv(range(0, n - 1)), h]); const A = ax(I); A.xl = 'n (mẫu)'; A.yl = 'Biên độ'; A.title = 'Đáp ứng xung';
+  };
+  FN.zplane = (I, a) => {
+    const z0 = asM(a[0]), p0 = a[1] ? asM(a[1]) : new Mat(0, 1);
+    let Z, P;
+    if (z0.c === 1 && z0.n > 1 || p0.c === 1 && p0.n > 1) { Z = Array.from(z0.re).map((r, k) => [r, z0.im ? z0.im[k] : 0]); P = Array.from(p0.re).map((r, k) => [r, p0.im ? p0.im[k] : 0]); }
+    else { Z = rootsOf(z0); P = rootsOf(p0); const d = (asM(a[1] || S(1)).n) - z0.n; for (let k = 0; k < d; k++) Z.push([0, 0]); for (let k = 0; k < -d; k++) P.push([0, 0]); }
+    const A = ax(I); if (!A.hold) { A.series = []; A.ci = 0; }
+    A.series.push({ kind: 'zp', zeros: Z, poles: P }); A.equal = true; A.xl = 'Phần thực'; A.yl = 'Phần ảo';
+  };
+  FN.downsample = (I, a) => { const m = asM(a[0]), M = num(a[1]), ph = a[2] ? num(a[2]) : 0; const r = []; for (let k = ph; k < m.n; k += M) r.push(m.re[k]); return vecOut(m, r); };
+  FN.upsample = (I, a) => { const m = asM(a[0]), L = num(a[1]), ph = a[2] ? num(a[2]) : 0; const r = new Array(m.n * L).fill(0); for (let k = 0; k < m.n; k++) r[k * L + ph] = m.re[k]; return vecOut(m, r); };
+  FN.chirp = (I, a) => { const f0 = a[1] ? num(a[1]) : 0, t1 = a[2] ? num(a[2]) : 1, f1 = a[3] ? num(a[3]) : 100; return map(a[0], t => Math.cos(TAU * (f0 * t + (f1 - f0) / (2 * t1) * t * t))); };
+  FN.square = (I, a) => { const d = a[1] ? num(a[1]) / 100 : 0.5; return map(a[0], t => { const u = ((t % TAU) + TAU) % TAU / TAU; return u < d ? 1 : -1; }); };
+  FN.sawtooth = (I, a) => { const w = a[1] ? num(a[1]) : 1; return map(a[0], t => { const u = ((t % TAU) + TAU) % TAU / TAU; return u < w ? -1 + 2 * u / w : 1 - 2 * (u - w) / (1 - w); }); };
+  FN.rectpuls = (I, a) => { const w = a[1] ? num(a[1]) : 1; return map(a[0], t => (t >= -w / 2 && t < w / 2) ? 1 : 0); };
+  FN.mag2db = FN.db = (I, a) => map(FN.abs(I, [a[0]]), x => 20 * Math.log10(x));
+  FN.pow2db = (I, a) => map(a[0], x => 10 * Math.log10(x)); FN.db2mag = (I, a) => map(a[0], x => Math.pow(10, x / 20)); FN.db2pow = (I, a) => map(a[0], x => Math.pow(10, x / 10));
+  FN.spectrogram = (I, a, no) => {
+    const x = reArr(a[0]); let w, L;
+    if (a[1] && asM(a[1]).n > 1) { w = reArr(a[1]); L = w.length; } else { L = a[1] ? num(a[1]) : Math.floor(x.length / 4.5); w = windowFn('hamming', L); }
+    const nov = a[2] && asM(a[2]).n ? num(a[2]) : Math.floor(L / 2), nfft = a[3] && asM(a[3]).n ? num(a[3]) : Math.max(256, Math.pow(2, Math.ceil(Math.log2(L))));
+    const fs = a[4] && !(a[4] instanceof Str) ? num(a[4]) : null, yaxis = a.some(v => v instanceof Str && /yaxis/i.test(v.s));
+    const hop = L - nov; if (hop <= 0) err('spectrogram: noverlap phải nhỏ hơn độ dài cửa sổ');
+    const F = Math.floor((x.length - L) / hop) + 1; if (F < 1) err('spectrogram: tín hiệu ngắn hơn cửa sổ');
+    const bins = Math.floor(nfft / 2) + 1, img = new Float32Array(F * bins);
+    const Sre = no ? new Float64Array(F * bins) : null, Sim = no ? new Float64Array(F * bins) : null;
+    const re = new Float64Array(nfft), im = new Float64Array(nfft), pw2 = nfft & (nfft - 1);
+    for (let f = 0; f < F; f++) {
+      re.fill(0); im.fill(0);
+      for (let k = 0; k < L; k++) re[k % nfft] += x[f * hop + k] * w[k];
+      if (!pw2) fft(re, im); else { const D = dft(Array.from(re)); re.set(D.re); im.set(D.im); }
+      for (let k = 0; k < bins; k++) { img[k * F + f] = 10 * Math.log10(re[k] * re[k] + im[k] * im[k] + 1e-20); if (Sre) { Sre[k + f * bins] = re[k]; Sim[k + f * bins] = im[k]; } }
+    }
+    const fsx = fs || TAU, fax = range(0, bins - 1).map(k => k * fsx / nfft), tax = range(0, F - 1).map(f => (f * hop + L / 2) / fsx);
+    if (no >= 1) return [clean(new Mat(bins, F, Sre, Sim)), colv(fs ? fax : fax), rowv(tax)];
+    let mx = -Infinity; for (const v of img) mx = Math.max(mx, v);
+    const A = ax(I); A.series = []; A.ci = 0;
+    const fmax = fs ? fs / 2 : 1, tmax = (x.length) / (fs || 1);
+    const t0 = tax[0], t1 = tax[F - 1];
+    A.series.push({ kind: 'image', data: img, w: F, h: bins, lo: mx - 80, hi: mx, x0: yaxis ? t0 : 0, x1: yaxis ? t1 : fmax, y0: yaxis ? 0 : t0, y1: yaxis ? fmax : t1, transpose: !yaxis });
+    const fl = fs ? 'Tần số (Hz)' : 'Tần số chuẩn hoá (×π rad/mẫu)', tl = fs ? 'Thời gian (s)' : 'Mẫu';
+    A.xl = yaxis ? tl : fl; A.yl = yaxis ? fl : tl; A.xlim = null; A.ylim = null; A.tight = true;
+  };
+  FN.imagesc = (I, a) => {
+    let x = null, y = null, Cm; if (a.length >= 3) { x = reArr(a[0]); y = reArr(a[1]); Cm = asM(a[2]); } else Cm = asM(a[0]);
+    const Fw = Cm.c, Hh = Cm.r, img = new Float32Array(Fw * Hh); let lo = Infinity, hi = -Infinity;
+    for (let i = 0; i < Hh; i++) for (let j = 0; j < Fw; j++) { const v = Cm.re[i + j * Hh]; img[i * Fw + j] = v; if (isFinite(v)) { lo = Math.min(lo, v); hi = Math.max(hi, v); } }
+    const A = ax(I); A.series = []; A.series.push({ kind: 'image', data: img, w: Fw, h: Hh, lo, hi, x0: x ? x[0] : 1, x1: x ? x[x.length - 1] : Fw, y0: y ? y[0] : 1, y1: y ? y[y.length - 1] : Hh, flipY: !y }); A.tight = true;
+  };
+  // âm thanh
+  FN.sound = FN.soundsc = (I, a) => { const fs = a[1] ? num(a[1]) : 8192; if (I.allowSound && I.onSound) I.onSound(reArr(a[0]), fs); else I.print('(Âm thanh chỉ phát khi bạn bấm nút Chạy.)'); };
+  // đồ thị
+  FN.figure = (I, a) => { if (a.length && !(a[0] instanceof Str)) { const k = num(a[0]) - 1; while (I.figs.length <= k) newFig(I); I.cf = k; } else newFig(I); };
+  FN.clf = I => { const f = fig(I); f.axes = []; f.cur = null; };
+  FN.close = I => { I.figs = []; I.cf = -1; };
+  FN.subplot = (I, a) => {
+    let m, n, ps;
+    if (a.length === 1) { const v = num(a[0]); m = Math.floor(v / 100); n = Math.floor(v / 10) % 10; ps = [v % 10]; }
+    else { m = num(a[0]); n = num(a[1]); ps = reArr(a[2]); }
+    if (ps.some(p => p < 1 || p > m * n)) err(`subplot(${m},${n},p): p phải từ 1 đến ${m * n}`);
+    const f = fig(I), key = `${m},${n},${ps.join('.')}`;
+    let A = f.axes.find(x => `${x.m},${x.n},${x.ps.join('.')}` === key);
+    if (!A) { A = newAx(m, n, ps); f.axes.push(A); }
+    f.cur = A;
+  };
+  FN.plot = (I, a) => addSeries(I, 'line', a);
+  FN.stem = (I, a) => addSeries(I, 'stem', a);
+  FN.stairs = (I, a) => addSeries(I, 'stairs', a);
+  FN.bar = (I, a) => addSeries(I, 'bar', a);
+  FN.area = (I, a) => addSeries(I, 'line', a, { fill: true });
+  FN.scatter = (I, a) => addSeries(I, 'line', a.slice(0, 2), { dash: 'none', marker: 'o' });
+  FN.semilogy = (I, a) => { addSeries(I, 'line', a); const A = ax(I); A.logy = true; };
+  FN.hold = (I, a) => { const A = ax(I); A.hold = a.length ? /^on$/i.test(a[0].s) : !A.hold; };
+  FN.grid = (I, a) => { ax(I).grid = a.length ? !/^off$/i.test(a[0].s) : !ax(I).grid; };
+  FN.box = () => { }; FN.colorbar = () => { }; FN.colormap = () => { }; FN.drawnow = () => { }; FN.shg = () => { }; FN.set = () => { }; FN.pause = () => { };
+  FN.gca = FN.gcf = () => S(1);
+  FN.title = (I, a) => { ax(I).title = texify(a[0] instanceof Str ? a[0].s : ''); };
+  FN.sgtitle = (I, a) => { fig(I).title = texify(str(a[0])); };
+  FN.xlabel = (I, a) => { ax(I).xl = texify(str(a[0], 'xlabel')); }; FN.ylabel = (I, a) => { ax(I).yl = texify(str(a[0], 'ylabel')); };
+  FN.legend = (I, a) => {
+    const A = ax(I); let names = [];
+    for (let k = 0; k < a.length; k++) { const v = a[k]; if (v instanceof Cell) names.push(...v.v.map(x => str(x))); else if (v instanceof Str) { if (/^location$/i.test(v.s)) { k++; continue; } if (/^(show|boxoff|boxon|off)$/i.test(v.s)) continue; names.push(v.s); } }
+    A.legend = a.length === 1 && a[0] instanceof Str && /^off$/i.test(a[0].s) ? null : names.map(texify);
+  };
+  FN.xlim = (I, a) => { ax(I).xlim = reArr(a[0]); }; FN.ylim = (I, a) => { ax(I).ylim = reArr(a[0]); };
+  FN.axis = (I, a) => { const A = ax(I); for (const v of a) { if (v instanceof Str) { if (/equal|square/i.test(v.s)) A.equal = true; if (/tight/i.test(v.s)) A.tight = true; } else { const l = reArr(v); A.xlim = l.slice(0, 2); if (l.length >= 4) A.ylim = l.slice(2, 4); } } };
+  FN.text = (I, a) => { const A = ax(I); A.series.push({ kind: 'text', x: num(a[0]), y: num(a[1]), s: texify(str(a[2], 'text')) }); };
+  FN.xline = (I, a) => { const A = ax(I); for (const v of reArr(a[0])) A.series.push({ kind: 'xline', v, color: 'muted', dash: (a[1] instanceof Str && parseSpec(a[1].s).dash) || '--', label: a[2] instanceof Str ? texify(a[2].s) : '' }); };
+  FN.yline = (I, a) => { const A = ax(I); for (const v of reArr(a[0])) A.series.push({ kind: 'yline', v, color: 'muted', dash: (a[1] instanceof Str && parseSpec(a[1].s).dash) || '--', label: a[2] instanceof Str ? texify(a[2].s) : '' }); };
+  // chuỗi và in ấn
+  FN.disp = (I, a) => { const v = a[0]; if (v instanceof Str) I.print(v.s); else if (v instanceof Mat && v.n === 0) { } else if (v instanceof Mat && v.n === 1) I.print(fcx(v.re[0], v.im ? v.im[0] : null, I.long).trim()); else if (v instanceof Mat) I.print(fmtMat(v, I.long)); else I.print(display('', v).replace(/^ = /, '')); };
+  FN.fprintf = (I, a) => { let args = a; if (args[0] instanceof Mat && args[0].n === 1 && args[0].re[0] === 1) args = args.slice(1); if (!(args[0] instanceof Str)) { I.print(fmtMat(asM(args[0]))); return; } I.write(sprintfImpl(args[0].s, args.slice(1))); };
+  FN.sprintf = (I, a) => new Str(sprintfImpl(str(a[0], 'Định dạng'), a.slice(1)));
+  FN.num2str = (I, a) => {
+    const v = a[0]; if (v instanceof Str) return v;
+    if (a[1] instanceof Str) return new Str(sprintfImpl(a[1].s, [v]));
+    const m = asM(v), one = (x, y) => {
+      const f = r => { if (Number.isInteger(r)) return String(r); const p = a[1] ? num(a[1]) : Math.max(Math.floor(Math.log10(Math.abs(r) || 1)) + 5, 5); return gfmt(r, p); };
+      return y ? f(x) + (y < 0 ? '-' : '+') + f(Math.abs(y)) + 'i' : f(x);
+    };
+    return new Str(Array.from(m.re).map((x, k) => one(x, m.im ? m.im[k] : 0)).join('  '));
+  };
+  FN.mat2str = (I, a) => {
+    const m = asM(a[0]), p = a[1] ? num(a[1]) : 15, f = x => gfmt(x, p);
+    const el = k => m.im && m.im[k] !== 0 ? f(m.re[k]) + (m.im[k] < 0 ? '-' : '+') + f(Math.abs(m.im[k])) + 'i' : f(m.re[k]);
+    if (m.n === 1) return new Str(el(0));
+    const rows = []; for (let i = 0; i < m.r; i++) { const r = []; for (let j = 0; j < m.c; j++) r.push(el(i + j * m.r)); rows.push(r.join(' ')); }
+    return new Str('[' + rows.join(';') + ']');
+  };
+  FN.str2num = FN.str2double = (I, a) => S(parseFloat(str(a[0])));
+  FN.dec2bin = (I, a) => { const d = num(a[0]); if (d < 0 || !Number.isInteger(d)) err('dec2bin: cần số nguyên không âm (với số âm bù 2, dùng dec2bin(mod(x, 2^B), B))'); let s = d.toString(2); if (a[1]) s = s.padStart(num(a[1]), '0'); return new Str(s); };
+  FN.dec2hex = (I, a) => { const d = num(a[0]); if (d < 0 || !Number.isInteger(d)) err('dec2hex: cần số nguyên không âm'); let s = d.toString(16).toUpperCase(); if (a[1]) s = s.padStart(num(a[1]), '0'); return new Str(s); };
+  FN.bin2dec = (I, a) => S(parseInt(str(a[0]).replace(/\s/g, ''), 2)); FN.hex2dec = (I, a) => S(parseInt(str(a[0]), 16));
+  FN.upper = (I, a) => new Str(str(a[0]).toUpperCase()); FN.lower = (I, a) => new Str(str(a[0]).toLowerCase());
+  FN.strcmp = (I, a) => B(a[0] instanceof Str && a[1] instanceof Str && a[0].s === a[1].s);
+  FN.strcat = (I, a) => new Str(a.map(v => str(v)).join(''));
+  FN.error = (I, a) => err(a.length > 1 ? sprintfImpl(str(a[0]), a.slice(1)) : str(a[0], 'error'));
+  FN.warning = (I, a) => { if (a[0] instanceof Str && /^(on|off)$/i.test(a[0].s)) return; I.print('Cảnh báo: ' + (a.length ? sprintfImpl(str(a[0]), a.slice(1)) : '')); };
+  FN.tic = I => { I.ticT = performance.now(); };
+  FN.toc = (I, a, no) => { const t = (performance.now() - (I.ticT || I.t0)) / 1000; if (no >= 1) return S(t); I.print(`Elapsed time is ${t.toFixed(6)} seconds.`); };
+  FN.clc = I => { I.out.length = 0; };
+  FN.clear = (I, a) => { if (!a.length || a.some(v => /^all$/i.test(v.s))) I.vars.clear(); else a.forEach(v => I.vars.delete(v.s)); };
+  FN.format = (I, a) => { I.long = a.length && /long/i.test(a[0].s); };
+  FN.more = FN.pkg = () => { };
+  FN.exist = (I, a) => S(I.vars.has(str(a[0])) ? 1 : FN[str(a[0])] ? 5 : 0);
+  FN.feval = (I, a) => I.callValue(a[0] instanceof Str ? new FH(a[0].s) : a[0], a.slice(1), 1);
+  FN.arrayfun = (I, a) => { const f = a[0], m = asM(a[1]); const o = new Mat(m.r, m.c); for (let k = 0; k < m.n; k++) o.re[k] = num(I.callValue(f, [S(m.re[k])], 1)); return o; };
+  FN.isa = () => B(false);
+  FN.help = I => I.print('Trình chạy MATLAB trên web hỗ trợ: ' + Object.keys(FN).filter(k => FN[k]).sort().join(', '));
+  FN.floor2 = undefined; delete FN.floor2;
+
+  /* ---------- trình thông dịch ---------- */
+  class Interp {
+    constructor(o = {}) {
+      this.vars = new Map(); this.out = ['']; this.figs = []; this.cf = -1; this.rand = rng(o.seed || 20241); this.endStack = [];
+      this.allowSound = !!o.allowSound; this.onSound = o.onSound; this.t0 = performance.now(); this.deadline = Date.now() + (o.timeout || 8000); this.ops = 0; this.long = false; this.depth = 0;
+    }
+    write(s) { const parts = s.split('\n'); this.out[this.out.length - 1] += parts[0]; for (let k = 1; k < parts.length; k++) this.out.push(parts[k]); }
+    print(s) { if (this.out[this.out.length - 1] !== '') this.out.push(''); this.write(s + '\n'); }
+    text() { return this.out.join('\n').replace(/\n{3,}/g, '\n\n').replace(/^\n+/, ''); }
+    tick() { if ((++this.ops & 1023) === 0 && Date.now() > this.deadline) throw new MErr('Hết thời gian chạy (quá 8 giây). Kiểm tra vòng lặp vô hạn hoặc giảm kích thước dữ liệu.'); }
+    run(src) { const ast = parse(lex(src)); try { this.block(ast); } catch (e) { if (e instanceof RetSig) return; if (e instanceof BreakSig || e instanceof ContSig) throw new MErr('break/continue chỉ dùng trong vòng lặp'); throw e; } }
+    block(list) { for (const s of list) this.exec(s); }
+    exec(s) {
+      this.tick();
+      try {
+        switch (s.t) {
+          case 'expr': {
+            const e = s.e;
+            let v;
+            if (e.t === 'id' && this.vars.has(e.v)) { v = this.vars.get(e.v); if (s.show) this.print(display(e.v, v, this.long)); return; }
+            v = this.eval(e, 0);
+            if (Array.isArray(v)) v = v[0];
+            if (v !== undefined) { this.vars.set('ans', v); if (s.show) this.print(display('ans', v, this.long)); }
+            return;
+          }
+          case 'assign': {
+            const L = s.lhs; let v = this.eval(s.rhs, 1); if (Array.isArray(v)) v = v[0];
+            if (v === undefined) err('Vế phải không trả về giá trị');
+            if (!L.args) { if (s.rhs.t === 'id') v = cloneV(v); this.vars.set(L.name, v); }
+            else {
+              if (L.brace) err('Gán c{k} = ... chưa được hỗ trợ');
+              const cur = this.vars.get(L.name);
+              if (cur instanceof Fun) err(`'${L.name}' là hàm, không gán chỉ số được`);
+              const args = this.evalArgs(L.args, cur || EMPTY());
+              this.vars.set(L.name, setIndex(cur, args, v, s.rhs.t === 'mat' && s.rhs.rows.length === 0));
+            }
+            if (s.show) this.print(display(L.name, this.vars.get(L.name), this.long));
+            return;
+          }
+          case 'massign': {
+            let vs = this.eval(s.rhs, s.lhs.length); if (!Array.isArray(vs)) vs = [vs];
+            s.lhs.forEach((nm, k) => { if (nm === '~') return; if (vs[k] === undefined) err(`Hàm không trả về đủ ${s.lhs.length} giá trị`); this.vars.set(nm, vs[k]); if (s.show) this.print(display(nm, vs[k], this.long)); });
+            return;
+          }
+          case 'if': {
+            for (const c of s.clauses) if (truthy(this.eval(c.cond, 1))) { this.block(c.body); return; }
+            if (s.els) this.block(s.els); return;
+          }
+          case 'for': {
+            const v = this.eval(s.e, 1);
+            const items = v instanceof Cell ? v.v.map(x => new Cell([x])) : (() => { const m = asM(v); const r = []; for (let j = 0; j < m.c; j++) r.push(m.r === 1 ? (m.im ? CX(m.re[j], m.im[j]) : S(m.re[j])) : getIndex(m, [COLON, S(j + 1)])); return r; })();
+            for (const it of items) {
+              this.vars.set(s.v, it); this.tick();
+              try { this.block(s.body); } catch (e) { if (e instanceof BreakSig) break; if (e instanceof ContSig) continue; throw e; }
+            }
+            return;
+          }
+          case 'while': {
+            while (truthy(this.eval(s.cond, 1))) {
+              this.tick();
+              try { this.block(s.body); } catch (e) { if (e instanceof BreakSig) break; if (e instanceof ContSig) continue; throw e; }
+            }
+            return;
+          }
+          case 'switch': {
+            const v = this.eval(s.e, 1);
+            const match = c => { if (c instanceof Cell) return c.v.some(match); if (v instanceof Str || c instanceof Str) return v instanceof Str && c instanceof Str && v.s === c.s; return num(v) === num(c); };
+            for (const c of s.cases) if (match(this.eval(c.v, 1))) { this.block(c.body); return; }
+            if (s.other) this.block(s.other); return;
+          }
+          case 'break': throw new BreakSig();
+          case 'continue': throw new ContSig();
+          case 'return': throw new RetSig();
+          case 'cmd': { const f = FN[s.name]; if (!f) err(`Không có lệnh '${s.name}'`); f(this, s.args.map(a => new Str(a)), 0); return; }
+        }
+      } catch (e) { if (e instanceof MErr && e.line == null) e.line = s.line; throw e; }
+    }
+    evalArgs(args, target) {
+      return args.map((a, k) => {
+        if (a.t === 'colon') return COLON;
+        this.endStack.push({ v: target, k, n: args.length });
+        try { const v = this.eval(a, 1); return Array.isArray(v) ? v[0] : v; } finally { this.endStack.pop(); }
+      });
+    }
+    callValue(f, args, no) {
+      if (f instanceof FH) { const g = FN[f.name]; if (!g) { if (this.vars.get(f.name) instanceof Fun) return this.callValue(this.vars.get(f.name), args, no); err(`Không có hàm '${f.name}'`); } return g(this, args, no); }
+      if (f instanceof Fun) {
+        if (args.length > f.params.length) err(`Hàm ẩn danh nhận ${f.params.length} đối số nhưng được gọi với ${args.length}`);
+        if (++this.depth > 200) err('Đệ quy quá sâu');
+        const saved = this.vars; this.vars = new Map(f.env); f.params.forEach((p, k) => { if (args[k] !== undefined) this.vars.set(p, args[k]); });
+        try { return this.eval(f.body, no); } finally { this.vars = saved; this.depth--; }
+      }
+      err('Giá trị này không gọi như hàm được');
+    }
+    callFn(name, args, no) {
+      const f = FN[name];
+      if (!f) {
+        const hint = { sum: '', length: '' }[name];
+        const sim = Object.keys(FN).find(k => k.toLowerCase() === name.toLowerCase());
+        err(`Không có biến hoặc hàm tên '${name}'` + (sim ? ` (MATLAB phân biệt hoa thường: ý bạn là '${sim}'?)` : ''));
+      }
+      return f(this, args, no);
+    }
+    eval(n, no = 1) {
+      switch (n.t) {
+        case 'num': return n.imag ? CX(0, n.v) : S(n.v);
+        case 'str': return new Str(n.v);
+        case 'paren': { const v = this.eval(n.e, 1); return Array.isArray(v) ? v[0] : v; }
+        case 'id': {
+          if (this.vars.has(n.v)) return this.vars.get(n.v);
+          const r = this.callFn(n.v, [], no);
+          if (r === undefined && no >= 1) err(`'${n.v}' không trả về giá trị`);
+          return r;
+        }
+        case 'end': {
+          const c = this.endStack[this.endStack.length - 1]; if (!c) err("'end' chỉ dùng trong chỉ số, ví dụ x(end)");
+          const v = c.v; const m = v instanceof Cell ? new Mat(1, v.v.length) : asM(v);
+          return S(c.n === 1 ? m.n : c.k === 0 ? m.r : m.c);
+        }
+        case 'colon': return COLON;
+        case 'bin': {
+          if (n.op === '&&' || n.op === '||') {
+            const l = truthy(this.eval(n.l, 1));
+            if (n.op === '&&') return B(l && truthy(this.eval(n.r, 1)));
+            return B(l || truthy(this.eval(n.r, 1)));
+          }
+          const a = this.val(n.l), b = this.val(n.r);
+          return OPS[n.op](a, b);
+        }
+        case 'un': {
+          const v = this.val(n.e);
+          if (n.op === '-') return map(v, x => -x, (x, y) => [-x, -y]);
+          if (n.op === '+') return asM(v);
+          const o = map(v, x => x === 0 ? 1 : 0); o.lg = true; return o;
+        }
+        case 'tr': return transpose(this.val(n.e), n.conj);
+        case 'range': return colonRange(this.val(n.a), n.s ? this.val(n.s) : undefined, this.val(n.b));
+        case 'mat': {
+          if (!n.rows.length) return EMPTY();
+          return vert(n.rows.map(r => horz(r.map(e => this.val(e)))));
+        }
+        case 'cell': return new Cell(n.rows.flatMap(r => r.map(e => this.val(e))));
+        case 'anon': return new Fun(n.params, n.body, new Map([...this.vars].map(([k, v]) => [k, cloneV(v)])), n.src);
+        case 'fh': return new FH(n.v);
+        case 'idx': {
+          const tg = n.target;
+          if (tg.t === 'id' && this.vars.has(tg.v)) {
+            const v = this.vars.get(tg.v);
+            if (v instanceof Fun || v instanceof FH) return this.callValue(v, this.evalArgs(n.args, EMPTY()), no);
+            const args = this.evalArgs(n.args, v);
+            if (n.brace) { if (!(v instanceof Cell)) err(`'${tg.v}' không phải cell array, dùng ( ) thay vì { }`); const ii = idxList(args[0], v.v.length); if (ii[0] >= v.v.length) err('Chỉ số vượt quá kích thước cell'); return v.v[ii[0]]; }
+            return getIndex(v, args);
+          }
+          if (tg.t === 'id') {
+            if (n.args.some(a => a.t === 'colon')) err(`Không có biến '${tg.v}' để lấy chỉ số`);
+            const args = n.args.map(a => this.val(a));
+            const r = this.callFn(tg.v, args, no);
+            if (r === undefined && no >= 1) err(`Hàm '${tg.v}' không trả về giá trị (nó chỉ vẽ/in ra)`);
+            return r;
+          }
+          const v = this.val(tg);
+          if (v instanceof Fun || v instanceof FH) return this.callValue(v, n.args.map(a => this.val(a)), no);
+          return getIndex(v, this.evalArgs(n.args, v));
+        }
+      }
+      err('Biểu thức không hỗ trợ');
+    }
+    val(n) { const v = this.eval(n, 1); return Array.isArray(v) ? v[0] : v; }
+  }
+  function run(src, opts) {
+    const I = new Interp(opts); let error = null;
+    try { I.run(src); } catch (e) {
+      if (e instanceof MErr) error = { msg: e.message, line: e.line };
+      else { error = { msg: 'Lỗi nội bộ: ' + (e && e.message), line: null }; if (typeof console !== 'undefined') console.error(e); }
+    }
+    return { text: I.text(), figs: I.figs.filter(f => f.axes.length), error, vars: I.vars, I };
+  }
+  const BUILTINS = Object.keys(FN);
+  return { run, texify, BUILTINS, Mat, Str };
+})();
+
+/* ================= KỊCH BẢN MATLAB CHO TỪNG CHƯƠNG ================= */
+const ML_SCRIPTS = {
+c0a: { title: 'Vector, ma trận và dải số', desc: 'Không có dấu ; ở cuối dòng thì MATLAB in kết quả ra. Dấu ; trong ngoặc vuông nghĩa là xuống hàng.', code:
+`% Vector hàng: các phần tử cách nhau bằng dấu cách hoặc dấu phẩy
+x = [1 2 3 4]
+% Vector cột: dùng dấu ; để xuống hàng
+y = [1; 2; 3]
+% Ma trận 2x3
+A = [1 2 3; 4 5 6]
+% Dải số  a:b  (bước 1)  và  a:bước:b
+n = 0:5
+t = 0:0.25:1
+% Kích thước
+N = length(t)
+[r, c] = size(A)
+% Chuyển vị: ' biến hàng thành cột
+xc = x'` },
+c0b: { title: 'Phép toán từng phần tử: .* ./ .^', desc: 'Lỗi số một khi mới học MATLAB: dùng * thay cho .* khi muốn nhân từng phần tử của hai tín hiệu.', code:
+`a = [1 2 3];
+b = [4 5 6];
+a .* b        % nhân từng phần tử  -> [4 10 18]
+a ./ b        % chia từng phần tử
+a .^ 2        % bình phương từng phần tử
+a * b'        % nhân MA TRẬN: hàng (1x3) × cột (3x1) = tích vô hướng 32
+2 * a + 1     % số vô hướng thì * hay .* đều được
+% Thử bỏ dấu % ở dòng dưới để xem lỗi kích thước:
+% a * b` },
+c0c: { title: 'Chỉ số bắt đầu từ 1', desc: 'Công thức DSP viết x[0], x[1], … nhưng MATLAB lưu ở x(1), x(2), … Nhớ cộng 1 khi chuyển công thức sang code.', code:
+`x = [10 20 30 40 50];
+x(1)            % phần tử ĐẦU TIÊN là x(1), không có x(0)
+x(end)          % phần tử cuối
+x(2:4)          % lấy một đoạn
+x(end:-1:1)     % đảo ngược thứ tự
+x(x > 25)       % chỉ số logic: lấy các phần tử lớn hơn 25
+x(6) = 60       % gán ra ngoài kích thước: vector tự dài thêm
+% Thử bỏ % để thấy lỗi:
+% x(0)` },
+c0d: { title: 'Số phức', desc: 'i và j đều là đơn vị ảo. Nên viết 1j để không bị nhầm khi i, j đã dùng làm biến đếm vòng lặp.', code:
+`z = 3 + 4j
+abs(z)           % mô-đun = 5
+angle(z)         % pha (rad)
+conj(z)          % liên hợp
+w = exp(1j*pi/4) % công thức Euler: cos(pi/4) + j sin(pi/4)
+real(w), imag(w)
+% Vectơ quay e^(j w0 n): mỗi mẫu quay thêm w0 radian
+n = 0:7;
+v = exp(1j*pi/4*n);
+plot(real(v), imag(v), 'o-'); axis equal; grid on
+title('e^{j\\pi n/4}: 8 điểm trên vòng tròn đơn vị')` },
+c0e: { title: 'Vẽ đồ thị: plot, stem, subplot', desc: 'plot nối các điểm (hợp với tín hiệu liên tục), stem vẽ từng mẫu (tín hiệu rời rạc). subplot(m,n,k) chia khung thành lưới m×n.', code:
+`fs = 100;                 % tần số lấy mẫu (Hz)
+t  = 0:1/fs:1;            % trục thời gian 0..1 s
+x  = sin(2*pi*3*t);       % sin 3 Hz
+n  = 0:20;
+
+subplot(2,1,1)
+plot(t, x, 'LineWidth', 1.5)
+title('plot: nối các điểm như tín hiệu liên tục')
+xlabel('t (s)'); grid on
+
+subplot(2,1,2)
+stem(n, 0.8.^n, 'filled')
+title('stem: tín hiệu rời rạc 0.8^n')
+xlabel('n')` },
+c0f: { title: 'Vòng lặp và vector hoá', desc: 'Code vector hoá (không dùng vòng lặp) thường ngắn hơn và chạy nhanh hơn nhiều trong MATLAB. Hai cách phải cho cùng kết quả.', code:
+`N = 20000;
+tic
+y = zeros(1, N);          % cấp phát trước để vòng lặp nhanh
+for n = 1:N
+    y(n) = sin(0.01*n)^2;
+end
+t1 = toc;
+
+tic
+y2 = sin(0.01*(1:N)).^2;  % một dòng, không vòng lặp
+t2 = toc;
+
+fprintf('Vòng lặp: %.2f ms, vector hoá: %.2f ms\\n', 1000*t1, 1000*t2);
+fprintf('Sai khác lớn nhất: %g\\n', max(abs(y - y2)));` },
+c0g: { title: 'Hàm ẩn danh và in kết quả', desc: 'f = @(t) ... tạo hàm một dòng. fprintf in có định dạng: %d số nguyên, %.3f số thực 3 chữ số thập phân, %s chuỗi, \\n xuống dòng.', code:
+`f = @(t) exp(-t) .* cos(2*pi*t);   % tín hiệu dao động tắt dần
+t = linspace(0, 3, 300);           % 300 điểm từ 0 đến 3
+plot(t, f(t)); grid on
+title('f(t) = e^{-t} cos(2\\pi t)')
+
+dB = @(x) 20*log10(abs(x));        % hàm đổi sang decibel
+fprintf('Biên độ 0.5 = %.2f dB\\n', dB(0.5));
+fprintf('Có %d mẫu, giá trị lớn nhất %.4f tại t = %.3f s\\n', length(t), max(f(t)), t(f(t) == max(f(t))));
+s = sprintf('Tần số lấy mẫu %g Hz', 1/(t(2) - t(1)));
+disp(s)` },
+sandbox: { title: 'Sân chơi tự do', desc: 'Viết bất kỳ code nào bạn muốn thử. Ctrl + Enter để chạy. Gõ help để xem danh sách hàm được hỗ trợ.', code:
+`% Thử tạo tín hiệu của riêng bạn rồi xem phổ
+fs = 1000;  t = 0:1/fs:0.5;
+x = sin(2*pi*50*t) + 0.5*sin(2*pi*120*t) + 0.3*randn(size(t));
+X = fft(x);
+N = length(x);
+f = (0:N-1)*fs/N;               % trục tần số (Hz)
+subplot(2,1,1); plot(t, x); title('x(t)'); xlabel('t (s)')
+subplot(2,1,2); plot(f(1:floor(N/2)), abs(X(1:floor(N/2)))*2/N)
+title('Phổ biên độ một phía'); xlabel('Hz'); grid on` },
+
+c1: { title: 'Tạo các tín hiệu cơ bản và biến đổi trục thời gian', desc: 'Dùng phép so sánh (n == 0), (n >= 0) để tạo δ[n] và u[n]: kết quả là 0/1 cho từng phần tử.', code:
+`%% Tín hiệu cơ bản trên n = -10..20
+n = -10:20;                        % trục chỉ số mẫu
+delta = (n == 0);                  % xung đơn vị δ[n]
+u     = (n >= 0);                  % bậc thang u[n]
+a = 0.8;
+x_exp = a.^n .* u;                 % a^n u[n]  (nhân TỪNG PHẦN TỬ)
+x_sin = cos(0.2*pi*n);             % sin rời rạc, ω0 = 0.2π
+
+subplot(2,2,1); stem(n, delta, 'filled'); title('\\delta[n]')
+subplot(2,2,2); stem(n, u, 'filled');     title('u[n]')
+subplot(2,2,3); stem(n, x_exp, 'filled'); title('0.8^n u[n]')
+subplot(2,2,4); stem(n, x_sin, 'filled'); title('cos(0.2\\pi n)'); xlabel('n')
+
+%% Biến đổi trục thời gian: y[n] = x[-n - 2]
+xn = [0.5 1 2 3 1.5 -1];  nx = -1:4;   % x[n] chỉ khác 0 trên n = -1..4
+y = zeros(size(n));
+for k = 1:length(n)
+    m = -n(k) - 2;                 % chỉ số gốc cần đọc
+    idx = find(nx == m);           % vị trí của m trong nx
+    if ~isempty(idx), y(k) = xn(idx); end
+end
+figure
+stem(n, y, 'filled'); title('y[n] = x[-n-2]: lật rồi dịch'); xlabel('n')` },
+
+c2: { title: 'Lấy mẫu và tần số bí danh', desc: 'Đổi f và fs ở hai dòng đầu rồi chạy lại để thấy khi nào xảy ra chồng phổ.', code:
+`f  = 9;   fs = 10;                % thử: f = 3, fs = 10  rồi  f = 9, fs = 10
+t  = 0:0.001:1;                    % lưới thời gian mịn ~ "liên tục"
+tn = (0:fs)/fs;                    % các thời điểm lấy mẫu trong 1 s
+x  = cos(2*pi*f*t);
+xn = cos(2*pi*f*tn);               % x[n] = x(n/fs)
+fa = abs(f - fs*round(f/fs));      % công thức gấp tần số
+
+plot(t, x); hold on
+stem(tn, xn, 'filled')
+plot(t, cos(2*pi*fa*t), '--', 'LineWidth', 2)
+hold off; grid on
+legend('x(t)', 'mẫu x[n]', sprintf('bí danh %.1f Hz', fa))
+title(sprintf('f = %g Hz, fs = %g Hz', f, fs)); xlabel('t (s)')
+fprintf('Tần số Nyquist: %g Hz. Tần số nghe thấy sau khôi phục: %.2f Hz\\n', fs/2, fa);
+% Nghe thử (chỉ phát khi bấm Chạy):
+% sound([cos(2*pi*100*f*(0:1/44100:0.6)), cos(2*pi*100*fa*(0:1/44100:0.6))], 44100)` },
+
+c3: { title: 'Lượng tử hoá N bit và đo SQNR', desc: 'Lượng tử kiểu mid-rise: xq = Δ·(floor(x/Δ) + 0.5). Đổi N để kiểm chứng quy tắc 6 dB/bit.', code:
+`N  = 3;                            % số bit
+A  = 1;                            % biên độ (toàn thang = 1)
+fs = 80;  t = (0:fs-1)/fs;
+x  = A*sin(2*pi*2*t + 0.3);
+D  = 2/2^N;                        % bước lượng tử Δ
+xq = D*(floor(x/D) + 0.5);         % làm tròn về mức gần nhất
+xq = min(max(xq, -1 + D/2), 1 - D/2);   % chặn trong dải
+e  = xq - x;                       % sai số lượng tử
+
+subplot(2,1,1); plot(t, x); hold on; stairs(t, xq); hold off
+title(sprintf('Lượng tử %d bit (%d mức)', N, 2^N))
+subplot(2,1,2); stem(t, e/D); ylim([-0.6 0.6])
+title('Sai số e[n] (đơn vị \\Delta)'); xlabel('t (s)')
+
+% Đo SQNR với nhiều mẫu
+xx = A*sin(2*pi*0.01234567*(0:19999));
+qq = min(max(D*(floor(xx/D) + 0.5), -1 + D/2), 1 - D/2);
+sqnr = 10*log10(sum(xx.^2) / sum((qq - xx).^2));
+fprintf('SQNR đo được: %.2f dB | lý thuyết 6.02N + 1.76: %.2f dB\\n', sqnr, 6.02*N + 1.76 + 20*log10(A));` },
+
+c4: { title: 'Tích chập: conv() và tự cài đặt bằng vòng lặp', desc: 'Công thức y[n] = Σ x[k]h[n−k] với chỉ số từ 0; trong MATLAB chỉ số từ 1 nên h[n−k] trở thành h(n−k+1).', code:
+`x = [1 2 3 1];
+h = [1 1 0.5];
+y = conv(x, h)                     % hàm có sẵn
+
+% Tự cài đặt đúng công thức tích chập
+Lx = length(x);  Lh = length(h);
+y2 = zeros(1, Lx + Lh - 1);        % độ dài Lx + Lh - 1
+for n = 1:length(y2)
+    for k = 1:Lx
+        if n-k+1 >= 1 && n-k+1 <= Lh         % h(n-k+1) phải tồn tại
+            y2(n) = y2(n) + x(k) * h(n-k+1);
+        end
+    end
+end
+y2
+fprintf('Hai cách giống nhau? %d\\n', isequal(round(y, 10), round(y2, 10)));
+
+subplot(3,1,1); stem(0:Lx-1, x, 'filled'); title('x[n]')
+subplot(3,1,2); stem(0:Lh-1, h, 'filled'); title('h[n]')
+subplot(3,1,3); stem(0:length(y)-1, y, 'filled'); title('y[n] = (x * h)[n]'); xlabel('n')` },
+
+c5: { title: 'Giải phương trình sai phân bằng filter()', desc: 'filter(b, a, x) giải y[n] = Σ b_k x[n−k] − Σ a_k y[n−k] với a(1) = 1. Chú ý dấu: hồi tiếp +α·y[n−1] thì a = [1 −α].', code:
+`alpha = 0.8;  b0 = 1;  b1 = 0;
+b = [b0 b1];                       % hệ số phía đầu vào
+a = [1 -alpha];                    % y[n] - alpha*y[n-1] = b0 x[n] + b1 x[n-1]
+n = 0:39;
+x = double(n == 0);                % xung đơn vị
+y = filter(b, a, x);               % đáp ứng xung
+
+% Kiểm tra bằng vòng lặp viết tay
+y2 = zeros(size(x));  xprev = 0;  yprev = 0;
+for k = 1:length(x)
+    y2(k) = b0*x(k) + b1*xprev + alpha*yprev;
+    xprev = x(k);  yprev = y2(k);
+end
+fprintf('Sai khác filter / vòng lặp: %g\\n', max(abs(y - y2)));
+
+stem(n, y, 'filled'); hold on; plot(n, alpha.^n, '--'); hold off
+legend('filter()', '\\alpha^n'); title('Đáp ứng xung h[n] = \\alpha^n u[n]'); xlabel('n')
+if abs(alpha) < 1, disp('|alpha| < 1: hệ ổn định'), else, disp('|alpha| >= 1: hệ KHÔNG ổn định'), end` },
+
+c6: { title: 'Đáp ứng tần số với freqz() và sin đi qua hệ', desc: '[H, w] = freqz(b, a, N) trả về H(e^jω) tại N tần số trên [0, π). Biên độ: abs(H), pha: angle(H).', code:
+`M = 5;
+h = ones(1, M)/M;                  % trung bình trượt M điểm
+[H, w] = freqz(h, 1, 512);
+
+subplot(2,2,1); plot(w/pi, abs(H)); grid on
+title('|H(e^{j\\omega})|'); xlabel('\\omega / \\pi')
+subplot(2,2,2); plot(w/pi, angle(H)); grid on
+title('Pha (rad)'); xlabel('\\omega / \\pi')
+
+% Cho sin đi qua: biên độ nhân |H(w0)|, pha cộng angle(H(w0))
+w0 = 0.15*pi;  n = 0:47;
+x  = cos(w0*n);
+y  = filter(h, 1, x);
+H0 = sum(h .* exp(-1j*w0*(0:M-1)));     % DTFT tại w0, tính tay
+fprintf('|H(w0)| = %.4f, pha = %.4f rad, trễ = %.2f mẫu\\n', abs(H0), angle(H0), -angle(H0)/w0);
+subplot(2,1,2); stem(n, x); hold on; stem(n, y, 'filled'); hold off
+legend('x[n]', 'y[n]'); xlabel('n'); title('Sau quá độ M-1 mẫu, y là sin cùng tần số')` },
+
+c7: { title: 'DFT bằng ma trận và so sánh với fft()', desc: 'X = W·x với W(k+1, n+1) = e^(−j2πkn/N). Lưu ý bin k = 0 nằm ở X(1).', code:
+`N = 16;  n = 0:N-1;
+x = 1 + cos(2*pi*2*n/N) + 0.5*sin(2*pi*5*n/N);
+
+k = (0:N-1)';                      % cột chỉ số tần số
+W = exp(-1j*2*pi*k*n/N);           % (Nx1)*(1xN) -> ma trận DFT NxN
+X = W * x.';                       % .' chuyển vị KHÔNG liên hợp
+X2 = fft(x);                       % thuật toán FFT có sẵn
+fprintf('Sai khác DFT tay / fft: %.2e\\n', max(abs(X.' - X2)));
+
+stem(0:N-1, abs(X2), 'filled'); xlabel('k'); ylabel('|X[k]|')
+title('Phổ: bin 0 (DC = N), bin 2 và 14 (cos), bin 5 và 11 (sin)')
+disp('|X[k]| với k = 0..N-1:')
+disp(round(abs(X2), 3))` },
+
+c8: { title: 'Tự cài đặt FFT radix-2 (bướm tại chỗ)', desc: 'bitrevorder sắp xếp đầu vào theo thứ tự đảo bit, sau đó mỗi tầng ghép các DFT nhỏ bằng phép bướm.', code:
+`x = [1 2 1 0 -1 -2 -1 0];
+N = length(x);
+X = x(bitrevorder(1:N));           % [x0 x4 x2 x6 x1 x5 x3 x7]
+for s = 1:log2(N)                  % log2(N) tầng
+    L = 2^s;  half = L/2;
+    W = exp(-1j*2*pi*(0:half-1)/L);        % hệ số xoay của tầng
+    for g = 1:L:N                          % từng nhóm L điểm
+        a = g:g+half-1;   b = a + half;
+        t = W .* X(b);
+        X(b) = X(a) - t;                   % bướm: nhánh trừ
+        X(a) = X(a) + t;                   % bướm: nhánh cộng
+    end
+    fprintf('Tầng %d: %s\\n', s, mat2str(round(X, 2)));
+end
+fprintf('Sai khác với fft(): %.2e\\n', max(abs(X - fft(x))));
+
+% So sánh số phép nhân
+Ns = 2.^(2:14);
+semilogy(log2(Ns), Ns.^2, 'o-'); hold on
+semilogy(log2(Ns), Ns/2.*log2(Ns), 's-'); hold off; grid on
+legend('DFT: N^2', 'FFT: (N/2)log_2N'); xlabel('log_2 N')` },
+
+c9: { title: 'Cực, không và đáp ứng của hệ cộng hưởng', desc: 'poly() dựng đa thức từ nghiệm, roots() tìm nghiệm, zplane() vẽ mặt phẳng z, impz() tính đáp ứng xung.', code:
+`r = 0.9;  th = pi/4;
+p = r*exp([1j -1j]*th);            % cặp cực liên hợp
+z = [1 -1];                        % không tại z = ±1
+b = poly(z);                       % B(z) từ các không
+a = real(poly(p));                 % A(z) từ các cực
+fprintf('b = %s\\na = %s\\n', mat2str(b, 4), mat2str(a, 4));
+
+subplot(1,3,1); zplane(b, a); title('Mặt phẳng z')
+[H, w] = freqz(b, a, 512);
+subplot(1,3,2); plot(w/pi, 20*log10(abs(H)/max(abs(H)))); grid on
+ylim([-50 5]); title('|H| (dB)'); xlabel('\\omega/\\pi')
+h = impz(b, a, 40);
+subplot(1,3,3); stem(0:39, h, 'filled'); title('h[n]')
+
+if max(abs(roots(a))) < 1
+    fprintf('max|cực| = %.3f < 1: hệ ổn định\\n', max(abs(roots(a))));
+else
+    disp('Có cực ngoài vòng tròn đơn vị: hệ KHÔNG ổn định');
+end` },
+
+c10: { title: 'Thiết kế FIR bằng cửa sổ, so sánh với fir1()', desc: 'hamming(N) trả về vector CỘT, cần chuyển vị trước khi nhân với vector hàng. fir1(n, Wn) nhận bậc n = N − 1 và Wn = ωc/π.', code:
+`N  = 31;                           % số hệ số
+wc = 0.3*pi;                       % tần số cắt (rad/mẫu)
+n  = 0:N-1;   m = n - (N-1)/2;
+hd = sin(wc*m) ./ (pi*m);          % sinc lý tưởng đã dịch
+hd(m == 0) = wc/pi;                % sửa điểm 0/0
+w  = hamming(N)';                  % CỘT -> HÀNG
+h  = hd .* w;                      % nhân cửa sổ
+h2 = fir1(N-1, wc/pi);             % hàm có sẵn (chuẩn hoá DC = 1)
+fprintf('Sai khác h/sum(h) so với fir1: %.2e\\n', max(abs(h/sum(h) - h2)));
+
+[H, wf] = freqz(h, 1, 1024);
+subplot(2,1,1); stem(n, h, 'filled'); title('h[n] = h_d[n]·w[n]')
+subplot(2,1,2); plot(wf/pi, 20*log10(abs(H))); grid on; ylim([-100 5])
+xlabel('\\omega/\\pi'); ylabel('dB'); title('Đáp ứng biên độ (Hamming, N = 31)')
+
+% Lọc tín hiệu thử: sin chậm + sin nhanh
+x = sin(0.05*pi*(0:259)) + 0.6*sin(0.6*pi*(0:259));
+y = filter(h2, 1, x);
+figure; plot(x); hold on; plot(y, 'LineWidth', 2); hold off
+legend('vào', 'ra (trễ 15 mẫu)'); xlabel('n')` },
+
+c11: { title: 'Butterworth với butter() và tự làm biến đổi song tuyến', desc: 'butter(N, Wn) với Wn = fc/(fs/2). [z, p, k] = butter(...) trả về dạng cực-không.', code:
+`fs = 8000;  fc = 800;  N = 4;
+[b, a]    = butter(N, fc/(fs/2));  % hệ số đa thức
+[z, p, k] = butter(N, fc/(fs/2));  % cực - không - hệ số khuếch đại
+disp('|cực| (đều < 1):'); disp(abs(p).')
+
+[H, f] = freqz(b, a, 1024, fs);    % trục tần số theo Hz
+bf = fir1(2*N, fc/(fs/2));         % FIR cùng số phép nhân (2N+1)
+Hf = freqz(bf, 1, 1024, fs);
+plot(f, 20*log10(abs(H))); hold on
+plot(f, 20*log10(abs(Hf)), '--'); hold off; grid on
+ylim([-80 5]); xlabel('Hz'); ylabel('dB'); legend('Butterworth IIR', 'FIR Hamming')
+
+% Tự tính cực bằng biến đổi song tuyến (T = 2)
+Wc  = tan(pi*fc/fs);                         % prewarp
+kk  = 1:N;
+s_p = Wc*exp(1j*pi*(2*kk + N - 1)/(2*N));    % cực tương tự
+z_p = (1 + s_p)./(1 - s_p);                  % ánh xạ s -> z
+fprintf('Sai khác |cực| tự tính và butter: %.2e\\n', max(abs(sort(abs(z_p)) - sort(abs(p.')))));
+
+% Lọc âm thanh: tông 300 Hz + tiếng rít 2500 Hz + nhiễu
+t = 0:1/fs:2;
+x = 0.5*sin(2*pi*300*t) + 0.25*sin(2*pi*2500*t) + 0.12*randn(size(t));
+y = filter(b, a, x);
+% soundsc(y, fs)        % bỏ % rồi bấm Chạy để nghe` },
+
+c12: { title: 'Rò rỉ phổ, cửa sổ và spectrogram()', desc: 'fft(x, Nfft) tự thêm số 0 (zero-padding). spectrogram(x, window, noverlap, nfft, fs, \'yaxis\') vẽ phổ đồ.', code:
+`N = 64;  n = 0:N-1;
+x = cos(2*pi*10*n/N) + 10^(-20/20)*cos(2*pi*13*n/N + 0.7);
+w = hann(N)';                      % cửa sổ Hann (chuyển thành hàng)
+Nfft = 256;                        % zero-padding x4
+X1 = fft(x, Nfft);                 % cửa sổ chữ nhật
+X2 = fft(x .* w, Nfft);            % cửa sổ Hann
+k  = (0:Nfft/2)*N/Nfft;            % trục theo bin của N = 64
+plot(k, 20*log10(abs(X1(1:Nfft/2+1))*2/N)); hold on
+plot(k, 20*log10(abs(X2(1:Nfft/2+1))*2/sum(w)), 'LineWidth', 1.8); hold off
+ylim([-100 5]); grid on; legend('chữ nhật', 'Hann'); xlabel('bin'); ylabel('dB')
+title('Sin −20 dB ở bin 13 bị che bởi rò rỉ của cửa sổ chữ nhật')
+
+% Phổ đồ của chirp 100 -> 3800 Hz
+fs = 8000;  t = 0:1/fs:1.6;
+xc = chirp(t, 100, 1.6, 3800);
+figure
+spectrogram(xc, hann(128), 96, 128, fs, 'yaxis')
+title('spectrogram: cửa sổ 128 mẫu (16 ms)')` },
+
+c13: { title: 'Decimation và interpolation', desc: 'downsample(x, M) giữ một mẫu trong M; upsample(x, L) chèn L − 1 số 0. Bộ lọc fir1(62, 1/M) có tần số cắt π/M.', code:
+`M = 3;  n = 0:511;
+x = cos(0.08*pi*n) + 0.7*cos(0.78*pi*n);
+h = fir1(62, 1/M);                         % thông thấp π/M, 63 hệ số
+y_bad  = downsample(x, M);                 % KHÔNG lọc -> chồng phổ
+y_good = downsample(filter(h, 1, x), M);   % lọc trước rồi mới bỏ mẫu
+
+Nf = 1024;  f = (0:Nf/2)/(Nf/2);
+P  = @(s) abs(fft(s, Nf)) / max(abs(fft(s, Nf)));   % phổ chuẩn hoá
+X = P(x);  Yb = P(y_bad);  Yg = P(y_good);
+plot(f, X(1:Nf/2+1), ':'); hold on
+plot(f, Yb(1:Nf/2+1)); plot(f, Yg(1:Nf/2+1), 'LineWidth', 2); hold off
+legend('x gốc', '↓3 không lọc', '↓3 có lọc'); xlabel('\\omega/\\pi'); grid on
+fprintf('0.78π × %d = %.2fπ, gấp về %.2fπ: vạch giả khi không lọc\\n', M, 0.78*M, abs(mod(0.78*M + 1, 2) - 1));
+
+% Nội suy L = 3 lần
+L = 3;  xs = cos(0.12*pi*(0:139));
+v  = upsample(xs, L);                      % chèn 2 số 0 giữa các mẫu
+yi = L * filter(fir1(62, 1/L), 1, v);      % lọc xoá ảnh, khuếch đại L
+figure; stem(0:71, v(1:72)); hold on; plot(0:71, yi(32:103), 'LineWidth', 2); hold off
+legend('sau chèn số 0', 'sau lọc (đã bù trễ 31 mẫu)'); xlabel('n')` },
+
+c14: { title: 'Khử nhiễu bằng LMS viết tay', desc: 'Toàn bộ thuật toán chỉ là 4 dòng trong vòng lặp: dịch thanh ghi, tính đầu ra, tính sai số, cập nhật trọng số.', code:
+`L = 3000;  n = 0:L-1;
+s = 0.6*sin(0.05*n) .* (0.6 + 0.4*sin(0.004*n));      % tín hiệu có ích
+v = sin(0.3*n) + 0.5*sin(0.71*n + 1) + 0.5*randn(1, L); % nhiễu tham chiếu
+hpath = [0.8 -0.5 0.3 0.2 -0.1];                       % đường truyền chưa biết
+d = s + filter(hpath, 1, v);                           % micro chính
+
+M = 8;  mu = 0.02;
+w = zeros(M, 1);  xbuf = zeros(M, 1);  e = zeros(1, L);
+for k = 1:L
+    xbuf = [v(k); xbuf(1:M-1)];    % dịch thanh ghi trễ
+    yk   = w' * xbuf;              % đầu ra bộ lọc (ước lượng nhiễu)
+    e(k) = d(k) - yk;              % sai số = tín hiệu đã làm sạch
+    w    = w + mu * e(k) * xbuf;   % cập nhật LMS
+end
+
+subplot(2,1,1); plot(n(1:1500), d(1:1500)); hold on
+plot(n(1:1500), e(1:1500), 'LineWidth', 1.4); hold off
+legend('d = s + nhiễu', 'e (đã khử nhiễu)'); title('Khử nhiễu bằng LMS')
+subplot(2,1,2); stem(0:M-1, w, 'filled'); hold on; stem(0:4, hpath); hold off
+legend('w học được', 'h thật'); xlabel('k')
+fprintf('w = %s\\n', mat2str(w', 3));
+fprintf('MSE 500 mẫu cuối: %.2f dB\\n', 10*log10(mean((e(end-499:end) - s(end-499:end)).^2)));` },
+
+c15: { title: 'Định dạng Q, lượng tử hệ số và tràn số', desc: 'Mô phỏng số học dấu phẩy tĩnh bằng round, min/max (bão hoà) và mod (tràn quay vòng). dec2bin(mod(q, 2^B), B) cho chuỗi bit bù 2.', code:
+`%% Biểu diễn 0.7071 ở Q0.15 (16 bit)
+B = 16;  nf = 15;  v = 0.70710678;
+q = round(v * 2^nf);                       % số nguyên lưu trữ
+q = min(max(q, -2^(B-1)), 2^(B-1) - 1);    % bão hoà
+fprintf('Số nguyên: %d | hex: 0x%s | giá trị: %.8f | sai số: %.2e\\n', q, dec2hex(mod(q, 2^B), 4), q/2^nf, q/2^nf - v);
+fprintf('Nhị phân: %s\\n', dec2bin(mod(q, 2^B), B));
+
+%% Lượng tử hệ số IIR: dạng trực tiếp và nối tầng biquad
+[b, a] = butter(6, 0.06);
+Q = @(c, bits) round(c * 2^bits) / 2^bits;
+bits = 12;
+aq = Q(a, bits);
+fprintf('max|cực|: số thực %.5f | trực tiếp đã lượng tử %.5f\\n', max(abs(roots(a))), max(abs(roots(aq))));
+p = roots(a);  p = p(imag(p) > 0);         % mỗi cặp liên hợp -> một biquad
+pc = [];
+for k = 1:length(p)
+    sec = Q([1, -2*real(p(k)), abs(p(k))^2], bits);
+    pc = [pc; roots(sec)];
+end
+fprintf('max|cực| nối tầng biquad đã lượng tử: %.5f\\n', max(abs(pc)));
+
+%% Tràn số 8 bit Q0.7: quay vòng và bão hoà
+t  = linspace(0, 2, 400);  x = 1.4*sin(2*pi*t);
+xi = round(x*128);
+wrap = mod(xi + 128, 256) - 128;           % tràn quay vòng (bù 2)
+sat  = min(max(xi, -128), 127);            % bão hoà
+plot(t, x, ':'); hold on; plot(t, wrap/128); plot(t, sat/128, 'LineWidth', 2); hold off
+legend('lý tưởng', 'wrap', 'saturate'); grid on; title('Khuếch đại 1.4 vượt dải [-1, 1)')` }
+};
+
+/* ================= MATLAB: giao diện soạn thảo, chạy và vẽ ================= */
+const ML_KW = new Set(['if', 'elseif', 'else', 'end', 'for', 'while', 'break', 'continue', 'return', 'function', 'switch', 'case', 'otherwise']);
+const ML_FN = new Set(MLAB.BUILTINS);
+const escH = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+function mlHighlight(src, errLine) {
+  const lines = src.split('\n');
+  let block = false;
+  return lines.map((ln, li) => {
+    let h = '', i = 0, prevVal = false;
+    if (block || /^\s*%\{\s*$/.test(ln)) { block = !/^\s*%\}\s*$/.test(ln); h = `<span class="c">${escH(ln)}</span>`; }
+    else while (i < ln.length) {
+      const ch = ln[i], rest = ln.slice(i);
+      let m;
+      if (ch === '%') { h += `<span class="c">${escH(rest)}</span>`; break; }
+      if ((ch === "'" && !prevVal) || ch === '"') {
+        let j = i + 1; while (j < ln.length && !(ln[j] === ch && ln[j + 1] !== ch)) { if (ln[j] === ch) j++; j++; }
+        h += `<span class="s">${escH(ln.slice(i, j + 1))}</span>`; i = j + 1; prevVal = true; continue;
+      }
+      if ((m = rest.match(/^(\d+\.?\d*([eE][+-]?\d+)?|\.\d+([eE][+-]?\d+)?)[ij]?/)) && !(m[0].endsWith('.') && /^[*\/\\^']/.test(ln[i + m[0].length] || ''))) {
+        h += `<span class="n">${m[0]}</span>`; i += m[0].length; prevVal = true; continue;
+      }
+      if ((m = rest.match(/^\d+/))) { h += `<span class="n">${m[0]}</span>`; i += m[0].length; prevVal = true; continue; }
+      if ((m = rest.match(/^[A-Za-z_]\w*/))) {
+        const w = m[0];
+        h += ML_KW.has(w) ? `<span class="k">${w}</span>` : ML_FN.has(w) && !/^(i|j|pi)$/.test(w) ? `<span class="f">${w}</span>` : w;
+        i += w.length; prevVal = true; continue;
+      }
+      h += escH(ch); prevVal = /[)\]}'.]/.test(ch) && ch !== '.' || (ch === "'" && prevVal); i++;
+      if (ch === ' ') prevVal = false;
+    }
+    return `<span class="ln${errLine === li + 1 ? ' errl' : ''}">${h || ' '}</span>`;
+  }).join('');
+}
+
+/* ---------- vẽ một trục (axes) bằng lớp Plot có sẵn ---------- */
+const DASH = { '-': [], '--': [7, 4], ':': [2, 3], '-.': [7, 3, 2, 3], none: null };
+function drawMarker(p, x, y, mk, col, filled, r = 3.2) {
+  const g = p.x, px = p.X(x), py = p.Y(y);
+  g.strokeStyle = col; g.fillStyle = col; g.lineWidth = 1.5;
+  switch (mk) {
+    case 'x': g.beginPath(); g.moveTo(px - r, py - r); g.lineTo(px + r, py + r); g.moveTo(px + r, py - r); g.lineTo(px - r, py + r); g.stroke(); break;
+    case '+': g.beginPath(); g.moveTo(px - r, py); g.lineTo(px + r, py); g.moveTo(px, py - r); g.lineTo(px, py + r); g.stroke(); break;
+    case '*': drawMarker(p, x, y, 'x', col, filled, r * .8); drawMarker(p, x, y, '+', col, filled, r); break;
+    case '.': g.beginPath(); g.arc(px, py, 1.8, 0, TAU); g.fill(); break;
+    case 's': g.beginPath(); g.rect(px - r, py - r, 2 * r, 2 * r); filled ? g.fill() : g.stroke(); break;
+    case 'd': g.beginPath(); g.moveTo(px, py - r * 1.3); g.lineTo(px + r, py); g.lineTo(px, py + r * 1.3); g.lineTo(px - r, py); g.closePath(); filled ? g.fill() : g.stroke(); break;
+    default: g.beginPath(); g.arc(px, py, r, 0, TAU); filled ? g.fill() : g.stroke();
+  }
+}
+function mlDrawAxes(c, A) {
+  const p = new Plot(c), S = A.series, g = p.x;
+  p.m = { l: A.yl ? 58 : 46, r: 14, t: A.title ? 28 : 12, b: A.xl ? 42 : 26 };
+  const ly = v => A.logy ? (v > 0 ? Math.log10(v) : NaN) : v;
+  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity, stemy = false, img = false;
+  const ux = v => { if (isFinite(v)) { x0 = Math.min(x0, v); x1 = Math.max(x1, v); } }, uy = v => { if (isFinite(v)) { y0 = Math.min(y0, v); y1 = Math.max(y1, v); } };
+  for (const s of S) {
+    if (s.kind === 'line' || s.kind === 'stem' || s.kind === 'stairs' || s.kind === 'bar') { s.x.forEach((v, k) => { if (isFinite(s.y[k])) { ux(v); uy(ly(s.y[k])); } }); if (s.kind === 'stem' || s.kind === 'bar') stemy = true; }
+    else if (s.kind === 'zp') { [...s.zeros, ...s.poles, [1, 1], [-1, -1]].forEach(z => { ux(z[0]); uy(z[1]); }); }
+    else if (s.kind === 'image') { ux(s.x0); ux(s.x1); uy(s.y0); uy(s.y1); img = true; }
+    else if (s.kind === 'xline') ux(s.v); else if (s.kind === 'yline') uy(ly(s.v));
+  }
+  if (!isFinite(x0)) { x0 = 0; x1 = 1; } if (!isFinite(y0)) { y0 = -1; y1 = 1; }
+  if (x1 - x0 < 1e-12) { x0 -= 1; x1 += 1; }
+  if (stemy) { y0 = Math.min(y0, 0); y1 = Math.max(y1, 0); }
+  if (y1 - y0 < 1e-12) { y0 -= 1; y1 += 1; }
+  if (!img && !A.tight) {
+    const py = (y1 - y0) * 0.08; y0 -= py; y1 += py;
+    if (stemy) { const px = Math.max((x1 - x0) * 0.03, 0.5); x0 -= px; x1 += px; }
+  }
+  if (A.xlim) { x0 = A.xlim[0]; x1 = A.xlim[1]; }
+  if (A.ylim) { y0 = ly(A.ylim[0]); y1 = ly(A.ylim[1]); }
+  if (A.equal) { const r = Math.max(x1 - x0, y1 - y0) / 2 * 1.08; p.equal((x0 + x1) / 2, (y0 + y1) / 2, r); } else p.range(x0, x1, y0, y1);
+  const yf = A.logy ? (v => Number.isInteger(+v.toFixed(6)) ? '1e' + v.toFixed(0) : '') : undefined;
+  p.frame({ yAxis0: A.equal, yf, yt: A.logy ? Math.max(1, Math.round(niceStep(y1 - y0, 4))) : undefined });
+  p.clip();
+  const lineSeries = [];
+  for (const s of S) {
+    const col = COL[s.color] || COL.trace;
+    if (s.kind === 'image') {
+      const W = s.transpose ? s.h : s.w, H = s.transpose ? s.w : s.h;
+      const off = document.createElement('canvas'); off.width = W; off.height = H;
+      const og = off.getContext('2d'), id = og.createImageData(W, H), span = (s.hi - s.lo) || 1;
+      for (let r = 0; r < s.h; r++) for (let q = 0; q < s.w; q++) {
+        const v = s.data[r * s.w + q], cc = cmap((v - s.lo) / span);
+        let px, pyR; if (s.transpose) { px = r; pyR = q; } else { px = q; pyR = r; }
+        const row = s.flipY ? pyR : (H - 1 - pyR), k = (row * W + px) * 4;
+        id.data[k] = cc[0]; id.data[k + 1] = cc[1]; id.data[k + 2] = cc[2]; id.data[k + 3] = 255;
+      }
+      og.putImageData(id, 0, 0);
+      g.imageSmoothingEnabled = W * H < 400000;
+      const X0 = p.X(s.x0), X1 = p.X(s.x1), Y0 = p.Y(s.y0), Y1 = p.Y(s.y1);
+      g.drawImage(off, Math.min(X0, X1), Math.min(Y0, Y1), Math.abs(X1 - X0), Math.abs(Y1 - Y0));
+      continue;
+    }
+    if (s.kind === 'zp') {
+      p.circle(0, 0, 1, COL.muted, 1.2, [4, 4]);
+      p.seg(p.x0, 0, p.x1, 0, alpha(COL.muted, .5), 1); p.seg(0, p.y0, 0, p.y1, alpha(COL.muted, .5), 1);
+      const cnt = list => { const m = new Map(); list.forEach(z => { const k = z[0].toFixed(3) + ',' + z[1].toFixed(3); m.set(k, (m.get(k) || 0) + 1); }); return m; };
+      for (const z of s.zeros) p.dot(z[0], z[1], COL.trace, 5.5, true);
+      for (const z of s.poles) p.cross(z[0], z[1], COL.sample, 5.5, 2);
+      for (const [mapc, list] of [[cnt(s.zeros), s.zeros], [cnt(s.poles), s.poles]]) for (const [k, n] of mapc) if (n > 1) { const [a, b] = k.split(',').map(Number); p.text(String(n), a + 0.06, b + 0.1, COL.ink); }
+      continue;
+    }
+    if (s.kind === 'text') { p.text(s.s, s.x, ly(s.y), COL.ink); continue; }
+    if (s.kind === 'xline') { p.vline(s.v, COL.muted, DASH[s.dash] || [5, 4]); if (s.label) p.text(' ' + s.label, s.v, p.y1 - (p.y1 - p.y0) * .06, COL.muted); continue; }
+    if (s.kind === 'yline') { p.hline(ly(s.v), COL.muted, DASH[s.dash] || [5, 4]); if (s.label) p.text(s.label + ' ', p.x1, ly(s.v) + (p.y1 - p.y0) * .05, COL.muted, 'right'); continue; }
+    lineSeries.push({ s, col });
+    const ys = s.y.map(ly);
+    if (s.kind === 'line') {
+      if (s.fill) { g.fillStyle = alpha(col, .18); g.beginPath(); g.moveTo(p.X(s.x[0]), p.Y(0)); s.x.forEach((v, k) => g.lineTo(p.X(v), p.Y(ys[k]))); g.lineTo(p.X(s.x[s.x.length - 1]), p.Y(0)); g.fill(); }
+      if (s.dash !== 'none') p.line(s.x, ys, col, s.lw || 1.6, DASH[s.dash] || []);
+      if (s.marker) s.x.forEach((v, k) => isFinite(ys[k]) && drawMarker(p, v, ys[k], s.marker, col, s.filled));
+    } else if (s.kind === 'stairs') {
+      const sx = [], sy = []; s.x.forEach((v, k) => { sx.push(v); sy.push(ys[k]); if (k + 1 < s.x.length) { sx.push(s.x[k + 1]); sy.push(ys[k]); } });
+      p.line(sx, sy, col, s.lw || 1.6, DASH[s.dash] || []);
+    } else if (s.kind === 'stem') {
+      const base = p.Y(clamp(0, p.y0, p.y1));
+      g.strokeStyle = col; g.lineWidth = s.lw || 1.4; g.setLineDash([]);
+      s.x.forEach((v, k) => { if (!isFinite(ys[k])) return; g.beginPath(); g.moveTo(p.X(v), base); g.lineTo(p.X(v), p.Y(ys[k])); g.stroke(); });
+      const small = s.x.length > 120;
+      if (!small) s.x.forEach((v, k) => isFinite(ys[k]) && drawMarker(p, v, ys[k], s.marker || 'o', col, s.filled, s.x.length > 60 ? 2.2 : 3.2));
+    } else if (s.kind === 'bar') {
+      const dx = s.x.length > 1 ? Math.abs(p.X(s.x[1]) - p.X(s.x[0])) * 0.7 : 20, base = p.Y(clamp(0, p.y0, p.y1));
+      g.fillStyle = alpha(col, .85);
+      s.x.forEach((v, k) => { const top = p.Y(ys[k]); g.fillRect(p.X(v) - dx / 2, Math.min(base, top), dx, Math.abs(top - base)); });
+    }
+  }
+  p.unclip();
+  // nhãn
+  const fb = '600 12.5px "Be Vietnam Pro", system-ui, sans-serif', fl = '12px "Be Vietnam Pro", system-ui, sans-serif';
+  if (A.title) p.tpx(A.title, (p.m.l + p.w - p.m.r) / 2, 14, COL.ink, 'center', 'middle', fb);
+  if (A.xl) p.tpx(A.xl, (p.m.l + p.w - p.m.r) / 2, p.h - 10, COL.muted, 'center', 'middle', fl);
+  if (A.yl) { g.save(); g.translate(12, (p.m.t + p.h - p.m.b) / 2); g.rotate(-Math.PI / 2); g.font = fl; g.fillStyle = COL.muted; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(A.yl, 0, 0); g.restore(); }
+  // chú giải
+  if (A.legend && A.legend.length) {
+    const items = A.legend.slice(0, lineSeries.length).map((t, k) => ({ t, ...lineSeries[k] }));
+    g.font = fl; const wmax = Math.max(...items.map(it => g.measureText(it.t).width));
+    const bw = wmax + 40, bh = items.length * 17 + 8, bx = p.w - p.m.r - bw - 6, by = p.m.t + 6;
+    g.fillStyle = alpha(COL.panel, .92); g.strokeStyle = COL.line; g.lineWidth = 1; g.fillRect(bx, by, bw, bh); g.strokeRect(bx + .5, by + .5, bw, bh);
+    items.forEach((it, k) => {
+      const yy = by + 12 + k * 17; g.strokeStyle = it.col; g.lineWidth = 2; g.setLineDash(DASH[it.s.dash] || []);
+      if (it.s.kind === 'stem' || it.s.dash === 'none') { g.beginPath(); g.arc(bx + 16, yy, 3.2, 0, TAU); g.stroke(); }
+      else { g.beginPath(); g.moveTo(bx + 6, yy); g.lineTo(bx + 26, yy); g.stroke(); }
+      g.setLineDash([]); g.fillStyle = COL.ink; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText(it.t, bx + 32, yy);
+    });
+  }
+}
+const mlLive = [];
+function lcm2(a, b) { return a * b / gcd(a, b); }
+function mlRenderFigs(box, figs) {
+  box.innerHTML = '';
+  for (let i = mlLive.length - 1; i >= 0; i--) if (!mlLive[i].c.isConnected) mlLive.splice(i, 1);
+  figs.forEach(f => {
+    const wrap = document.createElement('div'); wrap.className = 'ml-fig';
+    if (f.title) { const t = document.createElement('div'); t.className = 'ft'; t.textContent = f.title; wrap.appendChild(t); }
+    const R = f.axes.reduce((a, x) => lcm2(a, x.m), 1), C = f.axes.reduce((a, x) => lcm2(a, x.n), 1);
+    const grid = document.createElement('div'); grid.className = 'ml-grid';
+    const colsUsed = Math.max(...f.axes.map(x => x.n));
+    grid.style.gridTemplateColumns = `repeat(${C}, minmax(0, 1fr))`;
+    grid.style.minWidth = colsUsed >= 3 ? '640px' : colsUsed === 2 ? '460px' : '0';
+    const unit = R === 1 ? 270 : R === 2 ? 200 : R === 3 ? 165 : 150;
+    f.axes.forEach(A => {
+      const rr = A.ps.map(q => Math.floor((q - 1) / A.n)), cc = A.ps.map(q => (q - 1) % A.n);
+      const r0 = Math.min(...rr), r1 = Math.max(...rr), c0 = Math.min(...cc), c1 = Math.max(...cc);
+      const cv = document.createElement('canvas');
+      cv.style.gridRow = `${r0 * R / A.m + 1} / ${(r1 + 1) * R / A.m + 1}`;
+      cv.style.gridColumn = `${c0 * C / A.n + 1} / ${(c1 + 1) * C / A.n + 1}`;
+      cv.dataset.h = Math.round(unit * (r1 - r0 + 1) * R / A.m + (r1 - r0) * 8);
+      cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', A.title || 'Đồ thị MATLAB');
+      grid.appendChild(cv); mlLive.push({ c: cv, A });
+    });
+    wrap.appendChild(grid); box.appendChild(wrap);
+  });
+  requestAnimationFrame(() => { for (const L of mlLive) if (box.contains(L.c)) { try { mlDrawAxes(L.c, L.A); } catch (e) { console.error(e); } } });
+}
+demos.push(() => { for (const L of mlLive) if (L.c.isConnected) { try { mlDrawAxes(L.c, L.A); } catch (e) { console.error(e); } } });
+
+/* ---------- dựng bảng điều khiển cho từng đoạn code ---------- */
+const mlObs = new IntersectionObserver(es => { for (const e of es) if (e.isIntersecting) { mlObs.unobserve(e.target); e.target._mlRun && e.target._mlRun(false); } }, { rootMargin: '300px 0px' });
+document.querySelectorAll('.mlab[data-ml]').forEach(box => {
+  const S = ML_SCRIPTS[box.dataset.ml]; if (!S) return;
+  const uid = 'ml-' + box.dataset.ml;
+  box.innerHTML = `<div class="lab-h"><b>${escH(S.title)}</b><span class="tag">MATLAB · chạy ngay trên trang</span></div>
+  <div class="ml-body">
+    <p class="ml-desc">${escH(S.desc)}</p>
+    <div class="ml-ed"><div class="ml-wrap"><pre class="ml-hl" aria-hidden="true"></pre><textarea class="ml-ta" id="${uid}" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off" aria-label="Mã MATLAB: ${escH(S.title)}"></textarea></div></div>
+    <div class="ml-bar">
+      <button class="btn" type="button" data-a="run">▶ Chạy</button>
+      <button class="btn ghost" type="button" data-a="reset">↺ Khôi phục</button>
+      <button class="btn ghost" type="button" data-a="copy">Sao chép code</button>
+      <span class="st" aria-live="polite"><span class="kbd">Ctrl</span> + <span class="kbd">Enter</span> để chạy</span>
+    </div>
+    <pre class="ml-con" hidden></pre>
+    <div class="ml-figs"></div>
+  </div>`;
+  const ta = box.querySelector('textarea'), hl = box.querySelector('.ml-hl'), con = box.querySelector('.ml-con'), figs = box.querySelector('.ml-figs'), st = box.querySelector('.st');
+  let errLine = null;
+  const paint = () => { hl.innerHTML = mlHighlight(ta.value, errLine); };
+  ta.value = S.code; paint();
+  ta.addEventListener('input', () => { errLine = null; paint(); });
+  const run = (user) => {
+    const t0 = performance.now();
+    const r = MLAB.run(ta.value, { allowSound: user, onSound: (x, fs) => playSamples(x, fs), seed: 2024 });
+    const ms = performance.now() - t0;
+    let txt = escH(r.text.replace(/\s+$/, ''));
+    if (r.error) txt += (txt ? '\n' : '') + `<span class="e">Lỗi${r.error.line ? ' ở dòng ' + r.error.line : ''}: ${escH(r.error.msg)}</span>`;
+    con.innerHTML = txt; con.hidden = !txt;
+    errLine = r.error ? r.error.line : null; paint();
+    mlRenderFigs(figs, r.figs);
+    st.className = 'st' + (r.error ? ' bad' : '');
+    st.textContent = r.error ? 'Có lỗi, xem bên dưới' : `Chạy xong trong ${ms < 1 ? '<1' : Math.round(ms)} ms`;
+  };
+  box._mlRun = run;
+  ta.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); run(true); return; }
+    if (e.key === 'Tab' && !e.shiftKey) { e.preventDefault(); const s = ta.selectionStart, en = ta.selectionEnd; ta.setRangeText('    ', s, en, 'end'); errLine = null; paint(); }
+  });
+  box.querySelector('[data-a=run]').onclick = () => run(true);
+  box.querySelector('[data-a=reset]').onclick = () => { ta.value = S.code; errLine = null; paint(); run(false); };
+  box.querySelector('[data-a=copy]').onclick = async () => {
+    try { await navigator.clipboard.writeText(ta.value); st.className = 'st'; st.textContent = 'Đã sao chép. Dán vào MATLAB hoặc Octave để chạy.'; }
+    catch (e) { ta.focus(); ta.select(); st.className = 'st'; st.textContent = 'Đã chọn toàn bộ code, nhấn Ctrl + C để sao chép.'; }
+  };
+  mlObs.observe(box);
+});
 
 })();
 </script>
