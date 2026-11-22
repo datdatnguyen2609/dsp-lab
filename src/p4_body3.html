@@ -1,0 +1,337 @@
+
+<!-- ===================== PHẦN III ===================== -->
+<div class="part-title">Phần III · Thiết kế bộ lọc</div>
+
+<!-- ========== C10 ========== -->
+<section class="ch" id="c10" data-ch="10">
+  <h2><span class="no">10</span>Bộ lọc FIR: phương pháp cửa sổ</h2>
+  <p class="lead">Bộ lọc FIR có đáp ứng xung hữu hạn, luôn ổn định, và có thể có <b>pha tuyến tính chính xác</b> (không làm méo dạng sóng). Cách thiết kế trực quan nhất: lấy đáp ứng xung lý tưởng rồi cắt bằng cửa sổ.</p>
+  <div class="stepper" data-title="Thiết kế bộ lọc thông thấp FIR từ đầu">
+    <ol>
+      <li><div>\[H_d(e^{j\omega}) = \begin{cases}1, & |\omega| \le \omega_c\\ 0, & \omega_c \lt |\omega| \le \pi\end{cases}\]<p class="why">Bắt đầu từ mong muốn: cho qua mọi tần số dưới \(\omega_c\), chặn hoàn toàn phần còn lại (“bức tường gạch”).</p></div></li>
+      <li><div>\[h_d[n] = \frac{1}{2\pi}\int_{-\pi}^{\pi} H_d(e^{j\omega})e^{j\omega n}d\omega = \frac{1}{2\pi}\int_{-\omega_c}^{\omega_c} e^{j\omega n}d\omega\]<p class="why">Dùng DTFT ngược. Ngoài \([-\omega_c,\omega_c]\) hàm dưới dấu tích phân bằng 0.</p></div></li>
+      <li><div>\[= \frac{1}{2\pi}\cdot\frac{e^{j\omega_c n} - e^{-j\omega_c n}}{jn} = \frac{\sin(\omega_c n)}{\pi n},\qquad h_d[0] = \frac{\omega_c}{\pi}\]<p class="why">Tích phân hàm mũ rồi dùng \(e^{j\theta}-e^{-j\theta} = 2j\sin\theta\). Kết quả là hàm sinc, <b>dài vô hạn và không nhân quả</b>, nên không thực hiện được.</p></div></li>
+      <li><div>\[h[n] = h_d\!\left[n - \tfrac{N-1}{2}\right]\cdot w[n],\qquad 0 \le n \le N-1\]<p class="why">Hai sửa đổi: <b>dịch</b> \((N-1)/2\) mẫu để hệ nhân quả, và <b>nhân cửa sổ</b> \(w[n]\) dài \(N\) để cắt cụt. Dịch chỉ thêm độ trễ, tức pha tuyến tính.</p></div></li>
+      <li><div>\[H(e^{j\omega}) = \frac{1}{2\pi}\,H_d(e^{j\omega}) \circledast W(e^{j\omega})\]<p class="why">Nhân trong miền thời gian bằng tích chập (vòng) trong miền tần số. Phổ cửa sổ có <b>búp chính</b> (làm dốc chuyển tiếp thoải ra) và <b>búp phụ</b> (sinh gợn sóng ở dải chặn). Cửa sổ chữ nhật gây hiện tượng Gibbs với gợn ~9% dù \(N\) lớn đến đâu.</p></div></li>
+      <li><div>\[h[n] = h[N-1-n] \;\Rightarrow\; H(e^{j\omega}) = A(\omega)\,e^{-j\omega (N-1)/2}\]<p class="why">Hệ số đối xứng nên pha tuyến tính chính xác: mọi tần số trễ \((N-1)/2\) mẫu. Đây là ưu điểm lớn nhất của FIR so với IIR.</p></div></li>
+    </ol>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 10.1 · Bàn thiết kế FIR</b><span class="tag">đổi cửa sổ, độ dài, tần số cắt</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <label class="ctl"><span class="lbl">Loại</span><select id="s10type"><option value="lp">Thông thấp</option><option value="hp">Thông cao</option><option value="bp">Thông dải</option></select></label>
+        <label class="ctl"><span class="lbl">Cửa sổ</span><select id="s10win"><option value="rect">Chữ nhật</option><option value="hann">Hann</option><option value="hamming" selected>Hamming</option><option value="blackman">Blackman</option><option value="kaiser">Kaiser (β = 6)</option></select></label>
+        <label class="ctl"><span class="lbl">Độ dài N <output id="s10No">31</output></span><input type="range" id="s10N" min="5" max="129" step="2" value="31"></label>
+        <label class="ctl"><span class="lbl">ωc (×π) <output id="s10wo">0.30π</output></span><input type="range" id="s10w" min="0.05" max="0.9" step="0.01" value="0.3"></label>
+        <label class="ctl"><span class="lbl">Độ rộng dải (thông dải, ×π) <output id="s10bwo">0.20π</output></span><input type="range" id="s10bw" min="0.05" max="0.5" step="0.01" value="0.2"></label>
+      </div>
+      <div class="cols">
+        <div><div class="cap">h_d[n] lý tưởng (mờ), cửa sổ w[n] (hồng), h[n] cuối cùng (cam)</div><canvas class="plot" id="c10a" data-h="220"></canvas></div>
+        <div><div class="cap">|H(e^jω)| (dB): thiết kế (xanh lá) so với lý tưởng (nét đứt)</div><canvas class="plot" id="c10b" data-h="220"></canvas></div>
+      </div>
+      <div class="cap">Áp dụng: tín hiệu = sin tần số thấp 0.05π + sin tần số cao 0.6π + nhiễu</div>
+      <canvas class="plot" id="c10c" data-h="170"></canvas>
+      <div class="legend"><span><i style="background:var(--muted)"></i>đầu vào</span><span><i style="background:var(--a3)"></i>đầu ra (đã bù trễ (N−1)/2)</span></div>
+      <div class="readout wrap" id="s10info"></div>
+    </div>
+  </div>
+  <div class="tbl"><table class="t">
+    <thead><tr><th>Cửa sổ</th><th>Công thức w[n], 0 ≤ n ≤ N−1</th><th>Búp phụ cao nhất</th><th>Suy hao dải chặn của bộ lọc</th><th>Độ rộng chuyển tiếp ≈</th></tr></thead>
+    <tbody>
+      <tr><td>Chữ nhật</td><td>\(1\)</td><td class="num">−13 dB</td><td class="num">~21 dB</td><td class="num">0.9·2π/N</td></tr>
+      <tr><td>Hann</td><td>\(0.5 - 0.5\cos\frac{2\pi n}{N-1}\)</td><td class="num">−31 dB</td><td class="num">~44 dB</td><td class="num">3.1·2π/N</td></tr>
+      <tr><td>Hamming</td><td>\(0.54 - 0.46\cos\frac{2\pi n}{N-1}\)</td><td class="num">−41 dB</td><td class="num">~53 dB</td><td class="num">3.3·2π/N</td></tr>
+      <tr><td>Blackman</td><td>\(0.42 - 0.5\cos\frac{2\pi n}{N-1} + 0.08\cos\frac{4\pi n}{N-1}\)</td><td class="num">−57 dB</td><td class="num">~74 dB</td><td class="num">5.5·2π/N</td></tr>
+      <tr><td>Kaiser</td><td>\(I_0\!\big(\beta\sqrt{1-(2n/(N-1)-1)^2}\big)/I_0(\beta)\)</td><td colspan="3">Điều chỉnh được qua β: β lớn thì suy hao cao, chuyển tiếp rộng</td></tr>
+    </tbody></table></div>
+  <div class="prose"><p><b>Thông cao và thông dải</b> suy ra từ thông thấp: thông cao \(h_{HP}[n] = \delta[n - \tfrac{N-1}{2}] - h_{LP}[n]\) (đảo phổ); thông dải là hiệu hai bộ thông thấp, hoặc nhân thông thấp với \(2\cos(\omega_0 n)\) để dời dải thông lên \(\omega_0\). Ngoài phương pháp cửa sổ còn có thuật toán tối ưu Parks–McClellan (equiripple) cho bộ lọc ngắn hơn với cùng yêu cầu.</p></div>
+  <h3>Mô phỏng bằng MATLAB</h3>
+  <div class="mlab" data-ml="c10"></div>
+  <div class="quiz" data-quiz="10"></div>
+</section>
+
+<!-- ========== C11 ========== -->
+<section class="ch" id="c11" data-ch="11">
+  <h2><span class="no">11</span>Bộ lọc IIR: Butterworth và biến đổi song tuyến</h2>
+  <p class="lead">IIR dùng hồi tiếp nên đạt độ dốc cao với rất ít hệ số. Cách thiết kế kinh điển là mượn bộ lọc tương tự đã biết rồi “dịch” sang miền số.</p>
+  <div class="stepper" data-title="Quy trình Butterworth tương tự → số">
+    <ol>
+      <li><div>\[|H_a(j\Omega)|^2 = \frac{1}{1 + (\Omega/\Omega_c)^{2N}}\]<p class="why">Butterworth bậc \(N\): phẳng tối đa trong dải thông, tại \(\Omega_c\) giảm đúng −3 dB, ngoài dải thông suy giảm \(20N\) dB/decade.</p></div></li>
+      <li><div>\[p_k = \Omega_c\, e^{\,j\pi\frac{2k + N - 1}{2N}},\quad k = 1,\dots,N\]<p class="why">Các cực của \(H_a(s)\) nằm cách đều trên nửa trái đường tròn bán kính \(\Omega_c\) trong mặt phẳng \(s\), nên bộ lọc tương tự ổn định.</p></div></li>
+      <li><div>\[s = \frac{2}{T}\cdot\frac{1 - z^{-1}}{1 + z^{-1}} \iff z = \frac{1 + sT/2}{1 - sT/2}\]<p class="why"><b>Biến đổi song tuyến</b> ánh xạ toàn bộ trục \(j\Omega\) lên đường tròn đơn vị, và nửa trái mặt phẳng \(s\) vào trong vòng tròn. Ổn định được bảo toàn và không có aliasing.</p></div></li>
+      <li><div>\[\Omega = \frac{2}{T}\tan\frac{\omega}{2}\]<p class="why">Cái giá phải trả là trục tần số bị <b>nén phi tuyến</b> (frequency warping): \(\Omega \to \infty\) ứng với \(\omega \to \pi\).</p></div></li>
+      <li><div>\[\Omega_c = \frac{2}{T}\tan\frac{\omega_c}{2}\quad(\text{prewarping})\]<p class="why">Để tần số cắt số rơi đúng \(\omega_c\) mong muốn, ta “làm cong trước” tần số cắt tương tự. Chọn \(T = 2\) cho gọn: \(\Omega_c = \tan(\omega_c/2)\).</p></div></li>
+      <li><div>\[z_k = \frac{1 + p_k}{1 - p_k},\qquad \text{không: } N \text{ không tại } z = -1,\qquad H(1) = 1\]<p class="why">Ánh xạ từng cực sang mặt phẳng \(z\). Các không ở vô cực của \(H_a(s)\) rơi vào \(z = -1\) (tần số \(\pi\)). Cuối cùng chuẩn hoá hệ số khuếch đại để DC bằng 1.</p></div></li>
+      <li><div>\[H(z) = g\,\frac{\prod_k (1 + z^{-1})}{\prod_k (1 - z_k z^{-1})} = \frac{\sum b_k z^{-k}}{1 + \sum a_k z^{-k}}\]<p class="why">Nhân đa thức để có hệ số \(b, a\) cho phương trình sai phân. Trong thực tế nên chia thành các khâu bậc 2 (biquad) để tránh sai số (xem chương 15).</p></div></li>
+    </ol>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 11.1 · Thiết kế Butterworth và nghe kết quả</b><span class="tag">mặt phẳng s → mặt phẳng z</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <label class="ctl"><span class="lbl">Bậc N <output id="s11No">4</output></span><input type="range" id="s11N" min="1" max="10" value="4"></label>
+        <label class="ctl"><span class="lbl">Tần số cắt fc (Hz, fs = 8000) <output id="s11fo">800</output></span><input type="range" id="s11f" min="100" max="3500" step="50" value="800"></label>
+        <div class="btns"><button class="btn ghost" id="s11pa">▶ Nghe gốc</button><button class="btn" id="s11pb">▶ Nghe sau lọc</button></div>
+      </div>
+      <div class="cols3">
+        <div><div class="cap">① Cực tương tự trên mặt phẳng s</div><canvas class="plot" id="c11a" data-h="220"></canvas></div>
+        <div><div class="cap">② Ánh xạ song tuyến sang mặt phẳng z</div><canvas class="plot" id="c11b" data-h="220"></canvas></div>
+        <div><div class="cap">③ |H| (dB) theo Hz, so với FIR Hamming cùng số hệ số</div><canvas class="plot" id="c11c" data-h="220"></canvas></div>
+      </div>
+      <div class="legend"><span><i style="background:var(--a3)"></i>IIR Butterworth</span><span><i style="background:var(--a4)"></i>FIR Hamming cùng số phép nhân</span><span>Âm thanh: tông 300 Hz + tiếng rít 2500 Hz + nhiễu trắng</span></div>
+      <div class="readout" id="s11info"></div>
+    </div>
+  </div>
+  <div class="tbl"><table class="t">
+    <thead><tr><th>Tiêu chí</th><th>FIR</th><th>IIR</th></tr></thead>
+    <tbody>
+      <tr><td>Ổn định</td><td>Luôn ổn định</td><td>Phải kiểm tra cực trong vòng tròn đơn vị</td></tr>
+      <tr><td>Pha</td><td>Tuyến tính chính xác được</td><td>Phi tuyến, nhất là gần tần số cắt</td></tr>
+      <tr><td>Số hệ số cho cùng độ dốc</td><td>Nhiều (hàng chục đến hàng trăm)</td><td>Ít (thường 4 đến 12)</td></tr>
+      <tr><td>Nhạy với lượng tử hệ số</td><td>Thấp</td><td>Cao, nên dùng cấu trúc biquad</td></tr>
+      <tr><td>Dùng khi</td><td>Âm thanh chất lượng cao, truyền thông số, xử lý ảnh</td><td>Điều khiển, cân bằng âm (EQ), tài nguyên hạn chế</td></tr>
+    </tbody></table></div>
+  <div class="prose"><p>Các họ IIR khác: <b>Chebyshev I</b> (gợn ở dải thông, dốc hơn), <b>Chebyshev II</b> (gợn ở dải chặn), <b>Elliptic</b> (gợn cả hai dải, dốc nhất với cùng bậc).</p></div>
+  <h3>Mô phỏng bằng MATLAB</h3>
+  <div class="mlab" data-ml="c11"></div>
+  <div class="quiz" data-quiz="11"></div>
+</section>
+
+<!-- ===================== PHẦN IV ===================== -->
+<div class="part-title">Phần IV · Nâng cao</div>
+
+<!-- ========== C12 ========== -->
+<section class="ch" id="c12" data-ch="12">
+  <h2><span class="no">12</span>Phân tích phổ: rò rỉ, cửa sổ và STFT</h2>
+  <p class="lead">DFT ngầm giả định \(N\) mẫu là một chu kỳ của tín hiệu tuần hoàn. Khi sin không có số chu kỳ nguyên trong khung, chỗ nối hai đầu khung bị nhảy và năng lượng “rò” sang mọi bin.</p>
+  <div class="stepper" data-title="Vì sao có rò rỉ phổ và vì sao cửa sổ giúp được">
+    <ol>
+      <li><div>\[x_N[n] = x[n]\cdot w_R[n],\qquad w_R[n] = 1 \text{ với } 0\le n\lt N\]<p class="why">Chỉ ghi \(N\) mẫu tương đương nhân tín hiệu vô hạn với cửa sổ chữ nhật.</p></div></li>
+      <li><div>\[X_N(e^{j\omega}) = \frac{1}{2\pi} X(e^{j\omega}) \circledast W_R(e^{j\omega})\]<p class="why">Phổ thật bị tích chập với phổ cửa sổ. Một vạch phổ sắc nét trở thành một bản sao của \(W_R\): búp chính rộng \(4\pi/N\) và các búp phụ.</p></div></li>
+      <li><div>\[X[k] = X_N(e^{j2\pi k/N})\]<p class="why">DFT lấy mẫu phổ đó tại các bin. Nếu sin khớp bin, các điểm lấy mẫu rơi đúng vào điểm 0 của búp phụ nên không thấy rò rỉ. Lệch bin thì các búp phụ hiện ra.</p></div></li>
+      <li><div>\[\text{Hann, Blackman, ...}\;\Rightarrow\; \text{búp phụ thấp hơn, búp chính rộng hơn}\]<p class="why">Cửa sổ thuôn về 0 ở hai đầu làm mất chỗ nhảy. Đổi lại, hai tần số gần nhau khó tách hơn.</p></div></li>
+      <li><div>\[\text{Zero-padding: } N \to N_{fft}\;\Rightarrow\; \text{lưới bin mịn hơn, độ phân giải KHÔNG đổi}\]<p class="why">Thêm số 0 chỉ lấy mẫu dày hơn cùng một \(X_N(e^{j\omega})\). Độ phân giải thật \(\approx f_s/N\) chỉ tăng khi ghi thêm dữ liệu thật.</p></div></li>
+    </ol>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 12.1 · Rò rỉ phổ, cửa sổ và zero-padding</b><span class="tag">hai sin gần nhau</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <label class="ctl"><span class="lbl">Tần số sin 1 (bin) <output id="s12f1o">10.0</output></span><input type="range" id="s12f1" min="2" max="28" step="0.1" value="10"></label>
+        <label class="ctl"><span class="lbl">Sin 2: cách sin 1 (bin) <output id="s12dfo">3.0</output></span><input type="range" id="s12df" min="0.5" max="10" step="0.1" value="3"></label>
+        <label class="ctl"><span class="lbl">Biên độ sin 2 (dB) <output id="s12a2o">−20</output></span><input type="range" id="s12a2" min="-60" max="0" value="-20"></label>
+        <label class="ctl"><span class="lbl">Cửa sổ</span><select id="s12win"><option value="rect">Chữ nhật</option><option value="hann" selected>Hann</option><option value="hamming">Hamming</option><option value="blackman">Blackman</option></select></label>
+        <label class="ctl"><span class="lbl">Zero-padding ×<output id="s12zpo">4</output></span><input type="range" id="s12zp" min="1" max="8" value="4"></label>
+      </div>
+      <canvas class="plot" id="c12a" data-h="240"></canvas>
+      <div class="legend"><span><i style="background:var(--sample)"></i>bin DFT gốc (N = 64)</span><span><i style="background:var(--trace)"></i>DFT sau zero-padding</span><span><i style="background:var(--a4)"></i>vị trí tần số thật</span></div>
+    </div>
+  </div>
+  <h3>STFT và phổ đồ (spectrogram)</h3>
+  <div class="prose">
+    <p>Tín hiệu thực như tiếng nói hay âm nhạc có phổ thay đổi theo thời gian. <b>STFT</b> trượt một cửa sổ ngắn dọc tín hiệu và tính DFT cho từng khung:</p>
+    <div class="mathbox">\[X[m, k] = \sum_{n} x[n]\, w[n - mR]\, e^{-j2\pi kn/N}\]</div>
+    <p>với \(R\) là bước nhảy. Đánh đổi bất định: cửa sổ dài cho phân giải tần số tốt nhưng làm nhoè thời gian; cửa sổ ngắn ngược lại (\(\Delta t\cdot\Delta f \ge\) hằng số).</p>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 12.2 · Phổ đồ</b><span class="tag">đánh đổi thời gian và tần số</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <label class="ctl"><span class="lbl">Tín hiệu</span><select id="s12sig"><option value="chirp">Chirp (tần số quét tăng)</option><option value="tones" selected>Giai điệu 4 nốt + tiếng gõ</option><option value="fm">Còi hú (FM)</option></select></label>
+        <label class="ctl"><span class="lbl">Độ dài cửa sổ N <output id="s12Lo">128</output></span><input type="range" id="s12L" min="4" max="9" value="7"></label>
+        <div class="btns"><button class="btn ghost" id="s12play">▶ Nghe tín hiệu</button></div>
+      </div>
+      <canvas class="plot" id="c12b" data-h="260"></canvas>
+      <div class="cap" id="s12cap"></div>
+    </div>
+  </div>
+  <h3>Mô phỏng bằng MATLAB</h3>
+  <div class="mlab" data-ml="c12"></div>
+  <div class="quiz" data-quiz="12"></div>
+</section>
+
+<!-- ========== C13 ========== -->
+<section class="ch" id="c13" data-ch="13">
+  <h2><span class="no">13</span>Xử lý đa tốc độ: decimation &amp; interpolation</h2>
+  <p class="lead">Thay đổi tần số lấy mẫu ngay trong miền số: giảm \(f_s\) để tiết kiệm tính toán (decimation), tăng \(f_s\) để ghép với hệ khác hoặc làm mượt (interpolation).</p>
+  <div class="stepper" data-title="Hạ tốc độ M lần (downsampling)">
+    <ol>
+      <li><div>\[y[n] = x[Mn]\]<p class="why">Giữ một mẫu trong mỗi \(M\) mẫu. Tần số lấy mẫu mới là \(f_s/M\).</p></div></li>
+      <li><div>\[Y(e^{j\omega}) = \frac{1}{M}\sum_{i=0}^{M-1} X\!\left(e^{j(\omega - 2\pi i)/M}\right)\]<p class="why">Phổ bị <b>giãn</b> \(M\) lần và cộng thêm \(M-1\) bản sao dịch. Đây chính là lấy mẫu lại, nên có thể bị aliasing.</p></div></li>
+      <li><div>\[\text{Điều kiện không chồng phổ: } X(e^{j\omega}) = 0 \text{ với } |\omega| \gt \pi/M\]<p class="why">Phổ giãn \(M\) lần chỉ không đè lên nhau nếu băng thông ban đầu nhỏ hơn \(\pi/M\).</p></div></li>
+      <li><div>\[x \to \boxed{H_{LP},\ \omega_c = \pi/M} \to \boxed{\downarrow M} \to y\]<p class="why">Vì vậy luôn lọc thông thấp chống chồng phổ trước khi bỏ mẫu. Cả khối gọi là <b>decimator</b>.</p></div></li>
+    </ol>
+  </div>
+  <div class="stepper" data-title="Tăng tốc độ L lần (upsampling) và cấu trúc polyphase">
+    <ol>
+      <li><div>\[v[n] = \begin{cases} x[n/L], & n \text{ chia hết cho } L\\ 0, & \text{ngược lại}\end{cases}\]<p class="why">Chèn \(L-1\) số 0 giữa các mẫu.</p></div></li>
+      <li><div>\[V(e^{j\omega}) = X(e^{j\omega L})\]<p class="why">Phổ bị <b>nén</b> \(L\) lần, nên trong \([-\pi,\pi]\) xuất hiện \(L-1\) bản sao gọi là <b>ảnh (image)</b>.</p></div></li>
+      <li><div>\[x \to \boxed{\uparrow L} \to \boxed{H_{LP},\ \omega_c = \pi/L,\ \text{gain} = L} \to y\]<p class="why">Lọc thông thấp xoá ảnh, đồng thời “lấp” các số 0 bằng giá trị nội suy. Hệ số khuếch đại \(L\) bù năng lượng bị chia nhỏ.</p></div></li>
+      <li><div>\[H(z) = \sum_{k=0}^{M-1} z^{-k}\,E_k(z^M),\qquad E_k(z) = \sum_n h[nM + k]\,z^{-n}\]<p class="why"><b>Phân tích polyphase:</b> tách bộ lọc thành \(M\) bộ con, mỗi bộ lấy các hệ số cách nhau \(M\).</p></div></li>
+      <li><div>\[\boxed{E_k(z^M)} \to \boxed{\downarrow M} \;\equiv\; \boxed{\downarrow M} \to \boxed{E_k(z)}\]<p class="why"><b>Đẳng thức Noble</b> cho phép đưa bộ hạ tốc lên trước bộ lọc. Mỗi bộ con chạy ở tốc độ thấp: giảm \(M\) lần số phép tính, không tính các mẫu sẽ bị bỏ. Đây là nền tảng của bộ lọc CIC, filter bank và DDC trên FPGA.</p></div></li>
+    </ol>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 13.1 · Decimation có và không có lọc chống chồng phổ</b><span class="tag">quan sát phổ</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <label class="ctl"><span class="lbl">Chế độ</span><select id="s13mode"><option value="dec">Hạ tốc ↓M</option><option value="int">Tăng tốc ↑L</option></select></label>
+        <label class="ctl"><span class="lbl">Hệ số M / L <output id="s13Mo">3</output></span><input type="range" id="s13M" min="2" max="5" value="3"></label>
+        <label class="chk"><input type="checkbox" id="s13filt"> Dùng bộ lọc thông thấp (FIR 63 hệ số)</label>
+      </div>
+      <div class="cols">
+        <div><div class="cap" id="s13capA">Tín hiệu (miền thời gian)</div><canvas class="plot" id="c13a" data-h="200"></canvas></div>
+        <div><div class="cap">Phổ |X| trước (xám) và sau (xanh lá), trục ω chuẩn hoá theo tốc độ của chính nó</div><canvas class="plot" id="c13b" data-h="200"></canvas></div>
+      </div>
+      <div class="readout wrap" id="s13info"></div>
+    </div>
+  </div>
+  <h3>Mô phỏng bằng MATLAB</h3>
+  <div class="mlab" data-ml="c13"></div>
+  <div class="quiz" data-quiz="13"></div>
+</section>
+
+<!-- ========== C14 ========== -->
+<section class="ch" id="c14" data-ch="14">
+  <h2><span class="no">14</span>Lọc thích nghi LMS</h2>
+  <p class="lead">Khi đặc tính nhiễu hay kênh truyền không biết trước hoặc thay đổi theo thời gian, bộ lọc phải tự học hệ số. Thuật toán LMS (Widrow–Hoff, 1960) cực kỳ đơn giản: mỗi mẫu chỉ cần khoảng \(2M\) phép nhân.</p>
+  <div class="stepper" data-title="Dẫn giải LMS từ phương pháp hạ gradient">
+    <ol>
+      <li><div>\[\hat d[n] = \mathbf{w}^T\mathbf{x}[n] = \sum_{k=0}^{M-1} w_k\, x[n-k],\qquad e[n] = d[n] - \hat d[n]\]<p class="why">Bộ lọc FIR \(M\) hệ số \(\mathbf{w}\) cố gắng dự đoán tín hiệu mong muốn \(d[n]\) từ đầu vào tham chiếu \(\mathbf{x}[n]\).</p></div></li>
+      <li><div>\[J(\mathbf{w}) = E\{e^2[n]\}\]<p class="why">Mục tiêu: tối thiểu sai số bình phương trung bình (MSE). \(J\) là một “cái bát” bậc hai theo \(\mathbf{w}\), chỉ có một đáy duy nhất (nghiệm Wiener).</p></div></li>
+      <li><div>\[\nabla J = \frac{\partial E\{e^2\}}{\partial\mathbf{w}} = E\left\{2e[n]\frac{\partial e[n]}{\partial \mathbf{w}}\right\} = -2E\{e[n]\,\mathbf{x}[n]\}\]<p class="why">Quy tắc đạo hàm hàm hợp, với \(\partial e/\partial\mathbf{w} = -\mathbf{x}[n]\).</p></div></li>
+      <li><div>\[\nabla J \approx -2\,e[n]\,\mathbf{x}[n]\]<p class="why">Ý tưởng của LMS: không tính kỳ vọng, dùng luôn giá trị tức thời làm ước lượng gradient (gradient ngẫu nhiên).</p></div></li>
+      <li><div>\[\mathbf{w}[n+1] = \mathbf{w}[n] - \tfrac{\mu}{2}\nabla J = \boxed{\mathbf{w}[n] + \mu\, e[n]\,\mathbf{x}[n]}\]<p class="why">Bước xuống dốc với bước nhảy \(\mu\). Mỗi hệ số được chỉnh tỉ lệ với sai số nhân đầu vào tương ứng.</p></div></li>
+      <li><div>\[0 \lt \mu \lt \frac{2}{M\,P_x}\]<p class="why">Điều kiện hội tụ gần đúng (\(P_x\) là công suất đầu vào). \(\mu\) lớn thì học nhanh nhưng dao động quanh nghiệm, vượt ngưỡng thì phân kỳ. \(\mu\) nhỏ thì chính xác nhưng chậm. NLMS chia \(\mu\) cho \(\|\mathbf{x}\|^2\) để tự chuẩn hoá.</p></div></li>
+    </ol>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 14.1 · Khử nhiễu chủ động</b><span class="tag">lời nói bị lẫn tiếng ồn động cơ</span></div>
+    <div class="lab-b">
+      <div class="prose"><p class="cap">Mô hình: micro chính nhận \(d[n] = s[n] + (h * v)[n]\), trong đó \(s\) là tín hiệu có ích và \(v\) là nhiễu đã qua một đường truyền \(h\) chưa biết. Micro tham chiếu chỉ nghe nhiễu \(v[n]\). LMS học \(\mathbf{w} \approx h\), và sai số \(e[n]\) chính là tín hiệu đã làm sạch.</p></div>
+      <div class="controls">
+        <label class="ctl"><span class="lbl">Bước học μ <output id="s14muo">0.020</output></span><input type="range" id="s14mu" min="-3.5" max="-0.3" step="0.05" value="-1.7"></label>
+        <label class="ctl"><span class="lbl">Số hệ số M <output id="s14Mo">8</output></span><input type="range" id="s14M" min="2" max="16" value="8"></label>
+        <div class="btns"><button class="btn" id="s14run">▶ Chạy lại</button></div>
+      </div>
+      <canvas class="plot" id="c14a" data-h="200"></canvas>
+      <div class="legend"><span><i style="background:var(--muted)"></i>d[n] = tín hiệu + nhiễu</span><span><i style="background:var(--a3)"></i>e[n] đầu ra đã khử nhiễu</span><span><i style="background:var(--trace)"></i>s[n] thật</span></div>
+      <div class="cols">
+        <div><div class="cap">Đường cong học: (e − s)² trung bình trượt, thang dB</div><canvas class="plot" id="c14b" data-h="180"></canvas></div>
+        <div><div class="cap">Hệ số học được w (cam) so với đường truyền thật h (vòng xanh)</div><canvas class="plot" id="c14c" data-h="180"></canvas></div>
+      </div>
+      <div class="readout" id="s14info"></div>
+    </div>
+  </div>
+  <div class="prose"><p>Ứng dụng: khử tiếng vọng điện thoại (echo cancellation), tai nghe chống ồn (ANC), cân bằng kênh trong modem và 5G, nhận dạng hệ thống, dự đoán tuyến tính. Biến thể mạnh hơn: RLS hội tụ nhanh hơn nhiều nhưng tốn \(O(M^2)\) phép tính mỗi mẫu.</p></div>
+  <h3>Mô phỏng bằng MATLAB</h3>
+  <div class="mlab" data-ml="c14"></div>
+  <div class="quiz" data-quiz="14"></div>
+</section>
+
+<!-- ========== C15 ========== -->
+<section class="ch" id="c15" data-ch="15">
+  <h2><span class="no">15</span>Số học dấu phẩy tĩnh &amp; hiện thực trên FPGA</h2>
+  <p class="lead">FPGA và DSP giá rẻ thường không dùng số thực dấu phẩy động. Mọi giá trị là số nguyên bù 2 mà ta <b>quy ước</b> vị trí dấu phẩy. Hiểu rõ định dạng Q giúp tránh tràn số và mất chính xác.</p>
+  <div class="stepper" data-title="Định dạng Qm.n và phép nhân trên phần cứng">
+    <ol>
+      <li><div>\[\text{Q}m.n:\quad 1 \text{ bit dấu} + m \text{ bit nguyên} + n \text{ bit phân số},\quad B = 1 + m + n\]<p class="why">Quy ước dùng ở đây (kiểu TI/ARM). Ví dụ Q0.15 (hay Q15) là 16 bit, biểu diễn \([-1, 1)\).</p></div></li>
+      <li><div>\[\text{giá trị} = \frac{\text{số nguyên bù 2}}{2^n},\qquad \text{dải: } [-2^m,\; 2^m - 2^{-n}],\quad \text{bước } 2^{-n}\]<p class="why">Bit dấu có trọng số \(-2^m\), các bit còn lại có trọng số \(2^{m-1}, \dots, 2^{-n}\).</p></div></li>
+      <li><div>\[\text{Q}a.b \times \text{Q}c.d = \text{Q}(a+c+1).(b+d)\]<p class="why">Nhân hai số 16 bit Q15 cho tích 32 bit Q1.30. Bit nguyên thêm vào chỉ để chứa trường hợp \((-1)\times(-1) = +1\).</p></div></li>
+      <li><div>\[y_{Q15} = \operatorname{sat}\!\left(\left(p_{Q30} + 2^{14}\right) \gg 15\right)\]<p class="why">Đưa về Q15: cộng nửa LSB để làm tròn, dịch phải 15 bit, rồi <b>bão hoà</b> (saturate) nếu vượt dải thay vì để tràn quay vòng.</p></div></li>
+      <li><div>\[\text{guard bits} = \lceil \log_2 N_{taps} \rceil\]<p class="why">Bộ tích luỹ của FIR \(N\) hệ số cộng \(N\) tích, nên cần thêm bit bảo vệ. Ví dụ DSP48 của Xilinx có bộ cộng dồn 48 bit cho tích 25×18 bit.</p></div></li>
+    </ol>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 15.1 · Bộ chuyển đổi định dạng Q</b><span class="tag">bấm vào từng bit</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <label class="ctl"><span class="lbl">Tổng số bit B <output id="s15Bo">16</output></span><input type="range" id="s15B" min="4" max="24" value="16"></label>
+        <label class="ctl"><span class="lbl">Số bit phân số n <output id="s15no">15</output></span><input type="range" id="s15n" min="0" max="23" value="15"></label>
+        <label class="ctl"><span class="lbl">Giá trị thực cần biểu diễn</span><input type="number" id="s15v" value="0.70710678" step="0.001"></label>
+        <label class="chk"><input type="checkbox" id="s15sat" checked> Bão hoà khi vượt dải</label>
+      </div>
+      <div class="bits" id="s15bits"></div>
+      <div class="readout" id="s15info"></div>
+    </div>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 15.2 · Lượng tử hệ số: dạng trực tiếp và nối tầng biquad</b><span class="tag">Butterworth bậc 6, ωc = 0.06π</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <label class="ctl"><span class="lbl">Số bit phân số của hệ số <output id="s15qbo">12</output></span><input type="range" id="s15qb" min="6" max="24" value="12"></label>
+      </div>
+      <div class="cols">
+        <div><div class="cap">|H| (dB): số thực (nét đứt), dạng trực tiếp (hồng), nối tầng biquad (xanh lá)</div><canvas class="plot" id="c15a" data-h="230"></canvas></div>
+        <div><div class="cap">Cực: số thực (•), dạng trực tiếp đã lượng tử (×), biquad đã lượng tử (+)</div><canvas class="plot" id="c15b" data-h="230"></canvas></div>
+      </div>
+      <div class="readout wrap" id="s15qinfo"></div>
+    </div>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 15.3 · Tràn số: quay vòng hay bão hoà</b><span class="tag">8 bit Q0.7</span></div>
+    <div class="lab-b">
+      <div class="controls"><label class="ctl"><span class="lbl">Khuếch đại <output id="s15go">1.40</output></span><input type="range" id="s15g" min="0.5" max="3" step="0.01" value="1.4"></label></div>
+      <canvas class="plot" id="c15c" data-h="190"></canvas>
+      <div class="legend"><span><i style="background:var(--muted)"></i>lý tưởng</span><span><i style="background:var(--bad)"></i>tràn quay vòng (wrap)</span><span><i style="background:var(--a3)"></i>bão hoà (saturate)</span></div>
+    </div>
+  </div>
+  <h3>Cấu trúc thực hiện</h3>
+  <div class="cols">
+    <div class="prose">
+      <p><b>Direct Form I:</b> hai dãy thanh ghi trễ riêng cho \(x\) và \(y\), cần \(M+N\) bộ nhớ, khó tràn ở nút trung gian.</p>
+      <p><b>Direct Form II:</b> dùng chung một dãy trễ, chỉ \(\max(M,N)\) bộ nhớ, nhưng nút trung gian có thể rất lớn.</p>
+      <p><b>Transposed Direct Form:</b> rất hợp FPGA: mỗi tầng chỉ có một bộ nhân và một bộ cộng trước thanh ghi, đường tới hạn ngắn, chạy được tần số cao mà không cần pipeline thêm.</p>
+      <p><b>Tối ưu:</b> FIR đối xứng gộp hai mẫu trước khi nhân để giảm một nửa số bộ nhân; hệ số hằng có thể thay bằng dịch và cộng (CSD); bộ lọc chạy chậm hơn clock có thể chia sẻ một bộ MAC theo thời gian.</p>
+    </div>
+    <pre class="code">// FIR transposed, hệ số và dữ liệu Q0.15 (16 bit)
+module fir_tdf #(parameter N = 8) (
+  input  wire               clk,
+  input  wire signed [15:0] x,     // Q0.15
+  output reg  signed [15:0] y      // Q0.15
+);
+  // hệ số h[k] (Q0.15) – sinh từ thiết kế ở chương 10
+  reg signed [15:0] h [0:N-1];
+  // cộng dồn: tích Q1.30 (32 bit) + 3 guard bits (log2 8)
+  reg signed [34:0] acc [0:N-1];
+  integer k;
+  function signed [15:0] sat16(input signed [34:0] v);
+    sat16 = (v &gt; 35'sd32767)  ? 16'sh7FFF :
+            (v &lt; -35'sd32768) ? 16'sh8000 : v[15:0];
+  endfunction
+  always @(posedge clk) begin
+    for (k = 0; k &lt; N-1; k = k + 1)
+      acc[k] &lt;= acc[k+1] + x * h[k];
+    acc[N-1] &lt;= x * h[N-1];
+    // làm tròn + bão hoà về Q1.15
+    y &lt;= sat16((acc[0] + 35'sd16384) &gt;&gt;&gt; 15);
+  end
+endmodule</pre>
+  </div>
+  <h3>Mô phỏng bằng MATLAB</h3>
+  <div class="mlab" data-ml="c15"></div>
+  <div class="quiz" data-quiz="15"></div>
+</section>
+
+<!-- ========== Tóm tắt ========== -->
+<section class="ch" id="tomtat">
+  <h2><span class="no">∑</span>Bảng công thức tra cứu nhanh</h2>
+  <div class="summary-grid">
+    <div><b>Lấy mẫu</b>\[f_s \gt 2f_{max},\quad \omega = 2\pi f/f_s\]</div>
+    <div><b>Lượng tử</b>\[\text{SQNR} \approx 6{,}02N + 1{,}76 \text{ dB}\]</div>
+    <div><b>Tích chập</b>\[y[n] = \sum_k x[k]h[n-k]\]</div>
+    <div><b>DTFT</b>\[X(e^{j\omega}) = \sum_n x[n]e^{-j\omega n}\]</div>
+    <div><b>DFT</b>\[X[k] = \sum_{n=0}^{N-1} x[n]e^{-j2\pi kn/N}\]</div>
+    <div><b>FFT</b>\[X[k] = E[k] \pm W_N^k O[k],\ \ \tfrac{N}{2}\log_2N\]</div>
+    <div><b>Biến đổi Z</b>\[H(z) = \frac{\sum b_k z^{-k}}{1 + \sum a_k z^{-k}}\]</div>
+    <div><b>Ổn định (nhân quả)</b>\[|p_i| \lt 1\ \ \forall i\]</div>
+    <div><b>FIR cửa sổ</b>\[h[n] = \tfrac{\sin(\omega_c(n-\alpha))}{\pi(n-\alpha)}w[n],\ \alpha = \tfrac{N-1}{2}\]</div>
+    <div><b>Song tuyến</b>\[s = \tfrac{2}{T}\tfrac{1-z^{-1}}{1+z^{-1}},\ \ \Omega = \tfrac{2}{T}\tan\tfrac{\omega}{2}\]</div>
+    <div><b>Decimation / Interpolation</b>\[\omega_c = \pi/M,\qquad \omega_c = \pi/L,\ \text{gain } L\]</div>
+    <div><b>LMS</b>\[\mathbf{w} \leftarrow \mathbf{w} + \mu\,e[n]\,\mathbf{x}[n]\]</div>
+  </div>
+  <footer>Mọi đồ thị và âm thanh trên trang được tính trực tiếp bằng JavaScript trong trình duyệt của bạn. Tiến độ làm câu đố chỉ lưu trên trình duyệt này.</footer>
+</section>
+</main>
+</div>

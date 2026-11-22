@@ -1,0 +1,179 @@
+
+<!-- ===================== PHẦN II ===================== -->
+<div class="part-title">Phần II · Miền tần số</div>
+
+<!-- ========== C6 ========== -->
+<section class="ch" id="c6" data-ch="6">
+  <h2><span class="no">06</span>DTFT &amp; đáp ứng tần số</h2>
+  <p class="lead">Mũ phức \(e^{j\omega n}\) là <b>hàm riêng</b> của mọi hệ LTI: đi vào là sin thì đi ra vẫn là sin cùng tần số, chỉ bị nhân biên độ và dịch pha. Hệ số nhân đó chính là đáp ứng tần số \(H(e^{j\omega})\).</p>
+  <div class="stepper" data-title="Vì sao sin đi qua hệ LTI vẫn là sin?">
+    <ol>
+      <li><div>\[x[n] = e^{j\omega n} \;\Rightarrow\; y[n] = \sum_k h[k]\, x[n-k] = \sum_k h[k]\, e^{j\omega (n-k)}\]<p class="why">Thay đầu vào mũ phức vào công thức tích chập (dạng \(\sum h[k]x[n-k]\), dùng tính giao hoán).</p></div></li>
+      <li><div>\[y[n] = e^{j\omega n}\underbrace{\sum_k h[k]\, e^{-j\omega k}}_{H(e^{j\omega})}\]<p class="why">Tách \(e^{j\omega(n-k)} = e^{j\omega n}e^{-j\omega k}\). Thừa số \(e^{j\omega n}\) không phụ thuộc \(k\) nên đưa ra ngoài tổng.</p></div></li>
+      <li><div>\[H(e^{j\omega}) = \sum_{n=-\infty}^{\infty} h[n]\,e^{-j\omega n} = |H(e^{j\omega})|\,e^{j\angle H(e^{j\omega})}\]<p class="why">Phần còn lại chỉ phụ thuộc \(\omega\): đó là <b>DTFT</b> của \(h[n]\). Là số phức nên có biên độ và pha.</p></div></li>
+      <li><div>\[x[n] = \cos(\omega_0 n) \;\Rightarrow\; y[n] = |H(e^{j\omega_0})|\cos\!\big(\omega_0 n + \angle H(e^{j\omega_0})\big)\]<p class="why">Với \(h[n]\) thực, \(H(e^{-j\omega}) = H^*(e^{j\omega})\). Cộng hai mũ phức của cos, phần ảo triệt tiêu: biên độ nhân \(|H|\), pha cộng \(\angle H\).</p></div></li>
+      <li><div>\[H(e^{j(\omega + 2\pi)}) = H(e^{j\omega})\]<p class="why">DTFT luôn tuần hoàn chu kỳ \(2\pi\) (cùng lý do với aliasing ở chương 2). Vì thế chỉ cần xem \(\omega \in [-\pi, \pi]\), hay \([0,\pi]\) với tín hiệu thực.</p></div></li>
+    </ol>
+  </div>
+  <div class="stepper" data-title="Ví dụ: đáp ứng tần số của bộ trung bình trượt M điểm">
+    <ol>
+      <li><div>\[h[n] = \tfrac{1}{M}\ \text{ với } 0 \le n \le M-1 \;\Rightarrow\; H(e^{j\omega}) = \frac{1}{M}\sum_{n=0}^{M-1} e^{-j\omega n}\]<p class="why">Trung bình \(M\) mẫu gần nhất: mỗi hệ số bằng \(1/M\).</p></div></li>
+      <li><div>\[\sum_{n=0}^{M-1} r^n = \frac{1-r^M}{1-r},\quad r = e^{-j\omega}\]<p class="why">Đây là cấp số nhân với công bội \(r\).</p></div></li>
+      <li><div>\[\frac{1-e^{-j\omega M}}{1-e^{-j\omega}} = \frac{e^{-j\omega M/2}\left(e^{j\omega M/2}-e^{-j\omega M/2}\right)}{e^{-j\omega/2}\left(e^{j\omega/2}-e^{-j\omega/2}\right)}\]<p class="why">Mẹo “rút nửa góc”: đặt thừa số chung để tử và mẫu có dạng \(e^{j\theta}-e^{-j\theta} = 2j\sin\theta\).</p></div></li>
+      <li><div>\[H(e^{j\omega}) = \frac{1}{M}\,\frac{\sin(\omega M/2)}{\sin(\omega/2)}\; e^{-j\omega (M-1)/2}\]<p class="why">Biên độ là <b>hàm Dirichlet</b> (sinc tuần hoàn), bằng 0 tại \(\omega = 2\pi k/M\). Pha tuyến tính \(-\omega(M-1)/2\): mọi tần số bị trễ như nhau \((M-1)/2\) mẫu.</p></div></li>
+    </ol>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 6.1 · Cho sin đi qua bộ lọc trung bình trượt</b><span class="tag">quan sát biên độ và độ trễ pha</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <label class="ctl"><span class="lbl">Độ dài M <output id="s6Mo">5</output></span><input type="range" id="s6M" min="2" max="16" value="5"></label>
+        <label class="ctl"><span class="lbl">Tần số vào ω₀ (×π) <output id="s6wo">0.15π</output></span><input type="range" id="s6w" min="0" max="1" step="0.005" value="0.15"></label>
+      </div>
+      <div class="cols">
+        <div><div class="cap">|H(e^jω)| (thang tuyến tính) và điểm làm việc ω₀</div><canvas class="plot" id="c6a" data-h="200"></canvas></div>
+        <div><div class="cap">Pha ∠H(e^jω) (rad)</div><canvas class="plot" id="c6b" data-h="200"></canvas></div>
+      </div>
+      <canvas class="plot" id="c6c" data-h="200"></canvas>
+      <div class="legend"><span><i style="background:var(--trace)"></i>x[n] = cos(ω₀n)</span><span><i style="background:var(--a3)"></i>y[n] đầu ra</span></div>
+      <div class="readout wrap" id="s6info"></div>
+    </div>
+  </div>
+  <h3>Mô phỏng bằng MATLAB</h3>
+  <div class="mlab" data-ml="c6"></div>
+  <div class="quiz" data-quiz="6"></div>
+</section>
+
+<!-- ========== C7 ========== -->
+<section class="ch" id="c7" data-ch="7">
+  <h2><span class="no">07</span>Biến đổi Fourier rời rạc (DFT)</h2>
+  <p class="lead">DTFT cho hàm liên tục theo \(\omega\), máy tính không lưu được. DFT lấy \(N\) mẫu của DTFT tại các tần số \(\omega_k = 2\pi k/N\). Với \(N\) mẫu vào ta được \(N\) hệ số phổ.</p>
+  <div class="mathbox">\[X[k] = \sum_{n=0}^{N-1} x[n]\, e^{-j2\pi kn/N} = \sum_{n=0}^{N-1} x[n]\,W_N^{kn}, \qquad W_N = e^{-j2\pi/N}\]</div>
+  <div class="mathbox">\[x[n] = \frac{1}{N}\sum_{k=0}^{N-1} X[k]\, e^{\,j2\pi kn/N}\]</div>
+  <div class="stepper" data-title="DFT thực chất làm gì? Đọc công thức theo từng bước">
+    <ol>
+      <li><div>\[e^{-j2\pi kn/N} = \cos\!\left(\tfrac{2\pi kn}{N}\right) - j\sin\!\left(\tfrac{2\pi kn}{N}\right)\]<p class="why">Công thức Euler: mỗi “hàm cơ sở” là một cặp cos/sin có đúng \(k\) chu kỳ trong \(N\) mẫu.</p></div></li>
+      <li><div>\[\operatorname{Re}X[k] = \sum_n x[n]\cos\!\left(\tfrac{2\pi kn}{N}\right),\qquad \operatorname{Im}X[k] = -\sum_n x[n]\sin\!\left(\tfrac{2\pi kn}{N}\right)\]<p class="why">Với \(x[n]\) thực, tách phần thực và ảo. Mỗi tổng là một <b>tích vô hướng</b>, đo mức “giống nhau” giữa tín hiệu và cos/sin tần số \(k\).</p></div></li>
+      <li><div>\[|X[k]| = \sqrt{\operatorname{Re}^2 + \operatorname{Im}^2},\qquad \angle X[k] = \operatorname{atan2}(\operatorname{Im}, \operatorname{Re})\]<p class="why">Biên độ cho biết thành phần tần số \(k\) mạnh đến đâu; pha cho biết nó lệch bao nhiêu.</p></div></li>
+      <li><div>\[x[n] = A\cos\!\left(\tfrac{2\pi k_0 n}{N}\right) \;\Rightarrow\; |X[k_0]| = |X[N-k_0]| = \frac{AN}{2}\]<p class="why">Một cos có đúng \(k_0\) chu kỳ chỉ “cộng hưởng” với bin \(k_0\) và bin gương \(N-k_0\). Mọi bin khác cho tổng bằng 0 do tính trực giao.</p></div></li>
+      <li><div>\[f_k = k\,\frac{f_s}{N},\qquad \Delta f = \frac{f_s}{N}\]<p class="why">Đổi chỉ số bin ra Hz. Muốn phân giải tần số mịn hơn cần ghi thêm mẫu (tăng \(N\)), tức quan sát lâu hơn.</p></div></li>
+    </ol>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 7.1 · Tính DFT bằng tay, từng bin một</b><span class="tag">vectơ quay cộng nối đuôi</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <label class="ctl"><span class="lbl">Tín hiệu</span>
+          <select id="s7sig">
+            <option value="c2">cos(2π·2n/N)</option>
+            <option value="mix" selected>1 + cos(2π·2n/N) + 0.5·sin(2π·5n/N)</option>
+            <option value="rect">Xung chữ nhật 4 mẫu</option>
+            <option value="c25">cos(2π·2.5n/N) (không khớp bin)</option>
+            <option value="imp">Xung δ[n − 1]</option>
+          </select></label>
+        <label class="ctl"><span class="lbl">Số điểm N</span><select id="s7N"><option>8</option><option selected>16</option><option>32</option></select></label>
+        <label class="ctl"><span class="lbl">Bin đang xét k <output id="s7ko">2</output></span><input type="range" id="s7k" min="0" max="15" value="2"></label>
+        <label class="ctl"><span class="lbl">Số số hạng đã cộng <output id="s7mo">16</output></span><input type="range" id="s7m" min="0" max="16" value="16"></label>
+        <div class="btns"><button class="btn" id="s7play">▶ Cộng dần</button></div>
+      </div>
+      <div class="cols">
+        <div><div class="cap">x[n] và hàm cơ sở cos (xanh lá) / −sin (hồng) của bin k</div><canvas class="plot" id="c7a" data-h="220"></canvas></div>
+        <div><div class="cap">Mặt phẳng phức: cộng nối đuôi các vectơ x[n]·e^(−j2πkn/N)</div><canvas class="plot" id="c7b" data-h="220"></canvas></div>
+      </div>
+      <div class="cap">Phổ biên độ |X[k]| (cột cam là bin đang xét)</div>
+      <canvas class="plot" id="c7c" data-h="170"></canvas>
+      <div class="readout" id="s7info"></div>
+    </div>
+  </div>
+  <div class="key"><b>Mẹo hình học:</b> mỗi số hạng \(x[n]e^{-j2\pi kn/N}\) là một vectơ dài \(|x[n]|\), quay \(2\pi k/N\) mỗi bước. Nếu tín hiệu “bắt nhịp” với tốc độ quay, các vectơ cùng chỉ một hướng và cộng thành vectơ dài: bin đó lớn. Nếu không, chúng xoay vòng và triệt tiêu nhau.</div>
+  <h3>Mô phỏng bằng MATLAB</h3>
+  <div class="mlab" data-ml="c7"></div>
+  <div class="quiz" data-quiz="7"></div>
+</section>
+
+<!-- ========== C8 ========== -->
+<section class="ch" id="c8" data-ch="8">
+  <h2><span class="no">08</span>Thuật toán FFT radix-2</h2>
+  <p class="lead">Tính DFT trực tiếp cần \(N^2\) phép nhân phức. FFT (Cooley–Tukey, 1965) chia đôi bài toán liên tục để còn \(\tfrac{N}{2}\log_2 N\) phép nhân. Với \(N = 1024\): từ ~1 triệu xuống ~5 nghìn.</p>
+  <div class="stepper" data-title="Chia để trị: tách mẫu chẵn và mẫu lẻ (decimation-in-time)">
+    <ol>
+      <li><div>\[X[k] = \sum_{m=0}^{N/2-1} x[2m]\,W_N^{2mk} + \sum_{m=0}^{N/2-1} x[2m+1]\,W_N^{(2m+1)k}\]<p class="why">Chia tổng \(N\) số hạng thành hai nhóm: chỉ số chẵn \(n = 2m\) và lẻ \(n = 2m+1\).</p></div></li>
+      <li><div>\[W_N^{2mk} = e^{-j2\pi\cdot 2mk/N} = e^{-j2\pi mk/(N/2)} = W_{N/2}^{mk}\]<p class="why">Nhận xét then chốt: bình phương của hệ số xoay \(N\) điểm là hệ số xoay \(N/2\) điểm.</p></div></li>
+      <li><div>\[X[k] = \underbrace{\sum_m x[2m]\,W_{N/2}^{mk}}_{E[k]} + W_N^{k}\underbrace{\sum_m x[2m+1]\,W_{N/2}^{mk}}_{O[k]}\]<p class="why">Mỗi tổng giờ là một DFT \(N/2\) điểm: \(E\) của dãy chẵn, \(O\) của dãy lẻ. Thừa số \(W_N^k\) gọi là <i>twiddle factor</i>.</p></div></li>
+      <li><div>\[E[k + N/2] = E[k],\quad O[k+N/2] = O[k],\quad W_N^{k+N/2} = -W_N^{k}\]<p class="why">DFT \(N/2\) điểm tuần hoàn chu kỳ \(N/2\), còn \(W_N^{N/2} = e^{-j\pi} = -1\).</p></div></li>
+      <li><div>\[\boxed{\;X[k] = E[k] + W_N^k O[k],\qquad X[k+\tfrac{N}{2}] = E[k] - W_N^k O[k]\;}\]<p class="why">Đây là phép <b>bướm (butterfly)</b>: một phép nhân phức cho ra hai đầu ra. Chỉ cần tính \(k = 0\ldots N/2-1\).</p></div></li>
+      <li><div>\[C(N) = 2\,C(N/2) + \tfrac{N}{2} \;\Rightarrow\; C(N) = \tfrac{N}{2}\log_2 N\]<p class="why">Đệ quy chia đôi đến khi còn DFT 1 điểm (chính là mẫu). Có \(\log_2 N\) tầng, mỗi tầng \(N/2\) bướm. Thứ tự đầu vào khi đó là <b>đảo bit</b> (bit-reversed).</p></div></li>
+    </ol>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 8.1 · Sơ đồ bướm FFT 8 điểm với số liệu thật</b><span class="tag">chạy từng tầng</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <label class="ctl wide"><span class="lbl">x[0..7] (số thực)</span><input type="text" id="s8x" value="1, 2, 1, 0, -1, -2, -1, 0"></label>
+        <div class="btns"><button class="btn ghost" id="s8prev">◀ Tầng trước</button><button class="btn" id="s8next">Tầng tiếp ▶</button><span class="cap" id="s8stage"></span></div>
+      </div>
+      <div class="tbl"><canvas class="plot" id="c8a" data-h="420" style="min-width:640px"></canvas></div>
+      <div class="readout wrap" id="s8info"></div>
+    </div>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 8.2 · Số phép nhân phức: DFT trực tiếp và FFT</b><span class="tag">thang log</span></div>
+    <div class="lab-b">
+      <div class="controls"><label class="ctl"><span class="lbl">N = 2^p, p = <output id="s8po">10</output></span><input type="range" id="s8p" min="2" max="20" value="10"></label></div>
+      <canvas class="plot" id="c8b" data-h="200"></canvas>
+      <div class="readout" id="s8cmp"></div>
+    </div>
+  </div>
+  <h3>Mô phỏng bằng MATLAB</h3>
+  <div class="mlab" data-ml="c8"></div>
+  <div class="quiz" data-quiz="8"></div>
+</section>
+
+<!-- ========== C9 ========== -->
+<section class="ch" id="c9" data-ch="9">
+  <h2><span class="no">09</span>Biến đổi Z, cực &amp; không</h2>
+  <p class="lead">Biến đổi Z tổng quát hoá DTFT: thay \(e^{j\omega}\) bằng biến phức \(z\) bất kỳ. Phương trình sai phân trở thành phân thức đại số, và hành vi của hệ được đọc trực tiếp từ vị trí <b>cực</b> và <b>không</b>.</p>
+  <div class="mathbox">\[X(z) = \sum_{n=-\infty}^{\infty} x[n]\, z^{-n},\qquad X(e^{j\omega}) = X(z)\big|_{z = e^{j\omega}}\]</div>
+  <div class="stepper" data-title="Biến đổi Z của aⁿu[n] và miền hội tụ (ROC)">
+    <ol>
+      <li><div>\[X(z) = \sum_{n=0}^{\infty} a^n z^{-n} = \sum_{n=0}^{\infty} \left(a z^{-1}\right)^n\]<p class="why">\(u[n]\) cắt bỏ các \(n \lt 0\). Gom thành luỹ thừa của \(az^{-1}\).</p></div></li>
+      <li><div>\[\text{hội tụ} \iff |a z^{-1}| \lt 1 \iff |z| \gt |a|\]<p class="why">Cấp số nhân chỉ hội tụ khi công bội có mô-đun nhỏ hơn 1. Tập \(|z| \gt |a|\) là <b>miền hội tụ (ROC)</b>: phần ngoài đường tròn bán kính \(|a|\).</p></div></li>
+      <li><div>\[X(z) = \frac{1}{1 - a z^{-1}} = \frac{z}{z - a}\]<p class="why">Tổng cấp số nhân. Có một <b>không</b> tại \(z = 0\) và một <b>cực</b> tại \(z = a\).</p></div></li>
+      <li><div>\[\text{Hệ nhân quả ổn định} \iff \text{ROC chứa đường tròn đơn vị} \iff \text{mọi cực nằm trong } |z| \lt 1\]<p class="why">Đây là cách tổng quát của điều kiện \(|\alpha| \lt 1\) ở chương 5.</p></div></li>
+      <li><div>\[x[n-k] \xrightarrow{\;\mathcal{Z}\;} z^{-k}X(z) \;\Rightarrow\; H(z) = \frac{Y(z)}{X(z)} = \frac{\sum_k b_k z^{-k}}{1+\sum_k a_k z^{-k}}\]<p class="why">Trễ \(k\) mẫu tương ứng nhân \(z^{-k}\). Biến đổi Z hai vế phương trình sai phân cho hàm truyền dạng phân thức. Nghiệm tử số là các không, nghiệm mẫu số là các cực.</p></div></li>
+      <li><div>\[|H(e^{j\omega})| = |b_0|\,\frac{\prod_i |e^{j\omega} - q_i|}{\prod_i |e^{j\omega} - p_i|}\]<p class="why"><b>Diễn giải hình học:</b> khi điểm \(e^{j\omega}\) chạy trên đường tròn đơn vị, biên độ bằng tích khoảng cách tới các không chia tích khoảng cách tới các cực. Gần cực thì phổ nhô lên, gần không thì phổ lõm xuống.</p></div></li>
+    </ol>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 9.1 · Kéo thả cực và không trên mặt phẳng z</b><span class="tag">cặp liên hợp tự động</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <div class="btns">
+          <button class="btn ghost" id="s9addP">+ Cặp cực</button>
+          <button class="btn ghost" id="s9addZ">+ Cặp không</button>
+          <button class="btn ghost" id="s9del">− Xoá điểm đang chọn</button>
+          <label class="ctl" style="min-width:180px"><span class="lbl">Mẫu có sẵn</span>
+            <select id="s9preset">
+              <option value="res" selected>Cộng hưởng (cặp cực gần vòng tròn)</option>
+              <option value="notch">Lọc chắn dải (notch)</option>
+              <option value="lp">Thông thấp đơn giản</option>
+              <option value="hp">Thông cao đơn giản</option>
+              <option value="unstable">Không ổn định (cực ngoài vòng)</option>
+            </select></label>
+        </div>
+        <label class="ctl"><span class="lbl">Điểm thử ω (×π) <output id="s9wo">0.25π</output></span><input type="range" id="s9w" min="0" max="1" step="0.005" value="0.25"></label>
+      </div>
+      <div class="cols">
+        <div><div class="cap">Mặt phẳng z: × là cực, ○ là không. Kéo để di chuyển.</div><canvas class="plot" id="c9a" data-h="320"></canvas></div>
+        <div style="display:grid;gap:10px">
+          <div><div class="cap">|H(e^jω)| (dB)</div><canvas class="plot" id="c9b" data-h="150"></canvas></div>
+          <div><div class="cap">Đáp ứng xung h[n]</div><canvas class="plot" id="c9c" data-h="150"></canvas></div>
+        </div>
+      </div>
+      <div class="readout wrap" id="s9info"></div>
+    </div>
+  </div>
+  <h3>Mô phỏng bằng MATLAB</h3>
+  <div class="mlab" data-ml="c9"></div>
+  <div class="quiz" data-quiz="9"></div>
+</section>

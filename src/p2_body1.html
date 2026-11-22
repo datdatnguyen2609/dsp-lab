@@ -1,0 +1,385 @@
+
+<header class="topbar">
+  <button class="iconbtn" id="menuBtn" aria-label="Mở mục lục" aria-expanded="false">☰ Mục lục</button>
+  <div class="brand">
+    <svg width="26" height="20" viewBox="0 0 26 20" aria-hidden="true"><path d="M1 10 Q4 1 7 10 T13 10 T19 10 T25 10" fill="none" stroke="var(--trace)" stroke-width="2"/><g fill="var(--sample)"><circle cx="1" cy="10" r="1.8"/><circle cx="7" cy="10" r="1.8"/><circle cx="4" cy="3.5" r="1.8"/><circle cx="10" cy="16.5" r="1.8"/><circle cx="16" cy="3.5" r="1.8"/><circle cx="22" cy="16.5" r="1.8"/></g></svg>
+    <span>Phòng Lab Tín Hiệu Số</span>
+  </div>
+  <div class="progress" title="Tiến độ: số chương đã làm xong câu đố"><i id="progBar"></i></div>
+  <span class="prog-txt" id="progTxt">0/16 chương</span>
+  <button class="iconbtn" id="themeBtn" aria-label="Đổi giao diện sáng/tối">◐ Giao diện</button>
+</header>
+
+<div class="shell">
+<nav class="toc" id="toc" aria-label="Mục lục">
+  <h4>Phần 0 · Công cụ</h4>
+  <a href="#c0"><span class="n">00</span>MATLAB cấp tốc<span class="ok">✓</span></a>
+  <h4>Phần I · Nền tảng</h4>
+  <a href="#c1"><span class="n">01</span>Tín hiệu &amp; hệ thống<span class="ok">✓</span></a>
+  <a href="#c2"><span class="n">02</span>Lấy mẫu &amp; Nyquist<span class="ok">✓</span></a>
+  <a href="#c3"><span class="n">03</span>Lượng tử hoá<span class="ok">✓</span></a>
+  <a href="#c4"><span class="n">04</span>Hệ LTI &amp; tích chập<span class="ok">✓</span></a>
+  <a href="#c5"><span class="n">05</span>Phương trình sai phân<span class="ok">✓</span></a>
+  <h4>Phần II · Miền tần số</h4>
+  <a href="#c6"><span class="n">06</span>DTFT &amp; đáp ứng tần số<span class="ok">✓</span></a>
+  <a href="#c7"><span class="n">07</span>Biến đổi DFT<span class="ok">✓</span></a>
+  <a href="#c8"><span class="n">08</span>Thuật toán FFT<span class="ok">✓</span></a>
+  <a href="#c9"><span class="n">09</span>Biến đổi Z, cực &amp; không<span class="ok">✓</span></a>
+  <h4>Phần III · Thiết kế bộ lọc</h4>
+  <a href="#c10"><span class="n">10</span>Bộ lọc FIR<span class="ok">✓</span></a>
+  <a href="#c11"><span class="n">11</span>Bộ lọc IIR<span class="ok">✓</span></a>
+  <h4>Phần IV · Nâng cao</h4>
+  <a href="#c12"><span class="n">12</span>Phân tích phổ &amp; STFT<span class="ok">✓</span></a>
+  <a href="#c13"><span class="n">13</span>Xử lý đa tốc độ<span class="ok">✓</span></a>
+  <a href="#c14"><span class="n">14</span>Lọc thích nghi LMS<span class="ok">✓</span></a>
+  <a href="#c15"><span class="n">15</span>Dấu phẩy tĩnh &amp; FPGA<span class="ok">✓</span></a>
+  <h4>Tra cứu</h4>
+  <a href="#tomtat"><span class="n">∑</span>Bảng công thức</a>
+</nav>
+
+<main>
+<section class="hero" id="top">
+  <div>
+    <div class="eyebrow">Khoá học tương tác · 16 chương · có MATLAB</div>
+    <h1>Xử lý tín hiệu số, từ mẫu đầu tiên đến mạch FPGA</h1>
+    <p>Mỗi chương gồm năm phần: lý thuyết ngắn gọn, dẫn giải công thức <b>từng bước</b> (bấm “Bước tiếp”), một phòng thí nghiệm để bạn kéo thanh trượt và quan sát, một đoạn <b>MATLAB chạy ngay trên trang</b> tái hiện thí nghiệm đó, và vài câu hỏi kiểm tra có giải thích. Mọi đồ thị đều được tính trực tiếp trong trình duyệt.</p>
+  </div>
+  <div class="scope">
+    <div class="cap"><span>CH1 x(t) liên tục</span><span>CH2 x[n] đã lấy mẫu</span><span id="heroCap">f = 3 Hz · fs = 20 Hz</span></div>
+    <canvas class="plot" id="heroScope" data-h="190" aria-label="Sóng sin liên tục và các mẫu rời rạc chạy liên tục"></canvas>
+  </div>
+</section>
+<div class="roadmap">
+  <a href="#c0"><b>0. MATLAB</b><span>Cú pháp, đồ thị, hàm DSP, sân chơi</span></a>
+  <a href="#c1"><b>I. Nền tảng</b><span>Tín hiệu, lấy mẫu, lượng tử, tích chập</span></a>
+  <a href="#c6"><b>II. Miền tần số</b><span>DTFT, DFT, FFT, biến đổi Z</span></a>
+  <a href="#c10"><b>III. Bộ lọc</b><span>Thiết kế FIR cửa sổ, IIR Butterworth</span></a>
+  <a href="#c12"><b>IV. Nâng cao</b><span>STFT, đa tốc độ, LMS, fixed-point</span></a>
+</div>
+
+<!-- ===================== PHẦN 0 ===================== -->
+<div class="part-title">Phần 0 · Công cụ</div>
+
+<!-- ========== C0 ========== -->
+<section class="ch" id="c0" data-ch="0">
+  <h2><span class="no">00</span>MATLAB cấp tốc cho xử lý tín hiệu</h2>
+  <p class="lead">MATLAB là công cụ tiêu chuẩn trong học tập và nghiên cứu DSP: mọi thứ là ma trận, và các hàm như <code>fft</code>, <code>conv</code>, <code>filter</code>, <code>freqz</code>, <code>butter</code> đều có sẵn. Mỗi chương từ 1 đến 15 kết thúc bằng một đoạn MATLAB tái hiện lại thí nghiệm của chương đó.</p>
+  <div class="key"><b>Chạy được ngay trên trang.</b> Các khung code dưới đây chạy bằng một trình thông dịch MATLAB thu gọn viết bằng JavaScript: sửa code rồi bấm <b>▶ Chạy</b> (hoặc <span class="kbd">Ctrl</span> + <span class="kbd">Enter</span>) để xem kết quả và đồ thị. Trình chạy này hỗ trợ khoảng 200 hàm thường dùng trong DSP, gồm cả <code>function</code>, struct, cell array, mảng nhiều chiều, file <code>.m</code> riêng và <code>classdef</code> (bài 10). kể cả lớp cha, getter/setter, events, enumeration, gói <code>+goi</code> và mảng đối tượng. Phần còn thiếu so với MATLAB thật chủ yếu là các toolbox: chỉ có những hàm hay dùng trong DSP. Mọi đoạn code đều viết đúng cú pháp MATLAB thật, nên bạn có thể bấm <b>Sao chép code</b> rồi chạy trong MATLAB, <a href="https://matlab.mathworks.com" target="_blank" rel="noopener">MATLAB Online</a> hoặc GNU Octave (Octave cần <code>pkg load signal</code>).</div>
+
+  <h3>1. Vector và ma trận</h3>
+  <div class="mlab" data-ml="c0a"></div>
+  <h3>2. Phép toán từng phần tử</h3>
+  <div class="prose"><p>Trong DSP, tín hiệu là vector. Nhân hai tín hiệu (ví dụ nhân cửa sổ) là nhân <b>từng mẫu</b>, nên phải dùng <code>.*</code>. Dấu <code>*</code> không có chấm là nhân ma trận theo đại số tuyến tính.</p></div>
+  <div class="mlab" data-ml="c0b"></div>
+  <h3>3. Chỉ số và cắt mảng</h3>
+  <div class="mlab" data-ml="c0c"></div>
+  <h3>4. Số phức</h3>
+  <div class="mlab" data-ml="c0d"></div>
+  <h3>5. Vẽ đồ thị</h3>
+  <div class="mlab" data-ml="c0e"></div>
+  <h3>6. Vòng lặp và vector hoá</h3>
+  <div class="mlab" data-ml="c0f"></div>
+  <h3>7. Hàm ẩn danh và in kết quả</h3>
+  <div class="mlab" data-ml="c0g"></div>
+  <h3>8. Viết hàm của riêng bạn</h3>
+  <div class="mlab" data-ml="c0h"></div>
+  <h3>9. Struct, cell array và mảng nhiều chiều</h3>
+  <div class="mlab" data-ml="c0i"></div>
+  <h3>10. File .m riêng và lập trình hướng đối tượng (classdef)</h3>
+  <div class="prose">
+    <p>Dự án MATLAB thật gồm nhiều file. Ba quy tắc cần nhớ:</p>
+    <ul>
+      <li><b>File hàm</b> bắt đầu bằng <code>function</code>, tên file phải trùng tên hàm (<code>nang_luong.m</code> chứa <code>function ... = nang_luong(...)</code>). Các hàm viết thêm phía dưới trong cùng file là <b>hàm phụ</b>, chỉ gọi được từ bên trong file đó.</li>
+      <li><b>File script</b> không có <code>function</code> ở đầu. Gọi bằng tên (<code>chuan_bi</code>) hoặc <code>run('chuan_bi')</code>; biến nó tạo ra nằm luôn trong workspace của người gọi.</li>
+      <li><b>File lớp</b> bắt đầu bằng <code>classdef TenLop</code>, gồm khối <code>properties</code> (thuộc tính, có thể có giá trị mặc định) và <code>methods</code> (phương thức; hàm trùng tên lớp là hàm khởi tạo). Lớp <b>giá trị</b> (mặc định) được sao chép khi gán, nên phương thức phải trả về đối tượng đã sửa. Lớp <b>handle</b> (<code>classdef Ten &lt; handle</code>) được dùng chung: mọi biến trỏ tới cùng một đối tượng, hợp với bộ lọc có trạng thái hay bộ đệm.</li>
+    </ul>
+  </div>
+  <div class="prose"><p><b>Cú pháp hướng đối tượng nâng cao</b>, đều chạy được trong thư mục làm việc bên dưới:</p></div>
+  <pre class="code">% Gọi hàm khởi tạo và phương thức của lớp cha (classdef Con &lt; Cha)
+obj = obj@Cha(b, a);                 s = moTa@Cha(obj);
+
+% Thuộc tính phụ thuộc, getter và setter
+properties (Dependent)
+    bac
+end
+function v = get.bac(obj),   v = numel(obj.a) - 1;   end
+function obj = set.fc(obj, v), obj.fc = v;           end   % lớp handle: function set.fc(obj, v)
+
+% Sự kiện (chỉ lớp handle)
+events
+    DaThayDoi
+end
+addlistener(f, 'DaThayDoi', @(src, evt) disp(evt.EventName));
+notify(obj, 'DaThayDoi')
+
+% Enumeration (xem LoaiLoc.m)
+k = LoaiLoc.ThongCao;   k == LoaiLoc.ThongCao;   [m, ten] = enumeration('LoaiLoc');
+
+% Gói: file +dsp/trung_binh.m (tạo tệp tên +dsp/trung_binh)
+y = dsp.trung_binh(x, 8);            import dsp.*;   y = trung_binh(x, 8);
+
+% Mảng đối tượng
+ds = [BoDem(), BoDem()];   ds(3) = BoDem();   ds(2).tang();   [ds.giaTri]</pre>
+  <div class="mlab" data-ml="workspace"></div>
+
+  <h3>Bảng tra: công thức DSP và hàm MATLAB</h3>
+  <div class="tbl"><table class="t">
+    <thead><tr><th>Phép toán</th><th>Công thức</th><th>MATLAB</th><th>Lưu ý</th></tr></thead>
+    <tbody>
+      <tr><td>Tích chập</td><td>\(y = x * h\)</td><td><code>y = conv(x, h)</code></td><td>Độ dài \(L_x + L_h - 1\)</td></tr>
+      <tr><td>Phương trình sai phân</td><td>\(\sum a_k y[n-k] = \sum b_k x[n-k]\)</td><td><code>y = filter(b, a, x)</code></td><td>Độ dài bằng x; <code>a(1)</code> phải khác 0</td></tr>
+      <tr><td>DFT / FFT</td><td>\(X[k] = \sum x[n]e^{-j2\pi kn/N}\)</td><td><code>X = fft(x, N)</code></td><td>Bin k nằm ở <code>X(k+1)</code>; tần số \(k f_s/N\)</td></tr>
+      <tr><td>DFT ngược</td><td>\(x[n] = \frac1N\sum X[k]e^{j2\pi kn/N}\)</td><td><code>x = ifft(X)</code></td><td></td></tr>
+      <tr><td>Đáp ứng tần số</td><td>\(H(e^{j\omega})\)</td><td><code>[H, w] = freqz(b, a, 512)</code></td><td>Thêm <code>fs</code> để trục theo Hz</td></tr>
+      <tr><td>Đáp ứng xung</td><td>\(h[n]\)</td><td><code>h = impz(b, a, N)</code></td><td></td></tr>
+      <tr><td>Cực / không</td><td>nghiệm của \(A(z)\), \(B(z)\)</td><td><code>roots(a)</code>, <code>zplane(b, a)</code></td><td><code>poly(r)</code> làm ngược lại</td></tr>
+      <tr><td>Cửa sổ</td><td>\(w[n]\)</td><td><code>hamming(N)</code>, <code>hann(N)</code>, <code>blackman(N)</code>, <code>kaiser(N, β)</code></td><td>Trả về vector <b>cột</b></td></tr>
+      <tr><td>FIR cửa sổ</td><td>\(h_d[n]w[n]\)</td><td><code>h = fir1(n, Wn)</code></td><td>n là bậc (n + 1 hệ số), \(W_n = f_c/(f_s/2)\)</td></tr>
+      <tr><td>Butterworth</td><td>song tuyến</td><td><code>[b, a] = butter(N, Wn)</code></td><td><code>'high'</code> thông cao; <code>[w1 w2]</code> thông dải; thêm <code>'stop'</code> chắn dải</td></tr>
+      <tr><td>Đổi tốc độ</td><td>\(x[Mn]\), chèn 0</td><td><code>downsample(x, M)</code>, <code>upsample(x, L)</code></td><td>Nhớ lọc chống chồng phổ / xoá ảnh</td></tr>
+      <tr><td>Phổ đồ</td><td>STFT</td><td><code>spectrogram(x, win, nov, nfft, fs, 'yaxis')</code></td><td></td></tr>
+      <tr><td>Decibel</td><td>\(20\log_{10}|x|\)</td><td><code>20*log10(abs(x))</code> hoặc <code>mag2db(x)</code></td><td></td></tr>
+    </tbody></table></div>
+
+  <h3>Năm lỗi hay gặp khi chuyển công thức DSP sang MATLAB</h3>
+  <div class="prose"><ol>
+    <li><b>Chỉ số từ 1:</b> \(x[0]\) là <code>x(1)</code>, \(X[k]\) là <code>X(k+1)</code>. Trục vẽ nên là <code>n = 0:N-1</code>, không phải <code>1:N</code>.</li>
+    <li><b>Quên dấu chấm:</b> <code>x*w</code> báo lỗi kích thước hoặc ra tích vô hướng; đúng là <code>x.*w</code>.</li>
+    <li><b>Hàng hay cột:</b> cửa sổ, <code>freqz</code>, <code>roots</code> trả về cột. Nhân cột với hàng bằng <code>.*</code> tạo ra cả một ma trận (mở rộng ngầm) thay vì báo lỗi. Dùng <code>w'</code> hoặc <code>x(:)</code> cho đồng nhất.</li>
+    <li><b>Tần số chuẩn hoá:</b> <code>fir1</code>, <code>butter</code> dùng \(W_n\) chuẩn hoá theo <b>Nyquist</b> (1 ứng với \(f_s/2\), tức \(\omega = \pi\)), không theo \(f_s\).</li>
+    <li><b>Dấu của hệ số a:</b> \(y[n] = x[n] + 0.8y[n-1]\) ứng với <code>a = [1 -0.8]</code>, vì <code>filter</code> đưa các số hạng y sang vế trái.</li>
+  </ol></div>
+
+  <h3>Sân chơi</h3>
+  <div class="mlab" data-ml="sandbox"></div>
+  <div class="quiz" data-quiz="0"></div>
+</section>
+
+<!-- ===================== PHẦN I ===================== -->
+<div class="part-title">Phần I · Nền tảng</div>
+
+<!-- ========== C1 ========== -->
+<section class="ch" id="c1" data-ch="1">
+  <h2><span class="no">01</span>Tín hiệu &amp; hệ thống rời rạc</h2>
+  <p class="lead">Tín hiệu là một đại lượng thay đổi theo thời gian (hoặc không gian) mang thông tin. Xử lý tín hiệu <b>số</b> làm việc với dãy số \(x[n]\), với \(n\) là số nguyên chỉ thứ tự mẫu.</p>
+  <div class="prose">
+    <p><b>Liên tục và rời rạc.</b> Tín hiệu tương tự \(x(t)\) được định nghĩa tại mọi thời điểm thực \(t\). Tín hiệu rời rạc \(x[n]\) chỉ có giá trị tại các số nguyên \(n\). Nếu lấy mẫu với chu kỳ \(T_s\) thì \(x[n] = x(nT_s)\). Khi biên độ cũng được làm tròn về một tập hữu hạn mức, ta có tín hiệu <b>số</b>.</p>
+    <p><b>Các tín hiệu cơ bản</b> là “bảng chữ cái” để ghép nên mọi tín hiệu khác:</p>
+    <ul>
+      <li>Xung đơn vị \(\delta[n] = 1\) khi \(n=0\), bằng 0 ở mọi chỗ khác.</li>
+      <li>Bậc thang đơn vị \(u[n] = 1\) khi \(n \ge 0\). Chú ý \(\delta[n] = u[n]-u[n-1]\) và \(u[n]=\sum_{k=0}^{\infty}\delta[n-k]\).</li>
+      <li>Hàm mũ thực \(a^n u[n]\): suy giảm khi \(|a|\lt 1\), tăng vọt khi \(|a|\gt 1\), đổi dấu xen kẽ khi \(a\lt 0\).</li>
+      <li>Sin rời rạc \(A\cos(\omega_0 n + \phi)\) với tần số số \(\omega_0\) (rad/mẫu).</li>
+      <li>Mũ phức \(e^{j\omega_0 n} = \cos\omega_0 n + j\sin\omega_0 n\): một vectơ quay \(\omega_0\) radian sau mỗi mẫu.</li>
+    </ul>
+    <p>Mọi tín hiệu rời rạc đều viết được thành tổng các xung dịch: \(x[n] = \sum_k x[k]\,\delta[n-k]\). Đây là chìa khoá dẫn tới phép tích chập ở chương 4.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 1.1 · Thư viện tín hiệu cơ bản</b><span class="tag">kéo thanh trượt</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <label class="ctl"><span class="lbl">Loại tín hiệu</span>
+          <select id="s1type">
+            <option value="delta">Xung đơn vị δ[n − n₀]</option>
+            <option value="step">Bậc thang u[n − n₀]</option>
+            <option value="rect">Xung chữ nhật độ rộng L</option>
+            <option value="ramp">Dốc n·u[n]</option>
+            <option value="exp" selected>Mũ thực aⁿ·u[n]</option>
+            <option value="sin">Sin cos(ω₀n)</option>
+            <option value="cexp">Mũ phức e^(jω₀n)</option>
+            <option value="damped">Sin tắt dần aⁿcos(ω₀n)</option>
+          </select></label>
+        <label class="ctl"><span class="lbl">Dịch n₀ <output id="s1n0o">0</output></span><input type="range" id="s1n0" min="-8" max="8" value="0"></label>
+        <label class="ctl"><span class="lbl">Hệ số a <output id="s1ao">0.80</output></span><input type="range" id="s1a" min="-1.2" max="1.2" step="0.01" value="0.8"></label>
+        <label class="ctl"><span class="lbl">ω₀ (×π rad/mẫu) <output id="s1wo">0.20π</output></span><input type="range" id="s1w" min="0" max="2" step="0.01" value="0.2"></label>
+      </div>
+      <canvas class="plot" id="c1a" data-h="230"></canvas>
+      <div class="legend" id="s1leg"></div>
+      <div class="readout wrap" id="s1info"></div>
+    </div>
+  </div>
+
+  <h3>Biến đổi trục thời gian</h3>
+  <div class="prose">
+    <p>Ba phép biến đổi cơ bản trên chỉ số \(n\): <b>dịch</b> \(x[n-k]\) (trễ \(k\) mẫu nếu \(k\gt 0\)), <b>lật</b> \(x[-n]\) (gương qua \(n=0\)) và <b>co</b> (decimation) \(x[Mn]\) (giữ một trong mỗi \(M\) mẫu). Khi kết hợp, thứ tự rất quan trọng. Cách chắc chắn nhất: với mỗi \(n\) của đầu ra, tính chỉ số gốc \(m\) rồi đọc \(x[m]\).</p>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 1.2 · y[n] = x[σ·M·n − k]</b><span class="tag">quan sát thứ tự phép biến đổi</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <label class="ctl"><span class="lbl">Dịch k <output id="s1kO">2</output></span><input type="range" id="s1k" min="-6" max="6" value="2"></label>
+        <label class="ctl"><span class="lbl">Co M <output id="s1MO">1</output></span><input type="range" id="s1M" min="1" max="3" value="1"></label>
+        <label class="chk"><input type="checkbox" id="s1flip" checked> Lật (σ = −1)</label>
+      </div>
+      <div class="cols">
+        <div><div class="cap">x[n] gốc</div><canvas class="plot" id="c1b" data-h="180"></canvas></div>
+        <div><div class="cap">y[n] sau biến đổi</div><canvas class="plot" id="c1c" data-h="180"></canvas></div>
+      </div>
+      <div class="readout wrap" id="s1tx"></div>
+    </div>
+  </div>
+
+  <h3>Tính chất của hệ thống</h3>
+  <div class="prose"><p>Hệ thống là một phép biến đổi \(y = T\{x\}\). Bốn tính chất quyết định ta có thể phân tích nó bằng công cụ nào:</p></div>
+  <div class="tbl"><table class="t">
+    <thead><tr><th>Tính chất</th><th>Định nghĩa</th><th>Ví dụ có</th><th>Ví dụ không</th></tr></thead>
+    <tbody>
+      <tr><td><b>Tuyến tính</b></td><td>\(T\{a x_1 + b x_2\} = aT\{x_1\} + bT\{x_2\}\)</td><td>\(y[n]=2x[n]-x[n-1]\)</td><td>\(y[n]=x^2[n]\), \(y[n]=x[n]+1\)</td></tr>
+      <tr><td><b>Bất biến thời gian</b></td><td>Trễ đầu vào \(n_0\) ⇒ đầu ra trễ đúng \(n_0\)</td><td>\(y[n]=x[n-1]\)</td><td>\(y[n]=n\,x[n]\), \(y[n]=x[2n]\)</td></tr>
+      <tr><td><b>Nhân quả</b></td><td>\(y[n]\) chỉ phụ thuộc \(x[m]\) với \(m\le n\)</td><td>\(y[n]=x[n]+x[n-1]\)</td><td>\(y[n]=x[n+1]\)</td></tr>
+      <tr><td><b>Ổn định BIBO</b></td><td>Đầu vào bị chặn ⇒ đầu ra bị chặn</td><td>\(y[n]=0.5y[n-1]+x[n]\)</td><td>\(y[n]=y[n-1]+x[n]\) (bộ tích luỹ)</td></tr>
+    </tbody></table></div>
+  <h3>Mô phỏng bằng MATLAB</h3>
+  <div class="mlab" data-ml="c1"></div>
+  <div class="quiz" data-quiz="1"></div>
+</section>
+
+<!-- ========== C2 ========== -->
+<section class="ch" id="c2" data-ch="2">
+  <h2><span class="no">02</span>Lấy mẫu &amp; định lý Nyquist</h2>
+  <p class="lead">Lấy mẫu biến \(x(t)\) thành \(x[n] = x(nT_s)\) với tần số lấy mẫu \(f_s = 1/T_s\). Câu hỏi then chốt: khi nào dãy mẫu còn giữ đủ thông tin để dựng lại \(x(t)\)?</p>
+  <div class="key"><b>Định lý lấy mẫu (Nyquist–Shannon).</b> Một tín hiệu có băng thông giới hạn, không chứa thành phần nào từ \(f_{max}\) trở lên, được khôi phục hoàn toàn từ các mẫu nếu \(f_s \gt 2 f_{max}\). Giá trị \(f_s/2\) gọi là <b>tần số Nyquist</b>.</div>
+
+  <div class="stepper" data-title="Vì sao hai sin khác tần số lại cho cùng dãy mẫu (aliasing)?">
+    <ol>
+      <li><div>\[x(t) = \cos(2\pi f t) \;\xrightarrow{\;t = nT_s = n/f_s\;}\; x[n] = \cos\!\left(2\pi \tfrac{f}{f_s} n\right)\]<p class="why">Thay \(t\) bằng các thời điểm lấy mẫu. Tần số số là \(\omega = 2\pi f/f_s\) (rad/mẫu): chỉ còn <i>tỉ số</i> \(f/f_s\) có ý nghĩa.</p></div></li>
+      <li><div>\[x_k[n] = \cos\!\left(2\pi \tfrac{f + k f_s}{f_s} n\right) = \cos\!\left(2\pi \tfrac{f}{f_s} n + 2\pi k n\right)\]<p class="why">Xét một sin khác có tần số \(f + k f_s\) với \(k\) nguyên. Tách phân số ra hai phần.</p></div></li>
+      <li><div>\[2\pi k n \text{ là bội của } 2\pi \;\Rightarrow\; x_k[n] = \cos\!\left(2\pi \tfrac{f}{f_s} n\right) = x[n]\]<p class="why">Vì \(k\) và \(n\) đều nguyên, \(2\pi kn\) là số vòng quay trọn vẹn. Cosine tuần hoàn chu kỳ \(2\pi\) nên số hạng này biến mất. Hai tín hiệu liên tục khác nhau cho <b>đúng cùng một dãy mẫu</b>.</p></div></li>
+      <li><div>\[\cos(-\theta) = \cos\theta \;\Rightarrow\; f \text{ và } -f + k f_s \text{ cũng trùng mẫu}\]<p class="why">Do cos là hàm chẵn, tần số âm cũng “gập” lại. Kết hợp hai điều trên, mọi tần số đều được gấp vào dải \([0, f_s/2]\).</p></div></li>
+      <li><div>\[f_{alias} = \left|\, f - f_s \cdot \operatorname{round}\!\left(\tfrac{f}{f_s}\right) \right|\]<p class="why">Công thức gấp tần số: tìm bội của \(f_s\) gần \(f\) nhất, lấy khoảng cách. Nếu \(f \lt f_s/2\) thì \(f_{alias} = f\), không có méo. Thử ngay trong thí nghiệm dưới đây.</p></div></li>
+    </ol>
+  </div>
+
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 2.1 · Lấy mẫu và hiện tượng chồng phổ</b><span class="tag">kéo f vượt fs/2</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <label class="ctl"><span class="lbl">Tần số tín hiệu f (Hz) <output id="s2fo">3.0</output></span><input type="range" id="s2f" min="0.5" max="40" step="0.1" value="3"></label>
+        <label class="ctl"><span class="lbl">Tần số lấy mẫu fs (Hz) <output id="s2fso">10</output></span><input type="range" id="s2fs" min="2" max="40" step="0.5" value="10"></label>
+        <div class="btns"><button class="btn ghost" id="s2play">▶ Nghe f và f_alias (×100 Hz)</button></div>
+      </div>
+      <canvas class="plot" id="c2a" data-h="250"></canvas>
+      <div class="legend"><span><i style="background:var(--trace)"></i>x(t) gốc</span><span><i style="background:var(--sample)"></i>mẫu x[n]</span><span><i style="background:var(--a4)"></i>sin “bí danh” đi qua cùng các mẫu</span></div>
+      <div class="cap">Trục tần số: mọi tần số được gấp (như gấp giấy) vào đoạn [0, fs/2]</div>
+      <canvas class="plot" id="c2b" data-h="120"></canvas>
+      <div class="readout wrap" id="s2info"></div>
+    </div>
+  </div>
+  <div class="prose">
+    <p><b>Trong thực tế:</b> trước bộ ADC luôn có bộ lọc thông thấp tương tự (<i>anti-aliasing filter</i>) để cắt bỏ thành phần trên \(f_s/2\), vì sau khi lấy mẫu thì không còn cách nào phân biệt tần số thật với tần số bí danh. Âm thanh CD dùng \(f_s = 44{,}1\) kHz để bao trùm tai người (~20 kHz) và chừa khoảng chuyển tiếp cho bộ lọc.</p>
+    <p><b>Khôi phục lý tưởng</b> dùng nội suy sinc: \(x(t) = \sum_n x[n]\,\operatorname{sinc}\!\big((t-nT_s)/T_s\big)\). Bộ DAC thực tế dùng giữ bậc 0 (zero-order hold) rồi lọc làm trơn.</p>
+  </div>
+  <h3>Mô phỏng bằng MATLAB</h3>
+  <div class="mlab" data-ml="c2"></div>
+  <div class="quiz" data-quiz="2"></div>
+</section>
+
+<!-- ========== C3 ========== -->
+<section class="ch" id="c3" data-ch="3">
+  <h2><span class="no">03</span>Lượng tử hoá</h2>
+  <p class="lead">ADC \(N\) bit chỉ biểu diễn được \(2^N\) mức. Mỗi mẫu bị làm tròn về mức gần nhất, sinh ra <b>sai số lượng tử</b> \(e[n] = x_q[n] - x[n]\).</p>
+  <div class="stepper" data-title="Dẫn giải công thức SQNR ≈ 6,02N + 1,76 dB">
+    <ol>
+      <li><div>\[\Delta = \frac{2A}{2^N}\]<p class="why">Dải đo \([-A, A]\) có độ rộng \(2A\), chia đều cho \(2^N\) mức: mỗi bậc rộng \(\Delta\) (1 LSB).</p></div></li>
+      <li><div>\[e \sim \mathcal{U}\!\left(-\tfrac{\Delta}{2}, \tfrac{\Delta}{2}\right)\]<p class="why">Làm tròn về mức gần nhất nên sai số không vượt quá nửa bậc. Với tín hiệu “bận rộn”, giả thiết hợp lý là \(e\) phân bố đều và không tương quan với tín hiệu.</p></div></li>
+      <li><div>\[P_e = \int_{-\Delta/2}^{\Delta/2} e^2 \frac{1}{\Delta}\,de = \frac{1}{\Delta}\cdot\frac{e^3}{3}\Big|_{-\Delta/2}^{\Delta/2} = \frac{\Delta^2}{12}\]<p class="why">Công suất nhiễu là phương sai của phân bố đều: tích phân \(e^2\) nhân mật độ xác suất \(1/\Delta\).</p></div></li>
+      <li><div>\[P_s = \frac{A^2}{2}\]<p class="why">Công suất trung bình của một sin toàn thang \(A\sin(\omega t)\) là trung bình của \(A^2\sin^2\), tức \(A^2/2\).</p></div></li>
+      <li><div>\[\text{SQNR} = \frac{P_s}{P_e} = \frac{A^2/2}{\frac{1}{12}\left(\frac{2A}{2^N}\right)^2} = \frac{A^2/2}{\frac{4A^2}{12\cdot 2^{2N}}} = \frac{3}{2}\cdot 2^{2N}\]<p class="why">Thay \(\Delta\) vào, \(A^2\) triệt tiêu: kết quả không phụ thuộc biên độ, chỉ phụ thuộc số bit.</p></div></li>
+      <li><div>\[10\log_{10}\!\left(\tfrac{3}{2}\cdot 2^{2N}\right) = 10\log_{10}1{,}5 + 20N\log_{10}2 \approx 1{,}76 + 6{,}02\,N \;\text{dB}\]<p class="why">Đổi sang decibel. <b>Quy tắc vàng: mỗi bit thêm vào cho thêm khoảng 6 dB.</b> ADC 16 bit đạt ~98 dB; 24 bit đạt ~146 dB.</p></div></li>
+    </ol>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 3.1 · Bộ lượng tử N bit</b><span class="tag">so sánh lý thuyết và đo đạc</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <label class="ctl"><span class="lbl">Số bit N <output id="s3bo">3</output></span><input type="range" id="s3b" min="1" max="12" value="3"></label>
+        <label class="ctl"><span class="lbl">Biên độ tín hiệu (so với toàn thang) <output id="s3ao">1.00</output></span><input type="range" id="s3a" min="0.05" max="1" step="0.01" value="1"></label>
+        <label class="chk"><input type="checkbox" id="s3dith"> Thêm dither (nhiễu nhỏ trước khi lượng tử)</label>
+      </div>
+      <canvas class="plot" id="c3a" data-h="230"></canvas>
+      <canvas class="plot" id="c3b" data-h="120"></canvas>
+      <div class="legend"><span><i style="background:var(--trace)"></i>x(t)</span><span><i style="background:var(--sample)"></i>x_q[n] lượng tử</span><span><i style="background:var(--a4)"></i>sai số e[n] (đồ thị dưới, phóng to)</span></div>
+      <div class="readout" id="s3info"></div>
+    </div>
+  </div>
+  <div class="key warn"><b>Lưu ý:</b> khi biên độ nhỏ hơn toàn thang, SQNR giảm khoảng 6 dB mỗi lần biên độ giảm một nửa. Vì vậy cần đặt khuếch đại sao cho tín hiệu dùng hết dải ADC mà không bị cắt (clipping).</div>
+  <h3>Mô phỏng bằng MATLAB</h3>
+  <div class="mlab" data-ml="c3"></div>
+  <div class="quiz" data-quiz="3"></div>
+</section>
+
+<!-- ========== C4 ========== -->
+<section class="ch" id="c4" data-ch="4">
+  <h2><span class="no">04</span>Hệ LTI &amp; phép tích chập</h2>
+  <p class="lead">Hệ <b>tuyến tính bất biến (LTI)</b> được mô tả trọn vẹn bằng <b>đáp ứng xung</b> \(h[n] = T\{\delta[n]\}\). Biết \(h[n]\), ta tính được đầu ra cho mọi đầu vào.</p>
+  <div class="stepper" data-title="Từ đáp ứng xung đến công thức tích chập">
+    <ol>
+      <li><div>\[x[n] = \sum_{k=-\infty}^{\infty} x[k]\,\delta[n-k]\]<p class="why">Phân tích đầu vào thành tổng các xung đơn vị có trọng số \(x[k]\), đặt tại vị trí \(k\).</p></div></li>
+      <li><div>\[y[n] = T\Big\{\sum_k x[k]\,\delta[n-k]\Big\} = \sum_k x[k]\, T\{\delta[n-k]\}\]<p class="why"><b>Tuyến tính</b>: được đưa \(T\) vào trong tổng và đưa hằng số \(x[k]\) ra ngoài.</p></div></li>
+      <li><div>\[T\{\delta[n-k]\} = h[n-k]\]<p class="why"><b>Bất biến thời gian</b>: xung trễ \(k\) mẫu cho đáp ứng xung trễ đúng \(k\) mẫu.</p></div></li>
+      <li><div>\[\boxed{\,y[n] = \sum_{k} x[k]\,h[n-k] = (x * h)[n]\,}\]<p class="why">Đây là tích chập. Đọc theo từng \(n\): <b>lật</b> \(h[k]\) thành \(h[-k]\), <b>dịch</b> sang phải \(n\) mẫu thành \(h[n-k]\), <b>nhân</b> từng điểm với \(x[k]\), rồi <b>cộng</b> tất cả.</p></div></li>
+      <li><div>\[\text{len}(y) = L_x + L_h - 1\]<p class="why">Nếu \(x\) dài \(L_x\) và \(h\) dài \(L_h\) mẫu, đầu ra khác 0 trên \(L_x+L_h-1\) mẫu. Tích chập có tính giao hoán, kết hợp và phân phối.</p></div></li>
+    </ol>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 4.1 · Tích chập từng bước: lật, dịch, nhân, cộng</b><span class="tag">bấm ▶ để chạy hoạt hình</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <label class="ctl wide"><span class="lbl">x[n] (bắt đầu tại n = 0)</span><input type="text" id="s4x" value="1, 2, 3, 1"></label>
+        <label class="ctl wide"><span class="lbl">h[n] (bắt đầu tại n = 0)</span><input type="text" id="s4h" value="1, 1, 0.5"></label>
+        <label class="ctl"><span class="lbl">Vị trí n <output id="s4no">0</output></span><input type="range" id="s4n" min="-2" max="10" value="0"></label>
+        <div class="btns"><button class="btn" id="s4play">▶ Chạy</button><button class="btn ghost" id="s4preset">Ví dụ khác</button></div>
+      </div>
+      <div class="cap">① x[k] (cố định) và h[n − k] (đã lật và dịch tới n)</div>
+      <canvas class="plot" id="c4a" data-h="190"></canvas>
+      <div class="cap">② Tích x[k]·h[n − k] tại từng k</div>
+      <canvas class="plot" id="c4b" data-h="140"></canvas>
+      <div class="cap">③ Đầu ra y[n] (cột tô đậm là mẫu vừa tính)</div>
+      <canvas class="plot" id="c4c" data-h="170"></canvas>
+      <div class="readout wrap" id="s4info"></div>
+    </div>
+  </div>
+  <div class="prose">
+    <p><b>Ổn định và nhân quả theo \(h[n]\):</b> hệ LTI ổn định BIBO khi và chỉ khi \(\sum_n |h[n]| \lt \infty\); nhân quả khi và chỉ khi \(h[n] = 0\) với mọi \(n \lt 0\).</p>
+    <p><b>FIR và IIR:</b> nếu \(h[n]\) có hữu hạn mẫu khác 0, hệ là FIR (Finite Impulse Response). Nếu vô hạn (ví dụ \(h[n] = a^n u[n]\)), hệ là IIR.</p>
+  </div>
+  <h3>Mô phỏng bằng MATLAB</h3>
+  <div class="mlab" data-ml="c4"></div>
+  <div class="quiz" data-quiz="4"></div>
+</section>
+
+<!-- ========== C5 ========== -->
+<section class="ch" id="c5" data-ch="5">
+  <h2><span class="no">05</span>Phương trình sai phân</h2>
+  <p class="lead">Hầu hết hệ LTI dùng được trong thực tế mô tả bằng phương trình sai phân hệ số hằng: đầu ra hiện tại là tổ hợp tuyến tính của các đầu vào và các <b>đầu ra trước đó</b>.</p>
+  <div class="mathbox">\[y[n] = \sum_{k=0}^{M} b_k\,x[n-k] \;-\; \sum_{k=1}^{N} a_k\,y[n-k]\]</div>
+  <div class="prose"><p>Khi mọi \(a_k = 0\), hệ không có hồi tiếp và là FIR với \(h[n] = b_n\). Khi có hồi tiếp, đáp ứng xung thường kéo dài vô hạn (IIR). Ví dụ đơn giản nhất là hệ bậc 1: \(y[n] = b_0 x[n] + \alpha\, y[n-1]\) (tức \(a_1 = -\alpha\)).</p></div>
+  <div class="stepper" data-title="Giải tay đáp ứng xung của y[n] = x[n] + α·y[n−1]">
+    <ol>
+      <li><div>\[x[n] = \delta[n],\quad y[-1] = 0 \text{ (hệ ở trạng thái nghỉ)}\]<p class="why">Cho xung đơn vị vào, giả sử trước đó hệ chưa nhớ gì.</p></div></li>
+      <li><div>\[y[0] = \delta[0] + \alpha\cdot y[-1] = 1 + 0 = 1\]<p class="why">Tại \(n = 0\) chỉ có xung đầu vào đóng góp.</p></div></li>
+      <li><div>\[y[1] = \delta[1] + \alpha\, y[0] = 0 + \alpha = \alpha\]<p class="why">Từ \(n = 1\) đầu vào bằng 0, chỉ còn phần hồi tiếp.</p></div></li>
+      <li><div>\[y[2] = \alpha\, y[1] = \alpha^2,\quad y[3] = \alpha^3,\;\dots\]<p class="why">Mỗi bước nhân thêm \(\alpha\).</p></div></li>
+      <li><div>\[h[n] = \alpha^n u[n],\qquad \sum_{n=0}^{\infty}|\alpha|^n = \frac{1}{1-|\alpha|} \text{ hữu hạn} \iff |\alpha| \lt 1\]<p class="why">Đáp ứng xung là hàm mũ. Hệ ổn định khi và chỉ khi \(|\alpha|\lt 1\). Ở chương 9 ta sẽ thấy \(\alpha\) chính là <b>cực</b> của hệ.</p></div></li>
+    </ol>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 5.1 · Mô phỏng y[n] = b₀x[n] + b₁x[n−1] + α·y[n−1]</b><span class="tag">bảng tính từng mẫu</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <label class="ctl"><span class="lbl">Đầu vào</span>
+          <select id="s5in"><option value="imp">Xung δ[n]</option><option value="step">Bậc thang u[n]</option><option value="sin">Sin có nhiễu</option><option value="sq">Xung vuông</option></select></label>
+        <label class="ctl"><span class="lbl">α (hồi tiếp) <output id="s5ao">0.80</output></span><input type="range" id="s5a" min="-1.1" max="1.1" step="0.01" value="0.8"></label>
+        <label class="ctl"><span class="lbl">b₀ <output id="s5b0o">1.00</output></span><input type="range" id="s5b0" min="-1" max="1" step="0.05" value="1"></label>
+        <label class="ctl"><span class="lbl">b₁ <output id="s5b1o">0.00</output></span><input type="range" id="s5b1" min="-1" max="1" step="0.05" value="0"></label>
+      </div>
+      <canvas class="plot" id="c5a" data-h="230"></canvas>
+      <div class="legend"><span><i style="background:var(--trace)"></i>x[n]</span><span><i style="background:var(--a3)"></i>y[n]</span><span id="s5stab"></span></div>
+      <div class="tbl"><table class="t" id="s5tab"></table></div>
+    </div>
+  </div>
+  <h3>Mô phỏng bằng MATLAB</h3>
+  <div class="mlab" data-ml="c5"></div>
+  <div class="quiz" data-quiz="5"></div>
+</section>

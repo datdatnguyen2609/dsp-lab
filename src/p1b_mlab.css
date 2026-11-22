@@ -1,0 +1,41 @@
+<style>
+/* ---------- MATLAB: trình soạn thảo + kết quả ---------- */
+.mlab { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.mlab .lab-h .tag { color: var(--a4); }
+.ml-body { padding: 12px 16px 16px; display: grid; gap: 10px; }
+.ml-desc { font-size: 14px; color: var(--muted); max-width: 80ch; }
+.ml-ed { border: 1px solid var(--line); border-radius: 8px; background: var(--panel-2); overflow-x: auto; max-width: 100%; }
+.ml-ed:focus-within { border-color: var(--trace); }
+.ml-wrap { position: relative; display: inline-block; min-width: 100%; vertical-align: top; }
+.ml-hl, .ml-ta { font-family: var(--f-mono); font-size: 13px; line-height: 1.6; padding: 12px 14px 12px 50px; margin: 0; white-space: pre; tab-size: 4; letter-spacing: 0; font-variant-ligatures: none; }
+.ml-hl { color: var(--ink); pointer-events: none; min-height: 3em; counter-reset: ln; }
+.ml-hl .ln { display: block; position: relative; }
+.ml-hl .ln::before { counter-increment: ln; content: counter(ln); position: absolute; left: -42px; width: 30px; text-align: right; color: var(--muted); opacity: .55; }
+.ml-hl .ln.errl { background: color-mix(in srgb, var(--bad) 16%, transparent); }
+.ml-ta { position: absolute; inset: 0; width: 100%; height: 100%; background: transparent; color: transparent; caret-color: var(--ink); border: 0; outline: none; resize: none; overflow: hidden; }
+.ml-ta::selection { background: color-mix(in srgb, var(--trace) 30%, transparent); color: transparent; }
+.ml-hl .k { color: var(--a4); font-weight: 600; }
+.ml-hl .s { color: var(--a3); }
+.ml-hl .c { color: var(--muted); font-style: italic; }
+.ml-hl .n { color: var(--sample); }
+.ml-hl .f { color: var(--trace); }
+.ml-bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.ml-bar .st { font-size: 12px; color: var(--muted); margin-left: auto; font-variant-numeric: tabular-nums; }
+.ml-bar .st.bad { color: var(--bad); }
+.ml-con { font-family: var(--f-mono); font-size: 12.5px; line-height: 1.5; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin: 0; white-space: pre; overflow-x: auto; max-height: 340px; overflow-y: auto; }
+.ml-con .e { color: var(--bad); white-space: pre-wrap; }
+.ml-figs { display: grid; gap: 12px; }
+.ml-fig { overflow-x: auto; max-width: 100%; }
+.ml-fig .ft { font-family: var(--f-display); font-size: 14px; text-align: center; margin-bottom: 4px; }
+.ml-grid { display: grid; gap: 8px; }
+.ml-grid canvas { width: 100%; display: block; border-radius: 6px; }
+.ml-note { font-size: 12px; color: var(--muted); }
+.kbd { font-family: var(--f-mono); font-size: 11px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; background: var(--panel-2); }
+.ml-tabs { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+.ml-tab { font-family: var(--f-mono); font-size: 13px; border: 1px solid var(--line); background: var(--panel-2); color: var(--ink); border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+.ml-tab small { font-family: var(--f-body); font-size: 10px; color: var(--muted); margin-left: 4px; }
+.ml-tab.on { border-color: var(--trace); background: var(--hl); color: var(--trace); font-weight: 600; }
+.ml-tab.add { border-style: dashed; color: var(--muted); font-family: var(--f-body); }
+.ml-newfile { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: end; padding: 10px 12px; border: 1px dashed var(--line); border-radius: 8px; }
+[hidden] { display: none !important; }
+</style>
