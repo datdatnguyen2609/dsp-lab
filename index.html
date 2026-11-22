@@ -337,7 +337,7 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
 <section class="ch" id="c0" data-ch="0">
   <h2><span class="no">00</span>MATLAB cấp tốc cho xử lý tín hiệu</h2>
   <p class="lead">MATLAB là công cụ tiêu chuẩn trong học tập và nghiên cứu DSP: mọi thứ là ma trận, và các hàm như <code>fft</code>, <code>conv</code>, <code>filter</code>, <code>freqz</code>, <code>butter</code> đều có sẵn. Mỗi chương từ 1 đến 15 kết thúc bằng một đoạn MATLAB tái hiện lại thí nghiệm của chương đó.</p>
-  <div class="key"><b>Chạy được ngay trên trang.</b> Các khung code dưới đây chạy bằng một trình thông dịch MATLAB thu gọn viết bằng JavaScript: sửa code rồi bấm <b>▶ Chạy</b> (hoặc <span class="kbd">Ctrl</span> + <span class="kbd">Enter</span>) để xem kết quả và đồ thị. Trình chạy này hỗ trợ khoảng 200 hàm thường dùng trong DSP, nhưng không phải MATLAB đầy đủ (chưa có <code>function</code> trong file, struct, ma trận nhiều chiều). Mọi đoạn code đều viết đúng cú pháp MATLAB thật, nên bạn có thể bấm <b>Sao chép code</b> rồi chạy trong MATLAB, <a href="https://matlab.mathworks.com" target="_blank" rel="noopener">MATLAB Online</a> hoặc GNU Octave (Octave cần <code>pkg load signal</code>).</div>
+  <div class="key"><b>Chạy được ngay trên trang.</b> Các khung code dưới đây chạy bằng một trình thông dịch MATLAB thu gọn viết bằng JavaScript: sửa code rồi bấm <b>▶ Chạy</b> (hoặc <span class="kbd">Ctrl</span> + <span class="kbd">Enter</span>) để xem kết quả và đồ thị. Trình chạy này hỗ trợ khoảng 200 hàm thường dùng trong DSP, kể cả khai báo <code>function</code> ở cuối script, nhưng không phải MATLAB đầy đủ (chưa có struct, cell array đầy đủ, ma trận nhiều chiều). Mọi đoạn code đều viết đúng cú pháp MATLAB thật, nên bạn có thể bấm <b>Sao chép code</b> rồi chạy trong MATLAB, <a href="https://matlab.mathworks.com" target="_blank" rel="noopener">MATLAB Online</a> hoặc GNU Octave (Octave cần <code>pkg load signal</code>).</div>
 
   <h3>1. Vector và ma trận</h3>
   <div class="mlab" data-ml="c0a"></div>
@@ -354,6 +354,8 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
   <div class="mlab" data-ml="c0f"></div>
   <h3>7. Hàm ẩn danh và in kết quả</h3>
   <div class="mlab" data-ml="c0g"></div>
+  <h3>8. Viết hàm của riêng bạn</h3>
+  <div class="mlab" data-ml="c0h"></div>
 
   <h3>Bảng tra: công thức DSP và hàm MATLAB</h3>
   <div class="tbl"><table class="t">
@@ -368,7 +370,7 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
       <tr><td>Cực / không</td><td>nghiệm của \(A(z)\), \(B(z)\)</td><td><code>roots(a)</code>, <code>zplane(b, a)</code></td><td><code>poly(r)</code> làm ngược lại</td></tr>
       <tr><td>Cửa sổ</td><td>\(w[n]\)</td><td><code>hamming(N)</code>, <code>hann(N)</code>, <code>blackman(N)</code>, <code>kaiser(N, β)</code></td><td>Trả về vector <b>cột</b></td></tr>
       <tr><td>FIR cửa sổ</td><td>\(h_d[n]w[n]\)</td><td><code>h = fir1(n, Wn)</code></td><td>n là bậc (n + 1 hệ số), \(W_n = f_c/(f_s/2)\)</td></tr>
-      <tr><td>Butterworth</td><td>song tuyến</td><td><code>[b, a] = butter(N, Wn)</code></td><td><code>'high'</code> cho thông cao</td></tr>
+      <tr><td>Butterworth</td><td>song tuyến</td><td><code>[b, a] = butter(N, Wn)</code></td><td><code>'high'</code> thông cao; <code>[w1 w2]</code> thông dải; thêm <code>'stop'</code> chắn dải</td></tr>
       <tr><td>Đổi tốc độ</td><td>\(x[Mn]\), chèn 0</td><td><code>downsample(x, M)</code>, <code>upsample(x, L)</code></td><td>Nhớ lọc chống chồng phổ / xoá ảnh</td></tr>
       <tr><td>Phổ đồ</td><td>STFT</td><td><code>spectrogram(x, win, nov, nfft, fs, 'yaxis')</code></td><td></td></tr>
       <tr><td>Decibel</td><td>\(20\log_{10}|x|\)</td><td><code>20*log10(abs(x))</code> hoặc <code>mag2db(x)</code></td><td></td></tr>
@@ -2926,11 +2928,11 @@ const MLAB = (() => {
     const perr = m => { throw new MErr(m, peek().line); };
     const expectOp = v => { if (!isOp(v)) perr(`Thiếu '${v}'` + (peek().t === 'eof' ? ' ở cuối chương trình' : ` (gặp '${peek().v}')`)); next(); };
     const expectKw = v => { if (!isKw(v)) perr(`Thiếu từ khoá '${v}'`); next(); };
-    function block(terms) {
+    function block(terms, eofOk) {
       const out = [];
       for (; ;) {
         const t = peek();
-        if (t.t === 'eof') { if (terms) perr(`Thiếu 'end' để đóng khối lệnh`); break; }
+        if (t.t === 'eof') { if (terms && !eofOk) perr(`Thiếu 'end' để đóng khối lệnh`); break; }
         if (t.t === 'kw' && terms && terms.includes(t.v)) break;
         if (t.t === 'nl' || (t.t === 'op' && (t.v === ';' || t.v === ','))) { next(); continue; }
         out.push(statement());
@@ -2973,7 +2975,31 @@ const MLAB = (() => {
             if (isKw('otherwise')) { next(); other = block(['end']); }
             expectKw('end'); return { t: 'switch', e, cases, other, line };
           }
-          case 'function': perr('Trình chạy trên web chưa hỗ trợ khai báo function trong script. Hãy dùng hàm ẩn danh, ví dụ f = @(x) x.^2;');
+          case 'function': {
+            // function name(a,b) | function y = name(a) | function [y1, y2] = name(a, b)
+            next(); let outs = [], name;
+            if (isOp('[')) {
+              next();
+              while (!isOp(']')) { if (isOp(',')) { next(); continue; } const o = next(); if (o.t !== 'id') perr('Tên biến đầu ra không hợp lệ'); outs.push(o.v); }
+              next(); expectOp('='); const nm = next(); if (nm.t !== 'id') perr('Thiếu tên hàm'); name = nm.v;
+            } else {
+              const a = next(); if (a.t !== 'id') perr('Thiếu tên hàm sau từ khoá function');
+              if (isOp('=')) { next(); outs = [a.v]; const nm = next(); if (nm.t !== 'id') perr('Thiếu tên hàm'); name = nm.v; } else name = a.v;
+            }
+            const params = [];
+            if (isOp('(')) {
+              next();
+              while (!isOp(')')) {
+                if (isOp(',')) { next(); continue; }
+                if (isOp('~')) { next(); params.push('~'); continue; }
+                const v = next(); if (v.t !== 'id') perr('Tham số hàm phải là tên biến'); params.push(v.v);
+              }
+              next();
+            }
+            const body = block(['end', 'function'], true);
+            if (isKw('end')) next();
+            return { t: 'func', name, outs, params, body, line };
+          }
           default: perr(`Từ khoá '${t.v}' đặt không đúng chỗ`);
         }
       }
@@ -3305,16 +3331,46 @@ const MLAB = (() => {
     const g = Math.hypot(...H_at(h, [1], f0)); h = h.map(v => v / g);
     return { h, n };
   }
+  // căn bậc hai phức
+  const csqrt = (a, b) => { const r = Math.hypot(a, b), x = Math.sqrt((r + a) / 2), y = Math.sign(b || 1) * Math.sqrt(Math.max(0, (r - a) / 2)); return [x, y]; };
+  /* Butterworth số: nguyên mẫu tương tự (cực trên đường tròn đơn vị) → biến đổi tần số
+     (thấp→thấp/cao/dải/chắn dải) với tần số đã prewarp Ω = tan(πWn/2) → song tuyến z = (1+s)/(1−s) */
   function butterV(n, Wn, type) {
     if (!Number.isInteger(n) || n < 1) err('butter(n, Wn): n là bậc (số nguyên dương)');
-    let w = num(Wn); if (asM(Wn).n > 1) err("butter: bộ lọc thông dải chưa hỗ trợ; dùng 'low' hoặc 'high'");
-    if (w <= 0 || w >= 1) err('butter: Wn phải nằm trong (0, 1), chuẩn hoá theo Nyquist: Wn = fc / (fs/2)');
-    const hp = type === 'high';
-    const Bt = butter(n, (hp ? 1 - w : w) * PI);
-    let p = Bt.zPoles.map(z => hp ? [-z[0], -z[1]] : z), zr = new Array(n).fill(hp ? 1 : -1);
-    const A = polyC(p.map(z => z[0]), p.map(z => z[1])).re, Bp = polyC(zr, new Array(n).fill(0)).re;
-    const at = hp ? PI : 0, num0 = Math.hypot(...H_at(Bp, A, at)), k = 1 / num0;
-    return { b: Bp.map(v => v * k), a: A, z: zr, p, k };
+    const w = reArr(Wn);
+    if (w.length > 2 || !w.length) err('butter: Wn là một số (thông thấp/cao) hoặc [w1 w2] (thông dải/chắn dải)');
+    if (w.some(v => !(v > 0 && v < 1))) err('butter: Wn phải nằm trong (0, 1), chuẩn hoá theo Nyquist: Wn = fc / (fs/2)');
+    if (w.length === 2 && !(w[0] < w[1])) err('butter: với Wn = [w1 w2] cần w1 < w2');
+    type = type || (w.length === 2 ? 'bandpass' : 'low');
+    if (type === 'band') type = 'bandpass';
+    if (w.length === 2 && (type === 'low' || type === 'high')) err(`butter: kiểu '${type}' cần Wn là một số`);
+    if (w.length === 1 && (type === 'bandpass' || type === 'stop')) err(`butter: kiểu '${type}' cần Wn = [w1 w2]`);
+    if (!['low', 'high', 'bandpass', 'stop'].includes(type)) err(`butter: kiểu '${type}' không hỗ trợ (dùng 'low', 'high', 'bandpass', 'stop')`);
+    const proto = []; for (let k = 1; k <= n; k++) { const th = PI * (2 * k + n - 1) / (2 * n); proto.push([Math.cos(th), Math.sin(th)]); }
+    const W = w.map(v => Math.tan(PI * v / 2));
+    let sp = [], sz = [], at;
+    if (type === 'low') { sp = proto.map(p => [W[0] * p[0], W[0] * p[1]]); at = 0; }
+    else if (type === 'high') { sp = proto.map(p => cdiv(W[0], 0, p[0], p[1])); sz = new Array(n).fill([0, 0]); at = PI; }
+    else {
+      const Bw = W[1] - W[0], W0s = W[0] * W[1];
+      for (const p of proto) {
+        if (type === 'bandpass') { // s² − pB·s + Ω0² = 0
+          const pb = [p[0] * Bw, p[1] * Bw], d = csqrt(pb[0] * pb[0] - pb[1] * pb[1] - 4 * W0s, 2 * pb[0] * pb[1]);
+          sp.push([(pb[0] + d[0]) / 2, (pb[1] + d[1]) / 2], [(pb[0] - d[0]) / 2, (pb[1] - d[1]) / 2]);
+        } else { // p·s² − B·s + p·Ω0² = 0
+          const d = csqrt(Bw * Bw - 4 * W0s * (p[0] * p[0] - p[1] * p[1]), -8 * W0s * p[0] * p[1]);
+          sp.push(cdiv(Bw + d[0], d[1], 2 * p[0], 2 * p[1]), cdiv(Bw - d[0], -d[1], 2 * p[0], 2 * p[1]));
+        }
+      }
+      if (type === 'bandpass') { sz = new Array(n).fill([0, 0]); at = 2 * Math.atan(Math.sqrt(W0s)); }
+      else { const r = Math.sqrt(W0s); for (let k = 0; k < n; k++) sz.push([0, r], [0, -r]); at = 0; }
+    }
+    const bil = s => cdiv(1 + s[0], s[1], 1 - s[0], -s[1]);
+    const p = sp.map(bil), z = sz.map(bil);
+    while (z.length < p.length) z.push([-1, 0]);           // không ở vô cực → z = −1
+    const A = polyC(p.map(q => q[0]), p.map(q => q[1])).re, Bp = polyC(z.map(q => q[0]), z.map(q => q[1])).re;
+    const k = 1 / Math.hypot(...H_at(Bp, A, at));
+    return { b: Bp.map(v => v * k), a: A, z, p, k };
   }
   const NOT_FN = new Set(['plot', 'stem', 'stairs', 'bar', 'title', 'xlabel', 'ylabel']);
 
@@ -3447,7 +3503,12 @@ const MLAB = (() => {
   FN.bartlett = FN.triang = (I, a) => { const N = num(a[0]); return colv(range(0, N - 1).map(k => 1 - Math.abs(2 * k / (N - 1) - 1))); };
   // thiết kế bộ lọc
   FN.fir1 = (I, a) => { const n = num(a[0]); let type, win; for (const v of a.slice(2)) { if (v instanceof Str) type = v.s.toLowerCase().replace('pass', '') === 'band' ? 'bandpass' : v.s.toLowerCase(); else win = v; } if (type === 'low' || type === 'high' || type === 'stop' || type === 'bandpass' || !type); else if (type === 'band') type = 'bandpass'; const R = fir1V(n, a[1], type, win); if (R.n !== n) I.print(`Cảnh báo: bộ lọc thông cao/chắn dải cần bậc chẵn, đã tăng bậc lên ${R.n}.`); return rowv(R.h); };
-  FN.butter = (I, a, no) => { const type = a[2] instanceof Str ? a[2].s.toLowerCase() : 'low'; const R = butterV(num(a[0]), a[1], type); if (no >= 3) return [colv(R.z), clean(new Mat(R.p.length, 1, Float64Array.from(R.p.map(z => z[0])), Float64Array.from(R.p.map(z => z[1])))), S(R.k)]; return [rowv(R.b), rowv(R.a)]; };
+  FN.butter = (I, a, no) => {
+    const type = a[2] instanceof Str ? a[2].s.toLowerCase() : undefined; const R = butterV(num(a[0]), a[1], type);
+    const cv = L => clean(new Mat(L.length, 1, Float64Array.from(L.map(q => q[0])), Float64Array.from(L.map(q => Math.abs(q[1]) < 1e-12 ? 0 : q[1]))));
+    if (no >= 3) return [cv(R.z), cv(R.p), S(R.k)];
+    return [rowv(R.b), rowv(R.a)];
+  };
   FN.freqz = (I, a, no) => {
     const b = a[0], aa = a[1] && !(a[1] instanceof Str) ? a[1] : S(1);
     let n = 512, fs = null, whole = false;
@@ -3609,7 +3670,36 @@ const MLAB = (() => {
     print(s) { if (this.out[this.out.length - 1] !== '') this.out.push(''); this.write(s + '\n'); }
     text() { return this.out.join('\n').replace(/\n{3,}/g, '\n\n').replace(/^\n+/, ''); }
     tick() { if ((++this.ops & 1023) === 0 && Date.now() > this.deadline) throw new MErr('Hết thời gian chạy (quá 8 giây). Kiểm tra vòng lặp vô hạn hoặc giảm kích thước dữ liệu.'); }
-    run(src) { const ast = parse(lex(src)); try { this.block(ast); } catch (e) { if (e instanceof RetSig) return; if (e instanceof BreakSig || e instanceof ContSig) throw new MErr('break/continue chỉ dùng trong vòng lặp'); throw e; } }
+    run(src) {
+      const ast = parse(lex(src));
+      this.ufuncs = new Map();
+      for (const s of ast) if (s.t === 'func') {
+        if (this.ufuncs.has(s.name)) throw new MErr(`Hàm '${s.name}' được khai báo hai lần`, s.line);
+        this.ufuncs.set(s.name, s);
+      }
+      try { this.block(ast); } catch (e) { if (e instanceof RetSig) return; if (e instanceof BreakSig || e instanceof ContSig) throw new MErr('break/continue chỉ dùng trong vòng lặp'); throw e; }
+    }
+    callUser(f, args, no) {
+      const np = f.params.length;
+      if (args.length > np) err(`Hàm ${f.name} nhận tối đa ${np} đối số nhưng được gọi với ${args.length}`);
+      if (no > Math.max(1, f.outs.length)) err(`Hàm ${f.name} chỉ trả về ${f.outs.length} giá trị`);
+      if (++this.depth > 150) { this.depth = 0; err(`Đệ quy quá sâu trong hàm ${f.name} (thiếu điều kiện dừng?)`); }
+      const scope = new Map();
+      f.params.forEach((p, k) => { if (p !== '~' && args[k] !== undefined) scope.set(p, cloneV(args[k])); });
+      scope.set('nargin', S(args.length)); scope.set('nargout', S(no));
+      const saved = this.vars; this.vars = scope;
+      try {
+        try { this.block(f.body); }
+        catch (e) { if (e instanceof RetSig) { } else if (e instanceof BreakSig || e instanceof ContSig) err('break/continue chỉ dùng trong vòng lặp'); else throw e; }
+        const outs = [];
+        for (let k = 0; k < Math.max(no, 1) && k < f.outs.length; k++) {
+          const o = f.outs[k];
+          if (!scope.has(o)) { if (k === 0 && no === 0) break; err(`Biến đầu ra '${o}' chưa được gán giá trị trong hàm ${f.name}`); }
+          outs.push(scope.get(o));
+        }
+        return no >= 2 ? outs : outs[0];
+      } finally { this.vars = saved; this.depth--; }
+    }
     block(list) { for (const s of list) this.exec(s); }
     exec(s) {
       this.tick();
@@ -3672,6 +3762,7 @@ const MLAB = (() => {
           case 'break': throw new BreakSig();
           case 'continue': throw new ContSig();
           case 'return': throw new RetSig();
+          case 'func': return;
           case 'cmd': { const f = FN[s.name]; if (!f) err(`Không có lệnh '${s.name}'`); f(this, s.args.map(a => new Str(a)), 0); return; }
         }
       } catch (e) { if (e instanceof MErr && e.line == null) e.line = s.line; throw e; }
@@ -3684,6 +3775,7 @@ const MLAB = (() => {
       });
     }
     callValue(f, args, no) {
+      if (f instanceof FH && this.ufuncs && this.ufuncs.has(f.name)) return this.callUser(this.ufuncs.get(f.name), args, no);
       if (f instanceof FH) { const g = FN[f.name]; if (!g) { if (this.vars.get(f.name) instanceof Fun) return this.callValue(this.vars.get(f.name), args, no); err(`Không có hàm '${f.name}'`); } return g(this, args, no); }
       if (f instanceof Fun) {
         if (args.length > f.params.length) err(`Hàm ẩn danh nhận ${f.params.length} đối số nhưng được gọi với ${args.length}`);
@@ -3694,6 +3786,7 @@ const MLAB = (() => {
       err('Giá trị này không gọi như hàm được');
     }
     callFn(name, args, no) {
+      if (this.ufuncs && this.ufuncs.has(name)) return this.callUser(this.ufuncs.get(name), args, no);
       const f = FN[name];
       if (!f) {
         const hint = { sum: '', length: '' }[name];
@@ -3870,6 +3963,42 @@ fprintf('Biên độ 0.5 = %.2f dB\\n', dB(0.5));
 fprintf('Có %d mẫu, giá trị lớn nhất %.4f tại t = %.3f s\\n', length(t), max(f(t)), t(f(t) == max(f(t))));
 s = sprintf('Tần số lấy mẫu %g Hz', 1/(t(2) - t(1)));
 disp(s)` },
+c0h: { title: 'Viết hàm của riêng bạn (function)', desc: 'Hàm cục bộ đặt ở CUỐI script, mỗi hàm kết thúc bằng end. Hàm có không gian biến riêng: biến bên trong không ảnh hưởng ra ngoài. nargin/nargout cho biết số đối số được truyền vào và số đầu ra được yêu cầu.', code:
+`x = [1 2 3 1];  h = [1 1 0.5];
+y = my_conv(x, h)
+fprintf('Khớp với conv()? %d\\n', isequal(y, conv(x, h)));
+
+[E, P] = energy_power(sin(2*pi*0.05*(0:99)));
+fprintf('Năng lượng = %.2f, công suất trung bình = %.3f\\n', E, P);
+
+n = 0:30;
+stem(n, decay(n), 'filled'); hold on
+stem(n, decay(n, 0.6)); hold off
+legend('decay(n): a mặc định 0.9', 'decay(n, 0.6)'); xlabel('n')
+
+% ---------- các hàm cục bộ ----------
+function y = my_conv(x, h)
+    % Tích chập viết tay: mỗi mẫu x(k) cộng một bản sao h đã dịch
+    y = zeros(1, length(x) + length(h) - 1);
+    for k = 1:length(x)
+        idx = k:k+length(h)-1;
+        y(idx) = y(idx) + x(k) * h;
+    end
+end
+
+function [E, P] = energy_power(x)
+    % Hàm nhiều đầu ra
+    E = sum(abs(x).^2);
+    P = E / length(x);
+end
+
+function h = decay(n, a)
+    % Đối số tuỳ chọn: nếu không truyền a thì dùng 0.9
+    if nargin < 2
+        a = 0.9;
+    end
+    h = a.^n .* (n >= 0);
+end` },
 sandbox: { title: 'Sân chơi tự do', desc: 'Viết bất kỳ code nào bạn muốn thử. Ctrl + Enter để chạy. Gõ help để xem danh sách hàm được hỗ trợ.', code:
 `% Thử tạo tín hiệu của riêng bạn rồi xem phổ
 fs = 1000;  t = 0:1/fs:0.5;
@@ -4087,7 +4216,7 @@ y = filter(h2, 1, x);
 figure; plot(x); hold on; plot(y, 'LineWidth', 2); hold off
 legend('vào', 'ra (trễ 15 mẫu)'); xlabel('n')` },
 
-c11: { title: 'Butterworth với butter() và tự làm biến đổi song tuyến', desc: 'butter(N, Wn) với Wn = fc/(fs/2). [z, p, k] = butter(...) trả về dạng cực-không.', code:
+c11: { title: 'Butterworth với butter() và tự làm biến đổi song tuyến', desc: 'butter(N, Wn) với Wn = fc/(fs/2). Wn = [w1 w2] cho bộ lọc thông dải bậc 2N, thêm \'stop\' cho chắn dải, \'high\' cho thông cao. [z, p, k] = butter(...) trả về dạng cực-không.', code:
 `fs = 8000;  fc = 800;  N = 4;
 [b, a]    = butter(N, fc/(fs/2));  % hệ số đa thức
 [z, p, k] = butter(N, fc/(fs/2));  % cực - không - hệ số khuếch đại
@@ -4111,7 +4240,27 @@ fprintf('Sai khác |cực| tự tính và butter: %.2e\\n', max(abs(sort(abs(z_p
 t = 0:1/fs:2;
 x = 0.5*sin(2*pi*300*t) + 0.25*sin(2*pi*2500*t) + 0.12*randn(size(t));
 y = filter(b, a, x);
-% soundsc(y, fs)        % bỏ % rồi bấm Chạy để nghe` },
+% soundsc(y, fs)        % bỏ % rồi bấm Chạy để nghe
+
+%% Bốn loại bộ lọc Butterworth bậc 4 (thông dải/chắn dải có bậc 2N = 8)
+[b1, a1] = butter(4, 800/(fs/2));                 % thông thấp
+[b2, a2] = butter(4, 800/(fs/2), 'high');         % thông cao
+[b3, a3] = butter(4, [1500 2000]/(fs/2));         % thông dải 1500-2000 Hz
+[b4, a4] = butter(4, [1500 2000]/(fs/2), 'stop'); % chắn dải
+figure
+for kk = 1:4
+    switch kk
+        case 1, bb = b1; aa = a1; ten = 'Thông thấp 800 Hz';
+        case 2, bb = b2; aa = a2; ten = 'Thông cao 800 Hz';
+        case 3, bb = b3; aa = a3; ten = 'Thông dải 1500-2000 Hz';
+        case 4, bb = b4; aa = a4; ten = 'Chắn dải 1500-2000 Hz';
+    end
+    [Hk, fk] = freqz(bb, aa, 1024, fs);
+    subplot(2,2,kk); plot(fk, 20*log10(abs(Hk))); grid on; ylim([-60 5])
+    yline(-3, ':'); title(ten); xlabel('Hz')
+end
+fprintf('Thông dải: bậc %d, |cực| lớn nhất = %.4f\\n', length(a3) - 1, max(abs(roots(a3))));
+x3 = filter(b3, a3, x);       % chỉ giữ thành phần quanh 1500-2000 Hz` },
 
 c12: { title: 'Rò rỉ phổ, cửa sổ và spectrogram()', desc: 'fft(x, Nfft) tự thêm số 0 (zero-padding). spectrogram(x, window, noverlap, nfft, fs, \'yaxis\') vẽ phổ đồ.', code:
 `N = 64;  n = 0:N-1;
