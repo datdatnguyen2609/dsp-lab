@@ -1,0 +1,2442 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Phòng Lab Tín Hiệu Số</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+  svg: { fontCache: 'global' },
+  options: { enableMenu: false }
+};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg-full.js" defer></script>
+<style>
+/* Layout: bàn thí nghiệm — mục lục cố định bên trái, cột lý thuyết ~68ch, khung demo rộng như màn hình máy hiện sóng. */
+:root {
+  --paper: #eef2f4;
+  --panel: #ffffff;
+  --panel-2: #f6f8fa;
+  --ink: #15212c;
+  --muted: #586774;
+  --line: #ccd5dd;
+  --grid: #e2e8ed;
+  --trace: #1d63c4;      /* tín hiệu liên tục */
+  --sample: #d4570f;     /* mẫu rời rạc */
+  --a3: #0f8a63;         /* kết quả / đầu ra */
+  --a4: #a8327f;         /* phụ trợ */
+  --warn: #b7791f;
+  --bad: #c0392b;
+  --good: #0f8a63;
+  --hl: rgba(29, 99, 196, .10);
+  --f-display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Be Vietnam Pro", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0e1418; --panel: #151d23; --panel-2: #1a242c; --ink: #e2e9ee; --muted: #93a2ae;
+    --line: #2b3943; --grid: #202c35; --trace: #5ea4ff; --sample: #ff9450; --a3: #3dcf98; --a4: #e57cc6;
+    --warn: #e0a84a; --bad: #ff6f61; --good: #3dcf98; --hl: rgba(94, 164, 255, .12);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0e1418; --panel: #151d23; --panel-2: #1a242c; --ink: #e2e9ee; --muted: #93a2ae;
+  --line: #2b3943; --grid: #202c35; --trace: #5ea4ff; --sample: #ff9450; --a3: #3dcf98; --a4: #e57cc6;
+  --warn: #e0a84a; --bad: #ff6f61; --good: #3dcf98; --hl: rgba(94, 164, 255, .12);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  background: var(--paper); color: var(--ink); font-family: var(--f-body);
+  font-size: 16px; line-height: 1.65; margin: 0;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--panel); }
+a { color: var(--trace); }
+h1, h2, h3, h4 { font-family: var(--f-display); line-height: 1.2; text-wrap: balance; margin: 0; }
+code, .mono { font-family: var(--f-mono); font-size: .88em; }
+p { margin: 0; }
+:focus-visible { outline: 2px solid var(--trace); outline-offset: 2px; }
+
+/* ---------- khung trang ---------- */
+.topbar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  background: var(--panel); border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; gap: 12px;
+  padding-block: 10px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.brand { font-family: var(--f-display); font-weight: 700; font-size: 17px; display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+.brand svg { flex: none; }
+.progress { flex: 1; height: 6px; background: var(--grid); border-radius: 3px; overflow: hidden; min-width: 40px; }
+.progress > i { display: block; height: 100%; width: 0; background: var(--a3); transition: width .4s; }
+.prog-txt { font-size: 13px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.iconbtn { border: 1px solid var(--line); background: var(--panel-2); color: var(--ink); border-radius: 8px; padding: 6px 10px; cursor: pointer; font: inherit; font-size: 13px; }
+.iconbtn:hover { border-color: var(--trace); }
+#menuBtn { display: none; }
+
+.shell {
+  display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 32px;
+  max-width: 1280px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+nav.toc {
+  position: sticky; top: calc(env(safe-area-inset-top, 0px) + 58px); align-self: start;
+  max-height: calc(100vh - 70px); overflow-y: auto; padding-block: 20px; font-size: 14px;
+}
+.toc h4 { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 18px 0 6px; font-family: var(--f-body); font-weight: 600; }
+.toc h4:first-child { margin-top: 0; }
+.toc a { display: flex; gap: 8px; align-items: baseline; padding: 5px 8px; border-radius: 6px; color: var(--ink); text-decoration: none; }
+.toc a:hover { background: var(--hl); }
+.toc a.active { background: var(--hl); color: var(--trace); font-weight: 600; }
+.toc a .n { font-family: var(--f-mono); font-size: 11px; color: var(--muted); min-width: 20px; }
+.toc a .ok { margin-left: auto; color: var(--a3); font-size: 12px; visibility: hidden; }
+.toc a.done .ok { visibility: visible; }
+
+main { min-width: 0; padding-block: 24px 80px; }
+
+/* ---------- hero ---------- */
+.hero { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 28px; align-items: center; padding-block: 12px 36px; border-bottom: 1px solid var(--line); }
+.hero .eyebrow { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--sample); font-weight: 600; }
+.hero h1 { font-size: clamp(32px, 4.6vw, 52px); margin: 8px 0 14px; letter-spacing: -.02em; }
+.hero p { color: var(--muted); max-width: 60ch; }
+.hero .scope { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 10px; }
+.hero .scope .cap { font-family: var(--f-mono); font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 2px 4px 6px; }
+.roadmap { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 24px; }
+.roadmap a { text-decoration: none; color: inherit; border: 1px solid var(--line); background: var(--panel); border-radius: var(--r); padding: 12px 14px; display: block; }
+.roadmap a:hover { border-color: var(--trace); }
+.roadmap b { font-family: var(--f-display); display: block; font-size: 15px; }
+.roadmap span { font-size: 13px; color: var(--muted); }
+
+/* ---------- chương ---------- */
+.part-title { margin: 56px 0 0; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--sample); font-weight: 600; font-family: var(--f-body); }
+section.ch { padding-top: 28px; scroll-margin-top: 70px; display: grid; gap: 18px; }
+section.ch > h2 { font-size: clamp(24px, 3vw, 32px); display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+section.ch > h2 .no { font-family: var(--f-mono); font-size: .55em; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; }
+section.ch h3 { font-size: 19px; margin-top: 10px; }
+.prose { max-width: 72ch; display: grid; gap: 12px; }
+.prose ul, .prose ol { margin: 0; padding-left: 1.3em; display: grid; gap: 4px; }
+.lead { font-size: 17px; color: var(--muted); max-width: 72ch; }
+.key { border-left: 3px solid var(--trace); background: var(--panel); padding: 12px 16px; border-radius: 0 var(--r) var(--r) 0; max-width: 72ch; }
+.key.warn { border-color: var(--warn); }
+.key.good { border-color: var(--a3); }
+.key b:first-child { font-family: var(--f-display); }
+.mathbox { overflow-x: auto; overflow-y: hidden; max-width: 100%; }
+mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; padding-block: 2px; }
+
+/* ---------- stepper (dẫn giải từng bước) ---------- */
+.stepper { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 16px 18px; display: grid; gap: 12px; max-width: 860px; }
+.stepper .sh { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.stepper .sh h4 { font-size: 15px; }
+.stepper ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: st; }
+.stepper li { counter-increment: st; display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 10px; padding: 10px 12px; border-radius: 8px; border: 1px solid transparent; }
+.stepper li::before { content: counter(st); font-family: var(--f-mono); font-size: 12px; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--grid); color: var(--muted); margin-top: 2px; }
+.stepper li.cur { border-color: var(--trace); background: var(--hl); }
+.stepper li.cur::before { background: var(--trace); color: var(--panel); }
+.stepper li > div { min-width: 0; display: grid; gap: 6px; }
+.stepper li .why { font-size: 14px; color: var(--muted); }
+.stepper li.enter { animation: rise .35s ease; }
+@keyframes rise { from { opacity: .2; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .stepper li.enter { animation: none; } }
+.stepbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.stepbar .count { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; margin-right: auto; }
+
+/* ---------- khung demo ---------- */
+.lab { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.lab-h { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 1px solid var(--line); background: var(--panel-2); flex-wrap: wrap; }
+.lab-h b { font-family: var(--f-display); font-size: 15px; }
+.lab-h .tag { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--sample); font-weight: 600; }
+.lab-b { padding: 14px 16px 16px; display: grid; gap: 14px; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: end; }
+.ctl { display: grid; gap: 2px; font-size: 13px; color: var(--muted); min-width: 150px; flex: 1 1 160px; max-width: 280px; }
+.ctl .lbl { display: flex; justify-content: space-between; gap: 6px; }
+.ctl output { color: var(--ink); font-family: var(--f-mono); font-size: 12px; font-variant-numeric: tabular-nums; }
+.ctl input[type=range] { width: 100%; accent-color: var(--trace); }
+.ctl select, .ctl input[type=text], .ctl input[type=number] { font: inherit; font-size: 14px; color: var(--ink); background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; width: 100%; }
+.ctl.wide { max-width: 420px; flex-basis: 260px; }
+.chk { display: flex; gap: 6px; align-items: center; font-size: 13px; color: var(--ink); }
+.btn { font: inherit; font-size: 14px; border: 1px solid var(--trace); background: var(--trace); color: var(--panel); border-radius: 8px; padding: 7px 14px; cursor: pointer; font-weight: 600; }
+.btn.ghost { background: transparent; color: var(--trace); }
+.btn:hover { filter: brightness(1.08); }
+.btn:disabled { opacity: .45; cursor: default; }
+.btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+canvas.plot { width: 100%; display: block; border-radius: 6px; touch-action: none; }
+.cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.cols3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.cap { font-size: 12px; color: var(--muted); }
+.readout { font-family: var(--f-mono); font-size: 13px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; overflow-x: auto; white-space: pre; line-height: 1.6; font-variant-numeric: tabular-nums; }
+.readout.wrap { white-space: pre-wrap; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--muted); }
+.legend i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+.pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 99px; border: 1px solid currentColor; }
+.pill.good { color: var(--good); } .pill.bad { color: var(--bad); } .pill.warn { color: var(--warn); }
+.c-trace { color: var(--trace); } .c-sample { color: var(--sample); } .c-a3 { color: var(--a3); } .c-a4 { color: var(--a4); }
+
+table.t { border-collapse: collapse; font-size: 14px; width: 100%; }
+.tbl { overflow-x: auto; max-width: 100%; }
+table.t th, table.t td { border-bottom: 1px solid var(--line); padding: 7px 10px; text-align: left; vertical-align: top; }
+table.t th { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+table.t td.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+/* ---------- quiz ---------- */
+.quiz { background: var(--panel); border: 1px dashed var(--line); border-radius: var(--r); padding: 16px 18px; display: grid; gap: 16px; max-width: 860px; }
+.quiz > h4 { font-size: 15px; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.quiz > h4 span { font-family: var(--f-body); font-size: 13px; color: var(--muted); font-weight: 500; }
+.q { display: grid; gap: 8px; }
+.q .qt { font-weight: 600; }
+.q .opts { display: grid; gap: 6px; }
+.q button.opt { text-align: left; font: inherit; font-size: 15px; color: var(--ink); background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+.q button.opt:hover:not(:disabled) { border-color: var(--trace); }
+.q button.opt.right { border-color: var(--good); background: color-mix(in srgb, var(--good) 14%, var(--panel)); }
+.q button.opt.wrong { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 12%, var(--panel)); }
+.q button.opt:disabled { cursor: default; }
+.q .exp { font-size: 14px; color: var(--muted); border-left: 3px solid var(--a3); padding-left: 10px; }
+
+/* ---------- FPGA bit editor ---------- */
+.bits { display: flex; flex-wrap: wrap; gap: 3px; align-items: flex-end; }
+.bit { display: grid; gap: 2px; text-align: center; }
+.bit button { width: 30px; height: 34px; font-family: var(--f-mono); font-size: 15px; border-radius: 5px; border: 1px solid var(--line); background: var(--panel-2); color: var(--ink); cursor: pointer; }
+.bit button.on { background: var(--trace); color: var(--panel); border-color: var(--trace); }
+.bit.sign button.on { background: var(--a4); border-color: var(--a4); }
+.bit small { font-family: var(--f-mono); font-size: 10px; color: var(--muted); }
+.bit.point { width: 6px; align-self: stretch; border-left: 2px dotted var(--sample); margin: 0 3px; }
+pre.code { font-family: var(--f-mono); font-size: 13px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; overflow-x: auto; margin: 0; line-height: 1.55; }
+
+.summary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.summary-grid > div { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; min-width: 0; display: grid; gap: 6px; align-content: start; }
+.summary-grid b { font-family: var(--f-display); }
+footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+
+@media (max-width: 980px) {
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  #menuBtn { display: inline-block; }
+  nav.toc { position: fixed; z-index: 25; top: calc(env(safe-area-inset-top, 0px) + 52px); left: 0; bottom: 0; width: min(300px, 86vw); max-height: none; background: var(--panel); border-right: 1px solid var(--line); padding: 16px; padding-left: max(16px, env(safe-area-inset-left, 0px)); transform: translateX(-105%); transition: transform .25s; }
+  nav.toc.open { transform: none; }
+  .hero { grid-template-columns: minmax(0, 1fr); }
+  .roadmap { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .cols, .cols3 { grid-template-columns: minmax(0, 1fr); }
+  .prog-txt { display: none; }
+  .ctl { max-width: none; }
+  .stepper, .quiz { padding: 12px; }
+  .stepper li { grid-template-columns: minmax(0, 1fr); }
+  .stepper li::before { display: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <button class="iconbtn" id="menuBtn" aria-label="Mở mục lục" aria-expanded="false">☰ Mục lục</button>
+  <div class="brand">
+    <svg width="26" height="20" viewBox="0 0 26 20" aria-hidden="true"><path d="M1 10 Q4 1 7 10 T13 10 T19 10 T25 10" fill="none" stroke="var(--trace)" stroke-width="2"/><g fill="var(--sample)"><circle cx="1" cy="10" r="1.8"/><circle cx="7" cy="10" r="1.8"/><circle cx="4" cy="3.5" r="1.8"/><circle cx="10" cy="16.5" r="1.8"/><circle cx="16" cy="3.5" r="1.8"/><circle cx="22" cy="16.5" r="1.8"/></g></svg>
+    <span>Phòng Lab Tín Hiệu Số</span>
+  </div>
+  <div class="progress" title="Tiến độ: số chương đã làm xong câu đố"><i id="progBar"></i></div>
+  <span class="prog-txt" id="progTxt">0/15 chương</span>
+  <button class="iconbtn" id="themeBtn" aria-label="Đổi giao diện sáng/tối">◐ Giao diện</button>
+</header>
+
+<div class="shell">
+<nav class="toc" id="toc" aria-label="Mục lục">
+  <h4>Phần I · Nền tảng</h4>
+  <a href="#c1"><span class="n">01</span>Tín hiệu &amp; hệ thống<span class="ok">✓</span></a>
+  <a href="#c2"><span class="n">02</span>Lấy mẫu &amp; Nyquist<span class="ok">✓</span></a>
+  <a href="#c3"><span class="n">03</span>Lượng tử hoá<span class="ok">✓</span></a>
+  <a href="#c4"><span class="n">04</span>Hệ LTI &amp; tích chập<span class="ok">✓</span></a>
+  <a href="#c5"><span class="n">05</span>Phương trình sai phân<span class="ok">✓</span></a>
+  <h4>Phần II · Miền tần số</h4>
+  <a href="#c6"><span class="n">06</span>DTFT &amp; đáp ứng tần số<span class="ok">✓</span></a>
+  <a href="#c7"><span class="n">07</span>Biến đổi DFT<span class="ok">✓</span></a>
+  <a href="#c8"><span class="n">08</span>Thuật toán FFT<span class="ok">✓</span></a>
+  <a href="#c9"><span class="n">09</span>Biến đổi Z, cực &amp; không<span class="ok">✓</span></a>
+  <h4>Phần III · Thiết kế bộ lọc</h4>
+  <a href="#c10"><span class="n">10</span>Bộ lọc FIR<span class="ok">✓</span></a>
+  <a href="#c11"><span class="n">11</span>Bộ lọc IIR<span class="ok">✓</span></a>
+  <h4>Phần IV · Nâng cao</h4>
+  <a href="#c12"><span class="n">12</span>Phân tích phổ &amp; STFT<span class="ok">✓</span></a>
+  <a href="#c13"><span class="n">13</span>Xử lý đa tốc độ<span class="ok">✓</span></a>
+  <a href="#c14"><span class="n">14</span>Lọc thích nghi LMS<span class="ok">✓</span></a>
+  <a href="#c15"><span class="n">15</span>Dấu phẩy tĩnh &amp; FPGA<span class="ok">✓</span></a>
+  <h4>Tra cứu</h4>
+  <a href="#tomtat"><span class="n">∑</span>Bảng công thức</a>
+</nav>
+
+<main>
+<section class="hero" id="top">
+  <div>
+    <div class="eyebrow">Khoá học tương tác · 15 chương</div>
+    <h1>Xử lý tín hiệu số, từ mẫu đầu tiên đến mạch FPGA</h1>
+    <p>Mỗi chương gồm bốn phần: lý thuyết ngắn gọn, dẫn giải công thức <b>từng bước</b> (bấm “Bước tiếp”), một phòng thí nghiệm để bạn kéo thanh trượt và quan sát, và vài câu hỏi kiểm tra có giải thích. Mọi đồ thị đều được tính trực tiếp trong trình duyệt.</p>
+  </div>
+  <div class="scope">
+    <div class="cap"><span>CH1 x(t) liên tục</span><span>CH2 x[n] đã lấy mẫu</span><span id="heroCap">f = 3 Hz · fs = 20 Hz</span></div>
+    <canvas class="plot" id="heroScope" data-h="190" aria-label="Sóng sin liên tục và các mẫu rời rạc chạy liên tục"></canvas>
+  </div>
+</section>
+<div class="roadmap">
+  <a href="#c1"><b>I. Nền tảng</b><span>Tín hiệu, lấy mẫu, lượng tử, tích chập</span></a>
+  <a href="#c6"><b>II. Miền tần số</b><span>DTFT, DFT, FFT, biến đổi Z</span></a>
+  <a href="#c10"><b>III. Bộ lọc</b><span>Thiết kế FIR cửa sổ, IIR Butterworth</span></a>
+  <a href="#c12"><b>IV. Nâng cao</b><span>STFT, đa tốc độ, LMS, fixed-point</span></a>
+</div>
+
+<!-- ===================== PHẦN I ===================== -->
+<div class="part-title">Phần I · Nền tảng</div>
+
+<!-- ========== C1 ========== -->
+<section class="ch" id="c1" data-ch="1">
+  <h2><span class="no">01</span>Tín hiệu &amp; hệ thống rời rạc</h2>
+  <p class="lead">Tín hiệu là một đại lượng thay đổi theo thời gian (hoặc không gian) mang thông tin. Xử lý tín hiệu <b>số</b> làm việc với dãy số \(x[n]\), với \(n\) là số nguyên chỉ thứ tự mẫu.</p>
+  <div class="prose">
+    <p><b>Liên tục và rời rạc.</b> Tín hiệu tương tự \(x(t)\) được định nghĩa tại mọi thời điểm thực \(t\). Tín hiệu rời rạc \(x[n]\) chỉ có giá trị tại các số nguyên \(n\). Nếu lấy mẫu với chu kỳ \(T_s\) thì \(x[n] = x(nT_s)\). Khi biên độ cũng được làm tròn về một tập hữu hạn mức, ta có tín hiệu <b>số</b>.</p>
+    <p><b>Các tín hiệu cơ bản</b> là “bảng chữ cái” để ghép nên mọi tín hiệu khác:</p>
+    <ul>
+      <li>Xung đơn vị \(\delta[n] = 1\) khi \(n=0\), bằng 0 ở mọi chỗ khác.</li>
+      <li>Bậc thang đơn vị \(u[n] = 1\) khi \(n \ge 0\). Chú ý \(\delta[n] = u[n]-u[n-1]\) và \(u[n]=\sum_{k=0}^{\infty}\delta[n-k]\).</li>
+      <li>Hàm mũ thực \(a^n u[n]\): suy giảm khi \(|a|\lt 1\), tăng vọt khi \(|a|\gt 1\), đổi dấu xen kẽ khi \(a\lt 0\).</li>
+      <li>Sin rời rạc \(A\cos(\omega_0 n + \phi)\) với tần số số \(\omega_0\) (rad/mẫu).</li>
+      <li>Mũ phức \(e^{j\omega_0 n} = \cos\omega_0 n + j\sin\omega_0 n\): một vectơ quay \(\omega_0\) radian sau mỗi mẫu.</li>
+    </ul>
+    <p>Mọi tín hiệu rời rạc đều viết được thành tổng các xung dịch: \(x[n] = \sum_k x[k]\,\delta[n-k]\). Đây là chìa khoá dẫn tới phép tích chập ở chương 4.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 1.1 · Thư viện tín hiệu cơ bản</b><span class="tag">kéo thanh trượt</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <label class="ctl"><span class="lbl">Loại tín hiệu</span>
+          <select id="s1type">
+            <option value="delta">Xung đơn vị δ[n − n₀]</option>
+            <option value="step">Bậc thang u[n − n₀]</option>
+            <option value="rect">Xung chữ nhật độ rộng L</option>
+            <option value="ramp">Dốc n·u[n]</option>
+            <option value="exp" selected>Mũ thực aⁿ·u[n]</option>
+            <option value="sin">Sin cos(ω₀n)</option>
+            <option value="cexp">Mũ phức e^(jω₀n)</option>
+            <option value="damped">Sin tắt dần aⁿcos(ω₀n)</option>
+          </select></label>
+        <label class="ctl"><span class="lbl">Dịch n₀ <output id="s1n0o">0</output></span><input type="range" id="s1n0" min="-8" max="8" value="0"></label>
+        <label class="ctl"><span class="lbl">Hệ số a <output id="s1ao">0.80</output></span><input type="range" id="s1a" min="-1.2" max="1.2" step="0.01" value="0.8"></label>
+        <label class="ctl"><span class="lbl">ω₀ (×π rad/mẫu) <output id="s1wo">0.20π</output></span><input type="range" id="s1w" min="0" max="2" step="0.01" value="0.2"></label>
+      </div>
+      <canvas class="plot" id="c1a" data-h="230"></canvas>
+      <div class="legend" id="s1leg"></div>
+      <div class="readout wrap" id="s1info"></div>
+    </div>
+  </div>
+
+  <h3>Biến đổi trục thời gian</h3>
+  <div class="prose">
+    <p>Ba phép biến đổi cơ bản trên chỉ số \(n\): <b>dịch</b> \(x[n-k]\) (trễ \(k\) mẫu nếu \(k\gt 0\)), <b>lật</b> \(x[-n]\) (gương qua \(n=0\)) và <b>co</b> (decimation) \(x[Mn]\) (giữ một trong mỗi \(M\) mẫu). Khi kết hợp, thứ tự rất quan trọng. Cách chắc chắn nhất: với mỗi \(n\) của đầu ra, tính chỉ số gốc \(m\) rồi đọc \(x[m]\).</p>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 1.2 · y[n] = x[σ·M·n − k]</b><span class="tag">quan sát thứ tự phép biến đổi</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <label class="ctl"><span class="lbl">Dịch k <output id="s1kO">2</output></span><input type="range" id="s1k" min="-6" max="6" value="2"></label>
+        <label class="ctl"><span class="lbl">Co M <output id="s1MO">1</output></span><input type="range" id="s1M" min="1" max="3" value="1"></label>
+        <label class="chk"><input type="checkbox" id="s1flip" checked> Lật (σ = −1)</label>
+      </div>
+      <div class="cols">
+        <div><div class="cap">x[n] gốc</div><canvas class="plot" id="c1b" data-h="180"></canvas></div>
+        <div><div class="cap">y[n] sau biến đổi</div><canvas class="plot" id="c1c" data-h="180"></canvas></div>
+      </div>
+      <div class="readout wrap" id="s1tx"></div>
+    </div>
+  </div>
+
+  <h3>Tính chất của hệ thống</h3>
+  <div class="prose"><p>Hệ thống là một phép biến đổi \(y = T\{x\}\). Bốn tính chất quyết định ta có thể phân tích nó bằng công cụ nào:</p></div>
+  <div class="tbl"><table class="t">
+    <thead><tr><th>Tính chất</th><th>Định nghĩa</th><th>Ví dụ có</th><th>Ví dụ không</th></tr></thead>
+    <tbody>
+      <tr><td><b>Tuyến tính</b></td><td>\(T\{a x_1 + b x_2\} = aT\{x_1\} + bT\{x_2\}\)</td><td>\(y[n]=2x[n]-x[n-1]\)</td><td>\(y[n]=x^2[n]\), \(y[n]=x[n]+1\)</td></tr>
+      <tr><td><b>Bất biến thời gian</b></td><td>Trễ đầu vào \(n_0\) ⇒ đầu ra trễ đúng \(n_0\)</td><td>\(y[n]=x[n-1]\)</td><td>\(y[n]=n\,x[n]\), \(y[n]=x[2n]\)</td></tr>
+      <tr><td><b>Nhân quả</b></td><td>\(y[n]\) chỉ phụ thuộc \(x[m]\) với \(m\le n\)</td><td>\(y[n]=x[n]+x[n-1]\)</td><td>\(y[n]=x[n+1]\)</td></tr>
+      <tr><td><b>Ổn định BIBO</b></td><td>Đầu vào bị chặn ⇒ đầu ra bị chặn</td><td>\(y[n]=0.5y[n-1]+x[n]\)</td><td>\(y[n]=y[n-1]+x[n]\) (bộ tích luỹ)</td></tr>
+    </tbody></table></div>
+  <div class="quiz" data-quiz="1"></div>
+</section>
+
+<!-- ========== C2 ========== -->
+<section class="ch" id="c2" data-ch="2">
+  <h2><span class="no">02</span>Lấy mẫu &amp; định lý Nyquist</h2>
+  <p class="lead">Lấy mẫu biến \(x(t)\) thành \(x[n] = x(nT_s)\) với tần số lấy mẫu \(f_s = 1/T_s\). Câu hỏi then chốt: khi nào dãy mẫu còn giữ đủ thông tin để dựng lại \(x(t)\)?</p>
+  <div class="key"><b>Định lý lấy mẫu (Nyquist–Shannon).</b> Một tín hiệu có băng thông giới hạn, không chứa thành phần nào từ \(f_{max}\) trở lên, được khôi phục hoàn toàn từ các mẫu nếu \(f_s \gt 2 f_{max}\). Giá trị \(f_s/2\) gọi là <b>tần số Nyquist</b>.</div>
+
+  <div class="stepper" data-title="Vì sao hai sin khác tần số lại cho cùng dãy mẫu (aliasing)?">
+    <ol>
+      <li><div>\[x(t) = \cos(2\pi f t) \;\xrightarrow{\;t = nT_s = n/f_s\;}\; x[n] = \cos\!\left(2\pi \tfrac{f}{f_s} n\right)\]<p class="why">Thay \(t\) bằng các thời điểm lấy mẫu. Tần số số là \(\omega = 2\pi f/f_s\) (rad/mẫu): chỉ còn <i>tỉ số</i> \(f/f_s\) có ý nghĩa.</p></div></li>
+      <li><div>\[x_k[n] = \cos\!\left(2\pi \tfrac{f + k f_s}{f_s} n\right) = \cos\!\left(2\pi \tfrac{f}{f_s} n + 2\pi k n\right)\]<p class="why">Xét một sin khác có tần số \(f + k f_s\) với \(k\) nguyên. Tách phân số ra hai phần.</p></div></li>
+      <li><div>\[2\pi k n \text{ là bội của } 2\pi \;\Rightarrow\; x_k[n] = \cos\!\left(2\pi \tfrac{f}{f_s} n\right) = x[n]\]<p class="why">Vì \(k\) và \(n\) đều nguyên, \(2\pi kn\) là số vòng quay trọn vẹn. Cosine tuần hoàn chu kỳ \(2\pi\) nên số hạng này biến mất. Hai tín hiệu liên tục khác nhau cho <b>đúng cùng một dãy mẫu</b>.</p></div></li>
+      <li><div>\[\cos(-\theta) = \cos\theta \;\Rightarrow\; f \text{ và } -f + k f_s \text{ cũng trùng mẫu}\]<p class="why">Do cos là hàm chẵn, tần số âm cũng “gập” lại. Kết hợp hai điều trên, mọi tần số đều được gấp vào dải \([0, f_s/2]\).</p></div></li>
+      <li><div>\[f_{alias} = \left|\, f - f_s \cdot \operatorname{round}\!\left(\tfrac{f}{f_s}\right) \right|\]<p class="why">Công thức gấp tần số: tìm bội của \(f_s\) gần \(f\) nhất, lấy khoảng cách. Nếu \(f \lt f_s/2\) thì \(f_{alias} = f\), không có méo. Thử ngay trong thí nghiệm dưới đây.</p></div></li>
+    </ol>
+  </div>
+
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 2.1 · Lấy mẫu và hiện tượng chồng phổ</b><span class="tag">kéo f vượt fs/2</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <label class="ctl"><span class="lbl">Tần số tín hiệu f (Hz) <output id="s2fo">3.0</output></span><input type="range" id="s2f" min="0.5" max="40" step="0.1" value="3"></label>
+        <label class="ctl"><span class="lbl">Tần số lấy mẫu fs (Hz) <output id="s2fso">10</output></span><input type="range" id="s2fs" min="2" max="40" step="0.5" value="10"></label>
+        <div class="btns"><button class="btn ghost" id="s2play">▶ Nghe f và f_alias (×100 Hz)</button></div>
+      </div>
+      <canvas class="plot" id="c2a" data-h="250"></canvas>
+      <div class="legend"><span><i style="background:var(--trace)"></i>x(t) gốc</span><span><i style="background:var(--sample)"></i>mẫu x[n]</span><span><i style="background:var(--a4)"></i>sin “bí danh” đi qua cùng các mẫu</span></div>
+      <div class="cap">Trục tần số: mọi tần số được gấp (như gấp giấy) vào đoạn [0, fs/2]</div>
+      <canvas class="plot" id="c2b" data-h="120"></canvas>
+      <div class="readout wrap" id="s2info"></div>
+    </div>
+  </div>
+  <div class="prose">
+    <p><b>Trong thực tế:</b> trước bộ ADC luôn có bộ lọc thông thấp tương tự (<i>anti-aliasing filter</i>) để cắt bỏ thành phần trên \(f_s/2\), vì sau khi lấy mẫu thì không còn cách nào phân biệt tần số thật với tần số bí danh. Âm thanh CD dùng \(f_s = 44{,}1\) kHz để bao trùm tai người (~20 kHz) và chừa khoảng chuyển tiếp cho bộ lọc.</p>
+    <p><b>Khôi phục lý tưởng</b> dùng nội suy sinc: \(x(t) = \sum_n x[n]\,\operatorname{sinc}\!\big((t-nT_s)/T_s\big)\). Bộ DAC thực tế dùng giữ bậc 0 (zero-order hold) rồi lọc làm trơn.</p>
+  </div>
+  <div class="quiz" data-quiz="2"></div>
+</section>
+
+<!-- ========== C3 ========== -->
+<section class="ch" id="c3" data-ch="3">
+  <h2><span class="no">03</span>Lượng tử hoá</h2>
+  <p class="lead">ADC \(N\) bit chỉ biểu diễn được \(2^N\) mức. Mỗi mẫu bị làm tròn về mức gần nhất, sinh ra <b>sai số lượng tử</b> \(e[n] = x_q[n] - x[n]\).</p>
+  <div class="stepper" data-title="Dẫn giải công thức SQNR ≈ 6,02N + 1,76 dB">
+    <ol>
+      <li><div>\[\Delta = \frac{2A}{2^N}\]<p class="why">Dải đo \([-A, A]\) có độ rộng \(2A\), chia đều cho \(2^N\) mức: mỗi bậc rộng \(\Delta\) (1 LSB).</p></div></li>
+      <li><div>\[e \sim \mathcal{U}\!\left(-\tfrac{\Delta}{2}, \tfrac{\Delta}{2}\right)\]<p class="why">Làm tròn về mức gần nhất nên sai số không vượt quá nửa bậc. Với tín hiệu “bận rộn”, giả thiết hợp lý là \(e\) phân bố đều và không tương quan với tín hiệu.</p></div></li>
+      <li><div>\[P_e = \int_{-\Delta/2}^{\Delta/2} e^2 \frac{1}{\Delta}\,de = \frac{1}{\Delta}\cdot\frac{e^3}{3}\Big|_{-\Delta/2}^{\Delta/2} = \frac{\Delta^2}{12}\]<p class="why">Công suất nhiễu là phương sai của phân bố đều: tích phân \(e^2\) nhân mật độ xác suất \(1/\Delta\).</p></div></li>
+      <li><div>\[P_s = \frac{A^2}{2}\]<p class="why">Công suất trung bình của một sin toàn thang \(A\sin(\omega t)\) là trung bình của \(A^2\sin^2\), tức \(A^2/2\).</p></div></li>
+      <li><div>\[\text{SQNR} = \frac{P_s}{P_e} = \frac{A^2/2}{\frac{1}{12}\left(\frac{2A}{2^N}\right)^2} = \frac{A^2/2}{\frac{4A^2}{12\cdot 2^{2N}}} = \frac{3}{2}\cdot 2^{2N}\]<p class="why">Thay \(\Delta\) vào, \(A^2\) triệt tiêu: kết quả không phụ thuộc biên độ, chỉ phụ thuộc số bit.</p></div></li>
+      <li><div>\[10\log_{10}\!\left(\tfrac{3}{2}\cdot 2^{2N}\right) = 10\log_{10}1{,}5 + 20N\log_{10}2 \approx 1{,}76 + 6{,}02\,N \;\text{dB}\]<p class="why">Đổi sang decibel. <b>Quy tắc vàng: mỗi bit thêm vào cho thêm khoảng 6 dB.</b> ADC 16 bit đạt ~98 dB; 24 bit đạt ~146 dB.</p></div></li>
+    </ol>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 3.1 · Bộ lượng tử N bit</b><span class="tag">so sánh lý thuyết và đo đạc</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <label class="ctl"><span class="lbl">Số bit N <output id="s3bo">3</output></span><input type="range" id="s3b" min="1" max="12" value="3"></label>
+        <label class="ctl"><span class="lbl">Biên độ tín hiệu (so với toàn thang) <output id="s3ao">1.00</output></span><input type="range" id="s3a" min="0.05" max="1" step="0.01" value="1"></label>
+        <label class="chk"><input type="checkbox" id="s3dith"> Thêm dither (nhiễu nhỏ trước khi lượng tử)</label>
+      </div>
+      <canvas class="plot" id="c3a" data-h="230"></canvas>
+      <canvas class="plot" id="c3b" data-h="120"></canvas>
+      <div class="legend"><span><i style="background:var(--trace)"></i>x(t)</span><span><i style="background:var(--sample)"></i>x_q[n] lượng tử</span><span><i style="background:var(--a4)"></i>sai số e[n] (đồ thị dưới, phóng to)</span></div>
+      <div class="readout" id="s3info"></div>
+    </div>
+  </div>
+  <div class="key warn"><b>Lưu ý:</b> khi biên độ nhỏ hơn toàn thang, SQNR giảm khoảng 6 dB mỗi lần biên độ giảm một nửa. Vì vậy cần đặt khuếch đại sao cho tín hiệu dùng hết dải ADC mà không bị cắt (clipping).</div>
+  <div class="quiz" data-quiz="3"></div>
+</section>
+
+<!-- ========== C4 ========== -->
+<section class="ch" id="c4" data-ch="4">
+  <h2><span class="no">04</span>Hệ LTI &amp; phép tích chập</h2>
+  <p class="lead">Hệ <b>tuyến tính bất biến (LTI)</b> được mô tả trọn vẹn bằng <b>đáp ứng xung</b> \(h[n] = T\{\delta[n]\}\). Biết \(h[n]\), ta tính được đầu ra cho mọi đầu vào.</p>
+  <div class="stepper" data-title="Từ đáp ứng xung đến công thức tích chập">
+    <ol>
+      <li><div>\[x[n] = \sum_{k=-\infty}^{\infty} x[k]\,\delta[n-k]\]<p class="why">Phân tích đầu vào thành tổng các xung đơn vị có trọng số \(x[k]\), đặt tại vị trí \(k\).</p></div></li>
+      <li><div>\[y[n] = T\Big\{\sum_k x[k]\,\delta[n-k]\Big\} = \sum_k x[k]\, T\{\delta[n-k]\}\]<p class="why"><b>Tuyến tính</b>: được đưa \(T\) vào trong tổng và đưa hằng số \(x[k]\) ra ngoài.</p></div></li>
+      <li><div>\[T\{\delta[n-k]\} = h[n-k]\]<p class="why"><b>Bất biến thời gian</b>: xung trễ \(k\) mẫu cho đáp ứng xung trễ đúng \(k\) mẫu.</p></div></li>
+      <li><div>\[\boxed{\,y[n] = \sum_{k} x[k]\,h[n-k] = (x * h)[n]\,}\]<p class="why">Đây là tích chập. Đọc theo từng \(n\): <b>lật</b> \(h[k]\) thành \(h[-k]\), <b>dịch</b> sang phải \(n\) mẫu thành \(h[n-k]\), <b>nhân</b> từng điểm với \(x[k]\), rồi <b>cộng</b> tất cả.</p></div></li>
+      <li><div>\[\text{len}(y) = L_x + L_h - 1\]<p class="why">Nếu \(x\) dài \(L_x\) và \(h\) dài \(L_h\) mẫu, đầu ra khác 0 trên \(L_x+L_h-1\) mẫu. Tích chập có tính giao hoán, kết hợp và phân phối.</p></div></li>
+    </ol>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 4.1 · Tích chập từng bước: lật, dịch, nhân, cộng</b><span class="tag">bấm ▶ để chạy hoạt hình</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <label class="ctl wide"><span class="lbl">x[n] (bắt đầu tại n = 0)</span><input type="text" id="s4x" value="1, 2, 3, 1"></label>
+        <label class="ctl wide"><span class="lbl">h[n] (bắt đầu tại n = 0)</span><input type="text" id="s4h" value="1, 1, 0.5"></label>
+        <label class="ctl"><span class="lbl">Vị trí n <output id="s4no">0</output></span><input type="range" id="s4n" min="-2" max="10" value="0"></label>
+        <div class="btns"><button class="btn" id="s4play">▶ Chạy</button><button class="btn ghost" id="s4preset">Ví dụ khác</button></div>
+      </div>
+      <div class="cap">① x[k] (cố định) và h[n − k] (đã lật và dịch tới n)</div>
+      <canvas class="plot" id="c4a" data-h="190"></canvas>
+      <div class="cap">② Tích x[k]·h[n − k] tại từng k</div>
+      <canvas class="plot" id="c4b" data-h="140"></canvas>
+      <div class="cap">③ Đầu ra y[n] (cột tô đậm là mẫu vừa tính)</div>
+      <canvas class="plot" id="c4c" data-h="170"></canvas>
+      <div class="readout wrap" id="s4info"></div>
+    </div>
+  </div>
+  <div class="prose">
+    <p><b>Ổn định và nhân quả theo \(h[n]\):</b> hệ LTI ổn định BIBO khi và chỉ khi \(\sum_n |h[n]| \lt \infty\); nhân quả khi và chỉ khi \(h[n] = 0\) với mọi \(n \lt 0\).</p>
+    <p><b>FIR và IIR:</b> nếu \(h[n]\) có hữu hạn mẫu khác 0, hệ là FIR (Finite Impulse Response). Nếu vô hạn (ví dụ \(h[n] = a^n u[n]\)), hệ là IIR.</p>
+  </div>
+  <div class="quiz" data-quiz="4"></div>
+</section>
+
+<!-- ========== C5 ========== -->
+<section class="ch" id="c5" data-ch="5">
+  <h2><span class="no">05</span>Phương trình sai phân</h2>
+  <p class="lead">Hầu hết hệ LTI dùng được trong thực tế mô tả bằng phương trình sai phân hệ số hằng: đầu ra hiện tại là tổ hợp tuyến tính của các đầu vào và các <b>đầu ra trước đó</b>.</p>
+  <div class="mathbox">\[y[n] = \sum_{k=0}^{M} b_k\,x[n-k] \;-\; \sum_{k=1}^{N} a_k\,y[n-k]\]</div>
+  <div class="prose"><p>Khi mọi \(a_k = 0\), hệ không có hồi tiếp và là FIR với \(h[n] = b_n\). Khi có hồi tiếp, đáp ứng xung thường kéo dài vô hạn (IIR). Ví dụ đơn giản nhất là hệ bậc 1: \(y[n] = b_0 x[n] + \alpha\, y[n-1]\) (tức \(a_1 = -\alpha\)).</p></div>
+  <div class="stepper" data-title="Giải tay đáp ứng xung của y[n] = x[n] + α·y[n−1]">
+    <ol>
+      <li><div>\[x[n] = \delta[n],\quad y[-1] = 0 \text{ (hệ ở trạng thái nghỉ)}\]<p class="why">Cho xung đơn vị vào, giả sử trước đó hệ chưa nhớ gì.</p></div></li>
+      <li><div>\[y[0] = \delta[0] + \alpha\cdot y[-1] = 1 + 0 = 1\]<p class="why">Tại \(n = 0\) chỉ có xung đầu vào đóng góp.</p></div></li>
+      <li><div>\[y[1] = \delta[1] + \alpha\, y[0] = 0 + \alpha = \alpha\]<p class="why">Từ \(n = 1\) đầu vào bằng 0, chỉ còn phần hồi tiếp.</p></div></li>
+      <li><div>\[y[2] = \alpha\, y[1] = \alpha^2,\quad y[3] = \alpha^3,\;\dots\]<p class="why">Mỗi bước nhân thêm \(\alpha\).</p></div></li>
+      <li><div>\[h[n] = \alpha^n u[n],\qquad \sum_{n=0}^{\infty}|\alpha|^n = \frac{1}{1-|\alpha|} \text{ hữu hạn} \iff |\alpha| \lt 1\]<p class="why">Đáp ứng xung là hàm mũ. Hệ ổn định khi và chỉ khi \(|\alpha|\lt 1\). Ở chương 9 ta sẽ thấy \(\alpha\) chính là <b>cực</b> của hệ.</p></div></li>
+    </ol>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 5.1 · Mô phỏng y[n] = b₀x[n] + b₁x[n−1] + α·y[n−1]</b><span class="tag">bảng tính từng mẫu</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <label class="ctl"><span class="lbl">Đầu vào</span>
+          <select id="s5in"><option value="imp">Xung δ[n]</option><option value="step">Bậc thang u[n]</option><option value="sin">Sin có nhiễu</option><option value="sq">Xung vuông</option></select></label>
+        <label class="ctl"><span class="lbl">α (hồi tiếp) <output id="s5ao">0.80</output></span><input type="range" id="s5a" min="-1.1" max="1.1" step="0.01" value="0.8"></label>
+        <label class="ctl"><span class="lbl">b₀ <output id="s5b0o">1.00</output></span><input type="range" id="s5b0" min="-1" max="1" step="0.05" value="1"></label>
+        <label class="ctl"><span class="lbl">b₁ <output id="s5b1o">0.00</output></span><input type="range" id="s5b1" min="-1" max="1" step="0.05" value="0"></label>
+      </div>
+      <canvas class="plot" id="c5a" data-h="230"></canvas>
+      <div class="legend"><span><i style="background:var(--trace)"></i>x[n]</span><span><i style="background:var(--a3)"></i>y[n]</span><span id="s5stab"></span></div>
+      <div class="tbl"><table class="t" id="s5tab"></table></div>
+    </div>
+  </div>
+  <div class="quiz" data-quiz="5"></div>
+</section>
+
+<!-- ===================== PHẦN II ===================== -->
+<div class="part-title">Phần II · Miền tần số</div>
+
+<!-- ========== C6 ========== -->
+<section class="ch" id="c6" data-ch="6">
+  <h2><span class="no">06</span>DTFT &amp; đáp ứng tần số</h2>
+  <p class="lead">Mũ phức \(e^{j\omega n}\) là <b>hàm riêng</b> của mọi hệ LTI: đi vào là sin thì đi ra vẫn là sin cùng tần số, chỉ bị nhân biên độ và dịch pha. Hệ số nhân đó chính là đáp ứng tần số \(H(e^{j\omega})\).</p>
+  <div class="stepper" data-title="Vì sao sin đi qua hệ LTI vẫn là sin?">
+    <ol>
+      <li><div>\[x[n] = e^{j\omega n} \;\Rightarrow\; y[n] = \sum_k h[k]\, x[n-k] = \sum_k h[k]\, e^{j\omega (n-k)}\]<p class="why">Thay đầu vào mũ phức vào công thức tích chập (dạng \(\sum h[k]x[n-k]\), dùng tính giao hoán).</p></div></li>
+      <li><div>\[y[n] = e^{j\omega n}\underbrace{\sum_k h[k]\, e^{-j\omega k}}_{H(e^{j\omega})}\]<p class="why">Tách \(e^{j\omega(n-k)} = e^{j\omega n}e^{-j\omega k}\). Thừa số \(e^{j\omega n}\) không phụ thuộc \(k\) nên đưa ra ngoài tổng.</p></div></li>
+      <li><div>\[H(e^{j\omega}) = \sum_{n=-\infty}^{\infty} h[n]\,e^{-j\omega n} = |H(e^{j\omega})|\,e^{j\angle H(e^{j\omega})}\]<p class="why">Phần còn lại chỉ phụ thuộc \(\omega\): đó là <b>DTFT</b> của \(h[n]\). Là số phức nên có biên độ và pha.</p></div></li>
+      <li><div>\[x[n] = \cos(\omega_0 n) \;\Rightarrow\; y[n] = |H(e^{j\omega_0})|\cos\!\big(\omega_0 n + \angle H(e^{j\omega_0})\big)\]<p class="why">Với \(h[n]\) thực, \(H(e^{-j\omega}) = H^*(e^{j\omega})\). Cộng hai mũ phức của cos, phần ảo triệt tiêu: biên độ nhân \(|H|\), pha cộng \(\angle H\).</p></div></li>
+      <li><div>\[H(e^{j(\omega + 2\pi)}) = H(e^{j\omega})\]<p class="why">DTFT luôn tuần hoàn chu kỳ \(2\pi\) (cùng lý do với aliasing ở chương 2). Vì thế chỉ cần xem \(\omega \in [-\pi, \pi]\), hay \([0,\pi]\) với tín hiệu thực.</p></div></li>
+    </ol>
+  </div>
+  <div class="stepper" data-title="Ví dụ: đáp ứng tần số của bộ trung bình trượt M điểm">
+    <ol>
+      <li><div>\[h[n] = \tfrac{1}{M}\ \text{ với } 0 \le n \le M-1 \;\Rightarrow\; H(e^{j\omega}) = \frac{1}{M}\sum_{n=0}^{M-1} e^{-j\omega n}\]<p class="why">Trung bình \(M\) mẫu gần nhất: mỗi hệ số bằng \(1/M\).</p></div></li>
+      <li><div>\[\sum_{n=0}^{M-1} r^n = \frac{1-r^M}{1-r},\quad r = e^{-j\omega}\]<p class="why">Đây là cấp số nhân với công bội \(r\).</p></div></li>
+      <li><div>\[\frac{1-e^{-j\omega M}}{1-e^{-j\omega}} = \frac{e^{-j\omega M/2}\left(e^{j\omega M/2}-e^{-j\omega M/2}\right)}{e^{-j\omega/2}\left(e^{j\omega/2}-e^{-j\omega/2}\right)}\]<p class="why">Mẹo “rút nửa góc”: đặt thừa số chung để tử và mẫu có dạng \(e^{j\theta}-e^{-j\theta} = 2j\sin\theta\).</p></div></li>
+      <li><div>\[H(e^{j\omega}) = \frac{1}{M}\,\frac{\sin(\omega M/2)}{\sin(\omega/2)}\; e^{-j\omega (M-1)/2}\]<p class="why">Biên độ là <b>hàm Dirichlet</b> (sinc tuần hoàn), bằng 0 tại \(\omega = 2\pi k/M\). Pha tuyến tính \(-\omega(M-1)/2\): mọi tần số bị trễ như nhau \((M-1)/2\) mẫu.</p></div></li>
+    </ol>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 6.1 · Cho sin đi qua bộ lọc trung bình trượt</b><span class="tag">quan sát biên độ và độ trễ pha</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <label class="ctl"><span class="lbl">Độ dài M <output id="s6Mo">5</output></span><input type="range" id="s6M" min="2" max="16" value="5"></label>
+        <label class="ctl"><span class="lbl">Tần số vào ω₀ (×π) <output id="s6wo">0.15π</output></span><input type="range" id="s6w" min="0" max="1" step="0.005" value="0.15"></label>
+      </div>
+      <div class="cols">
+        <div><div class="cap">|H(e^jω)| (thang tuyến tính) và điểm làm việc ω₀</div><canvas class="plot" id="c6a" data-h="200"></canvas></div>
+        <div><div class="cap">Pha ∠H(e^jω) (rad)</div><canvas class="plot" id="c6b" data-h="200"></canvas></div>
+      </div>
+      <canvas class="plot" id="c6c" data-h="200"></canvas>
+      <div class="legend"><span><i style="background:var(--trace)"></i>x[n] = cos(ω₀n)</span><span><i style="background:var(--a3)"></i>y[n] đầu ra</span></div>
+      <div class="readout wrap" id="s6info"></div>
+    </div>
+  </div>
+  <div class="quiz" data-quiz="6"></div>
+</section>
+
+<!-- ========== C7 ========== -->
+<section class="ch" id="c7" data-ch="7">
+  <h2><span class="no">07</span>Biến đổi Fourier rời rạc (DFT)</h2>
+  <p class="lead">DTFT cho hàm liên tục theo \(\omega\), máy tính không lưu được. DFT lấy \(N\) mẫu của DTFT tại các tần số \(\omega_k = 2\pi k/N\). Với \(N\) mẫu vào ta được \(N\) hệ số phổ.</p>
+  <div class="mathbox">\[X[k] = \sum_{n=0}^{N-1} x[n]\, e^{-j2\pi kn/N} = \sum_{n=0}^{N-1} x[n]\,W_N^{kn}, \qquad W_N = e^{-j2\pi/N}\]</div>
+  <div class="mathbox">\[x[n] = \frac{1}{N}\sum_{k=0}^{N-1} X[k]\, e^{\,j2\pi kn/N}\]</div>
+  <div class="stepper" data-title="DFT thực chất làm gì? Đọc công thức theo từng bước">
+    <ol>
+      <li><div>\[e^{-j2\pi kn/N} = \cos\!\left(\tfrac{2\pi kn}{N}\right) - j\sin\!\left(\tfrac{2\pi kn}{N}\right)\]<p class="why">Công thức Euler: mỗi “hàm cơ sở” là một cặp cos/sin có đúng \(k\) chu kỳ trong \(N\) mẫu.</p></div></li>
+      <li><div>\[\operatorname{Re}X[k] = \sum_n x[n]\cos\!\left(\tfrac{2\pi kn}{N}\right),\qquad \operatorname{Im}X[k] = -\sum_n x[n]\sin\!\left(\tfrac{2\pi kn}{N}\right)\]<p class="why">Với \(x[n]\) thực, tách phần thực và ảo. Mỗi tổng là một <b>tích vô hướng</b>, đo mức “giống nhau” giữa tín hiệu và cos/sin tần số \(k\).</p></div></li>
+      <li><div>\[|X[k]| = \sqrt{\operatorname{Re}^2 + \operatorname{Im}^2},\qquad \angle X[k] = \operatorname{atan2}(\operatorname{Im}, \operatorname{Re})\]<p class="why">Biên độ cho biết thành phần tần số \(k\) mạnh đến đâu; pha cho biết nó lệch bao nhiêu.</p></div></li>
+      <li><div>\[x[n] = A\cos\!\left(\tfrac{2\pi k_0 n}{N}\right) \;\Rightarrow\; |X[k_0]| = |X[N-k_0]| = \frac{AN}{2}\]<p class="why">Một cos có đúng \(k_0\) chu kỳ chỉ “cộng hưởng” với bin \(k_0\) và bin gương \(N-k_0\). Mọi bin khác cho tổng bằng 0 do tính trực giao.</p></div></li>
+      <li><div>\[f_k = k\,\frac{f_s}{N},\qquad \Delta f = \frac{f_s}{N}\]<p class="why">Đổi chỉ số bin ra Hz. Muốn phân giải tần số mịn hơn cần ghi thêm mẫu (tăng \(N\)), tức quan sát lâu hơn.</p></div></li>
+    </ol>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 7.1 · Tính DFT bằng tay, từng bin một</b><span class="tag">vectơ quay cộng nối đuôi</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <label class="ctl"><span class="lbl">Tín hiệu</span>
+          <select id="s7sig">
+            <option value="c2">cos(2π·2n/N)</option>
+            <option value="mix" selected>1 + cos(2π·2n/N) + 0.5·sin(2π·5n/N)</option>
+            <option value="rect">Xung chữ nhật 4 mẫu</option>
+            <option value="c25">cos(2π·2.5n/N) (không khớp bin)</option>
+            <option value="imp">Xung δ[n − 1]</option>
+          </select></label>
+        <label class="ctl"><span class="lbl">Số điểm N</span><select id="s7N"><option>8</option><option selected>16</option><option>32</option></select></label>
+        <label class="ctl"><span class="lbl">Bin đang xét k <output id="s7ko">2</output></span><input type="range" id="s7k" min="0" max="15" value="2"></label>
+        <label class="ctl"><span class="lbl">Số số hạng đã cộng <output id="s7mo">16</output></span><input type="range" id="s7m" min="0" max="16" value="16"></label>
+        <div class="btns"><button class="btn" id="s7play">▶ Cộng dần</button></div>
+      </div>
+      <div class="cols">
+        <div><div class="cap">x[n] và hàm cơ sở cos (xanh lá) / −sin (hồng) của bin k</div><canvas class="plot" id="c7a" data-h="220"></canvas></div>
+        <div><div class="cap">Mặt phẳng phức: cộng nối đuôi các vectơ x[n]·e^(−j2πkn/N)</div><canvas class="plot" id="c7b" data-h="220"></canvas></div>
+      </div>
+      <div class="cap">Phổ biên độ |X[k]| (cột cam là bin đang xét)</div>
+      <canvas class="plot" id="c7c" data-h="170"></canvas>
+      <div class="readout" id="s7info"></div>
+    </div>
+  </div>
+  <div class="key"><b>Mẹo hình học:</b> mỗi số hạng \(x[n]e^{-j2\pi kn/N}\) là một vectơ dài \(|x[n]|\), quay \(2\pi k/N\) mỗi bước. Nếu tín hiệu “bắt nhịp” với tốc độ quay, các vectơ cùng chỉ một hướng và cộng thành vectơ dài: bin đó lớn. Nếu không, chúng xoay vòng và triệt tiêu nhau.</div>
+  <div class="quiz" data-quiz="7"></div>
+</section>
+
+<!-- ========== C8 ========== -->
+<section class="ch" id="c8" data-ch="8">
+  <h2><span class="no">08</span>Thuật toán FFT radix-2</h2>
+  <p class="lead">Tính DFT trực tiếp cần \(N^2\) phép nhân phức. FFT (Cooley–Tukey, 1965) chia đôi bài toán liên tục để còn \(\tfrac{N}{2}\log_2 N\) phép nhân. Với \(N = 1024\): từ ~1 triệu xuống ~5 nghìn.</p>
+  <div class="stepper" data-title="Chia để trị: tách mẫu chẵn và mẫu lẻ (decimation-in-time)">
+    <ol>
+      <li><div>\[X[k] = \sum_{m=0}^{N/2-1} x[2m]\,W_N^{2mk} + \sum_{m=0}^{N/2-1} x[2m+1]\,W_N^{(2m+1)k}\]<p class="why">Chia tổng \(N\) số hạng thành hai nhóm: chỉ số chẵn \(n = 2m\) và lẻ \(n = 2m+1\).</p></div></li>
+      <li><div>\[W_N^{2mk} = e^{-j2\pi\cdot 2mk/N} = e^{-j2\pi mk/(N/2)} = W_{N/2}^{mk}\]<p class="why">Nhận xét then chốt: bình phương của hệ số xoay \(N\) điểm là hệ số xoay \(N/2\) điểm.</p></div></li>
+      <li><div>\[X[k] = \underbrace{\sum_m x[2m]\,W_{N/2}^{mk}}_{E[k]} + W_N^{k}\underbrace{\sum_m x[2m+1]\,W_{N/2}^{mk}}_{O[k]}\]<p class="why">Mỗi tổng giờ là một DFT \(N/2\) điểm: \(E\) của dãy chẵn, \(O\) của dãy lẻ. Thừa số \(W_N^k\) gọi là <i>twiddle factor</i>.</p></div></li>
+      <li><div>\[E[k + N/2] = E[k],\quad O[k+N/2] = O[k],\quad W_N^{k+N/2} = -W_N^{k}\]<p class="why">DFT \(N/2\) điểm tuần hoàn chu kỳ \(N/2\), còn \(W_N^{N/2} = e^{-j\pi} = -1\).</p></div></li>
+      <li><div>\[\boxed{\;X[k] = E[k] + W_N^k O[k],\qquad X[k+\tfrac{N}{2}] = E[k] - W_N^k O[k]\;}\]<p class="why">Đây là phép <b>bướm (butterfly)</b>: một phép nhân phức cho ra hai đầu ra. Chỉ cần tính \(k = 0\ldots N/2-1\).</p></div></li>
+      <li><div>\[C(N) = 2\,C(N/2) + \tfrac{N}{2} \;\Rightarrow\; C(N) = \tfrac{N}{2}\log_2 N\]<p class="why">Đệ quy chia đôi đến khi còn DFT 1 điểm (chính là mẫu). Có \(\log_2 N\) tầng, mỗi tầng \(N/2\) bướm. Thứ tự đầu vào khi đó là <b>đảo bit</b> (bit-reversed).</p></div></li>
+    </ol>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 8.1 · Sơ đồ bướm FFT 8 điểm với số liệu thật</b><span class="tag">chạy từng tầng</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <label class="ctl wide"><span class="lbl">x[0..7] (số thực)</span><input type="text" id="s8x" value="1, 2, 1, 0, -1, -2, -1, 0"></label>
+        <div class="btns"><button class="btn ghost" id="s8prev">◀ Tầng trước</button><button class="btn" id="s8next">Tầng tiếp ▶</button><span class="cap" id="s8stage"></span></div>
+      </div>
+      <div class="tbl"><canvas class="plot" id="c8a" data-h="420" style="min-width:640px"></canvas></div>
+      <div class="readout wrap" id="s8info"></div>
+    </div>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 8.2 · Số phép nhân phức: DFT trực tiếp và FFT</b><span class="tag">thang log</span></div>
+    <div class="lab-b">
+      <div class="controls"><label class="ctl"><span class="lbl">N = 2^p, p = <output id="s8po">10</output></span><input type="range" id="s8p" min="2" max="20" value="10"></label></div>
+      <canvas class="plot" id="c8b" data-h="200"></canvas>
+      <div class="readout" id="s8cmp"></div>
+    </div>
+  </div>
+  <div class="quiz" data-quiz="8"></div>
+</section>
+
+<!-- ========== C9 ========== -->
+<section class="ch" id="c9" data-ch="9">
+  <h2><span class="no">09</span>Biến đổi Z, cực &amp; không</h2>
+  <p class="lead">Biến đổi Z tổng quát hoá DTFT: thay \(e^{j\omega}\) bằng biến phức \(z\) bất kỳ. Phương trình sai phân trở thành phân thức đại số, và hành vi của hệ được đọc trực tiếp từ vị trí <b>cực</b> và <b>không</b>.</p>
+  <div class="mathbox">\[X(z) = \sum_{n=-\infty}^{\infty} x[n]\, z^{-n},\qquad X(e^{j\omega}) = X(z)\big|_{z = e^{j\omega}}\]</div>
+  <div class="stepper" data-title="Biến đổi Z của aⁿu[n] và miền hội tụ (ROC)">
+    <ol>
+      <li><div>\[X(z) = \sum_{n=0}^{\infty} a^n z^{-n} = \sum_{n=0}^{\infty} \left(a z^{-1}\right)^n\]<p class="why">\(u[n]\) cắt bỏ các \(n \lt 0\). Gom thành luỹ thừa của \(az^{-1}\).</p></div></li>
+      <li><div>\[\text{hội tụ} \iff |a z^{-1}| \lt 1 \iff |z| \gt |a|\]<p class="why">Cấp số nhân chỉ hội tụ khi công bội có mô-đun nhỏ hơn 1. Tập \(|z| \gt |a|\) là <b>miền hội tụ (ROC)</b>: phần ngoài đường tròn bán kính \(|a|\).</p></div></li>
+      <li><div>\[X(z) = \frac{1}{1 - a z^{-1}} = \frac{z}{z - a}\]<p class="why">Tổng cấp số nhân. Có một <b>không</b> tại \(z = 0\) và một <b>cực</b> tại \(z = a\).</p></div></li>
+      <li><div>\[\text{Hệ nhân quả ổn định} \iff \text{ROC chứa đường tròn đơn vị} \iff \text{mọi cực nằm trong } |z| \lt 1\]<p class="why">Đây là cách tổng quát của điều kiện \(|\alpha| \lt 1\) ở chương 5.</p></div></li>
+      <li><div>\[x[n-k] \xrightarrow{\;\mathcal{Z}\;} z^{-k}X(z) \;\Rightarrow\; H(z) = \frac{Y(z)}{X(z)} = \frac{\sum_k b_k z^{-k}}{1+\sum_k a_k z^{-k}}\]<p class="why">Trễ \(k\) mẫu tương ứng nhân \(z^{-k}\). Biến đổi Z hai vế phương trình sai phân cho hàm truyền dạng phân thức. Nghiệm tử số là các không, nghiệm mẫu số là các cực.</p></div></li>
+      <li><div>\[|H(e^{j\omega})| = |b_0|\,\frac{\prod_i |e^{j\omega} - q_i|}{\prod_i |e^{j\omega} - p_i|}\]<p class="why"><b>Diễn giải hình học:</b> khi điểm \(e^{j\omega}\) chạy trên đường tròn đơn vị, biên độ bằng tích khoảng cách tới các không chia tích khoảng cách tới các cực. Gần cực thì phổ nhô lên, gần không thì phổ lõm xuống.</p></div></li>
+    </ol>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 9.1 · Kéo thả cực và không trên mặt phẳng z</b><span class="tag">cặp liên hợp tự động</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <div class="btns">
+          <button class="btn ghost" id="s9addP">+ Cặp cực</button>
+          <button class="btn ghost" id="s9addZ">+ Cặp không</button>
+          <button class="btn ghost" id="s9del">− Xoá điểm đang chọn</button>
+          <label class="ctl" style="min-width:180px"><span class="lbl">Mẫu có sẵn</span>
+            <select id="s9preset">
+              <option value="res" selected>Cộng hưởng (cặp cực gần vòng tròn)</option>
+              <option value="notch">Lọc chắn dải (notch)</option>
+              <option value="lp">Thông thấp đơn giản</option>
+              <option value="hp">Thông cao đơn giản</option>
+              <option value="unstable">Không ổn định (cực ngoài vòng)</option>
+            </select></label>
+        </div>
+        <label class="ctl"><span class="lbl">Điểm thử ω (×π) <output id="s9wo">0.25π</output></span><input type="range" id="s9w" min="0" max="1" step="0.005" value="0.25"></label>
+      </div>
+      <div class="cols">
+        <div><div class="cap">Mặt phẳng z: × là cực, ○ là không. Kéo để di chuyển.</div><canvas class="plot" id="c9a" data-h="320"></canvas></div>
+        <div style="display:grid;gap:10px">
+          <div><div class="cap">|H(e^jω)| (dB)</div><canvas class="plot" id="c9b" data-h="150"></canvas></div>
+          <div><div class="cap">Đáp ứng xung h[n]</div><canvas class="plot" id="c9c" data-h="150"></canvas></div>
+        </div>
+      </div>
+      <div class="readout wrap" id="s9info"></div>
+    </div>
+  </div>
+  <div class="quiz" data-quiz="9"></div>
+</section>
+
+<!-- ===================== PHẦN III ===================== -->
+<div class="part-title">Phần III · Thiết kế bộ lọc</div>
+
+<!-- ========== C10 ========== -->
+<section class="ch" id="c10" data-ch="10">
+  <h2><span class="no">10</span>Bộ lọc FIR: phương pháp cửa sổ</h2>
+  <p class="lead">Bộ lọc FIR có đáp ứng xung hữu hạn, luôn ổn định, và có thể có <b>pha tuyến tính chính xác</b> (không làm méo dạng sóng). Cách thiết kế trực quan nhất: lấy đáp ứng xung lý tưởng rồi cắt bằng cửa sổ.</p>
+  <div class="stepper" data-title="Thiết kế bộ lọc thông thấp FIR từ đầu">
+    <ol>
+      <li><div>\[H_d(e^{j\omega}) = \begin{cases}1, & |\omega| \le \omega_c\\ 0, & \omega_c \lt |\omega| \le \pi\end{cases}\]<p class="why">Bắt đầu từ mong muốn: cho qua mọi tần số dưới \(\omega_c\), chặn hoàn toàn phần còn lại (“bức tường gạch”).</p></div></li>
+      <li><div>\[h_d[n] = \frac{1}{2\pi}\int_{-\pi}^{\pi} H_d(e^{j\omega})e^{j\omega n}d\omega = \frac{1}{2\pi}\int_{-\omega_c}^{\omega_c} e^{j\omega n}d\omega\]<p class="why">Dùng DTFT ngược. Ngoài \([-\omega_c,\omega_c]\) hàm dưới dấu tích phân bằng 0.</p></div></li>
+      <li><div>\[= \frac{1}{2\pi}\cdot\frac{e^{j\omega_c n} - e^{-j\omega_c n}}{jn} = \frac{\sin(\omega_c n)}{\pi n},\qquad h_d[0] = \frac{\omega_c}{\pi}\]<p class="why">Tích phân hàm mũ rồi dùng \(e^{j\theta}-e^{-j\theta} = 2j\sin\theta\). Kết quả là hàm sinc, <b>dài vô hạn và không nhân quả</b>, nên không thực hiện được.</p></div></li>
+      <li><div>\[h[n] = h_d\!\left[n - \tfrac{N-1}{2}\right]\cdot w[n],\qquad 0 \le n \le N-1\]<p class="why">Hai sửa đổi: <b>dịch</b> \((N-1)/2\) mẫu để hệ nhân quả, và <b>nhân cửa sổ</b> \(w[n]\) dài \(N\) để cắt cụt. Dịch chỉ thêm độ trễ, tức pha tuyến tính.</p></div></li>
+      <li><div>\[H(e^{j\omega}) = \frac{1}{2\pi}\,H_d(e^{j\omega}) \circledast W(e^{j\omega})\]<p class="why">Nhân trong miền thời gian bằng tích chập (vòng) trong miền tần số. Phổ cửa sổ có <b>búp chính</b> (làm dốc chuyển tiếp thoải ra) và <b>búp phụ</b> (sinh gợn sóng ở dải chặn). Cửa sổ chữ nhật gây hiện tượng Gibbs với gợn ~9% dù \(N\) lớn đến đâu.</p></div></li>
+      <li><div>\[h[n] = h[N-1-n] \;\Rightarrow\; H(e^{j\omega}) = A(\omega)\,e^{-j\omega (N-1)/2}\]<p class="why">Hệ số đối xứng nên pha tuyến tính chính xác: mọi tần số trễ \((N-1)/2\) mẫu. Đây là ưu điểm lớn nhất của FIR so với IIR.</p></div></li>
+    </ol>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 10.1 · Bàn thiết kế FIR</b><span class="tag">đổi cửa sổ, độ dài, tần số cắt</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <label class="ctl"><span class="lbl">Loại</span><select id="s10type"><option value="lp">Thông thấp</option><option value="hp">Thông cao</option><option value="bp">Thông dải</option></select></label>
+        <label class="ctl"><span class="lbl">Cửa sổ</span><select id="s10win"><option value="rect">Chữ nhật</option><option value="hann">Hann</option><option value="hamming" selected>Hamming</option><option value="blackman">Blackman</option><option value="kaiser">Kaiser (β = 6)</option></select></label>
+        <label class="ctl"><span class="lbl">Độ dài N <output id="s10No">31</output></span><input type="range" id="s10N" min="5" max="129" step="2" value="31"></label>
+        <label class="ctl"><span class="lbl">ωc (×π) <output id="s10wo">0.30π</output></span><input type="range" id="s10w" min="0.05" max="0.9" step="0.01" value="0.3"></label>
+        <label class="ctl"><span class="lbl">Độ rộng dải (thông dải, ×π) <output id="s10bwo">0.20π</output></span><input type="range" id="s10bw" min="0.05" max="0.5" step="0.01" value="0.2"></label>
+      </div>
+      <div class="cols">
+        <div><div class="cap">h_d[n] lý tưởng (mờ), cửa sổ w[n] (hồng), h[n] cuối cùng (cam)</div><canvas class="plot" id="c10a" data-h="220"></canvas></div>
+        <div><div class="cap">|H(e^jω)| (dB): thiết kế (xanh lá) so với lý tưởng (nét đứt)</div><canvas class="plot" id="c10b" data-h="220"></canvas></div>
+      </div>
+      <div class="cap">Áp dụng: tín hiệu = sin tần số thấp 0.05π + sin tần số cao 0.6π + nhiễu</div>
+      <canvas class="plot" id="c10c" data-h="170"></canvas>
+      <div class="legend"><span><i style="background:var(--muted)"></i>đầu vào</span><span><i style="background:var(--a3)"></i>đầu ra (đã bù trễ (N−1)/2)</span></div>
+      <div class="readout wrap" id="s10info"></div>
+    </div>
+  </div>
+  <div class="tbl"><table class="t">
+    <thead><tr><th>Cửa sổ</th><th>Công thức w[n], 0 ≤ n ≤ N−1</th><th>Búp phụ cao nhất</th><th>Suy hao dải chặn của bộ lọc</th><th>Độ rộng chuyển tiếp ≈</th></tr></thead>
+    <tbody>
+      <tr><td>Chữ nhật</td><td>\(1\)</td><td class="num">−13 dB</td><td class="num">~21 dB</td><td class="num">0.9·2π/N</td></tr>
+      <tr><td>Hann</td><td>\(0.5 - 0.5\cos\frac{2\pi n}{N-1}\)</td><td class="num">−31 dB</td><td class="num">~44 dB</td><td class="num">3.1·2π/N</td></tr>
+      <tr><td>Hamming</td><td>\(0.54 - 0.46\cos\frac{2\pi n}{N-1}\)</td><td class="num">−41 dB</td><td class="num">~53 dB</td><td class="num">3.3·2π/N</td></tr>
+      <tr><td>Blackman</td><td>\(0.42 - 0.5\cos\frac{2\pi n}{N-1} + 0.08\cos\frac{4\pi n}{N-1}\)</td><td class="num">−57 dB</td><td class="num">~74 dB</td><td class="num">5.5·2π/N</td></tr>
+      <tr><td>Kaiser</td><td>\(I_0\!\big(\beta\sqrt{1-(2n/(N-1)-1)^2}\big)/I_0(\beta)\)</td><td colspan="3">Điều chỉnh được qua β: β lớn thì suy hao cao, chuyển tiếp rộng</td></tr>
+    </tbody></table></div>
+  <div class="prose"><p><b>Thông cao và thông dải</b> suy ra từ thông thấp: thông cao \(h_{HP}[n] = \delta[n - \tfrac{N-1}{2}] - h_{LP}[n]\) (đảo phổ); thông dải là hiệu hai bộ thông thấp, hoặc nhân thông thấp với \(2\cos(\omega_0 n)\) để dời dải thông lên \(\omega_0\). Ngoài phương pháp cửa sổ còn có thuật toán tối ưu Parks–McClellan (equiripple) cho bộ lọc ngắn hơn với cùng yêu cầu.</p></div>
+  <div class="quiz" data-quiz="10"></div>
+</section>
+
+<!-- ========== C11 ========== -->
+<section class="ch" id="c11" data-ch="11">
+  <h2><span class="no">11</span>Bộ lọc IIR: Butterworth và biến đổi song tuyến</h2>
+  <p class="lead">IIR dùng hồi tiếp nên đạt độ dốc cao với rất ít hệ số. Cách thiết kế kinh điển là mượn bộ lọc tương tự đã biết rồi “dịch” sang miền số.</p>
+  <div class="stepper" data-title="Quy trình Butterworth tương tự → số">
+    <ol>
+      <li><div>\[|H_a(j\Omega)|^2 = \frac{1}{1 + (\Omega/\Omega_c)^{2N}}\]<p class="why">Butterworth bậc \(N\): phẳng tối đa trong dải thông, tại \(\Omega_c\) giảm đúng −3 dB, ngoài dải thông suy giảm \(20N\) dB/decade.</p></div></li>
+      <li><div>\[p_k = \Omega_c\, e^{\,j\pi\frac{2k + N - 1}{2N}},\quad k = 1,\dots,N\]<p class="why">Các cực của \(H_a(s)\) nằm cách đều trên nửa trái đường tròn bán kính \(\Omega_c\) trong mặt phẳng \(s\), nên bộ lọc tương tự ổn định.</p></div></li>
+      <li><div>\[s = \frac{2}{T}\cdot\frac{1 - z^{-1}}{1 + z^{-1}} \iff z = \frac{1 + sT/2}{1 - sT/2}\]<p class="why"><b>Biến đổi song tuyến</b> ánh xạ toàn bộ trục \(j\Omega\) lên đường tròn đơn vị, và nửa trái mặt phẳng \(s\) vào trong vòng tròn. Ổn định được bảo toàn và không có aliasing.</p></div></li>
+      <li><div>\[\Omega = \frac{2}{T}\tan\frac{\omega}{2}\]<p class="why">Cái giá phải trả là trục tần số bị <b>nén phi tuyến</b> (frequency warping): \(\Omega \to \infty\) ứng với \(\omega \to \pi\).</p></div></li>
+      <li><div>\[\Omega_c = \frac{2}{T}\tan\frac{\omega_c}{2}\quad(\text{prewarping})\]<p class="why">Để tần số cắt số rơi đúng \(\omega_c\) mong muốn, ta “làm cong trước” tần số cắt tương tự. Chọn \(T = 2\) cho gọn: \(\Omega_c = \tan(\omega_c/2)\).</p></div></li>
+      <li><div>\[z_k = \frac{1 + p_k}{1 - p_k},\qquad \text{không: } N \text{ không tại } z = -1,\qquad H(1) = 1\]<p class="why">Ánh xạ từng cực sang mặt phẳng \(z\). Các không ở vô cực của \(H_a(s)\) rơi vào \(z = -1\) (tần số \(\pi\)). Cuối cùng chuẩn hoá hệ số khuếch đại để DC bằng 1.</p></div></li>
+      <li><div>\[H(z) = g\,\frac{\prod_k (1 + z^{-1})}{\prod_k (1 - z_k z^{-1})} = \frac{\sum b_k z^{-k}}{1 + \sum a_k z^{-k}}\]<p class="why">Nhân đa thức để có hệ số \(b, a\) cho phương trình sai phân. Trong thực tế nên chia thành các khâu bậc 2 (biquad) để tránh sai số (xem chương 15).</p></div></li>
+    </ol>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 11.1 · Thiết kế Butterworth và nghe kết quả</b><span class="tag">mặt phẳng s → mặt phẳng z</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <label class="ctl"><span class="lbl">Bậc N <output id="s11No">4</output></span><input type="range" id="s11N" min="1" max="10" value="4"></label>
+        <label class="ctl"><span class="lbl">Tần số cắt fc (Hz, fs = 8000) <output id="s11fo">800</output></span><input type="range" id="s11f" min="100" max="3500" step="50" value="800"></label>
+        <div class="btns"><button class="btn ghost" id="s11pa">▶ Nghe gốc</button><button class="btn" id="s11pb">▶ Nghe sau lọc</button></div>
+      </div>
+      <div class="cols3">
+        <div><div class="cap">① Cực tương tự trên mặt phẳng s</div><canvas class="plot" id="c11a" data-h="220"></canvas></div>
+        <div><div class="cap">② Ánh xạ song tuyến sang mặt phẳng z</div><canvas class="plot" id="c11b" data-h="220"></canvas></div>
+        <div><div class="cap">③ |H| (dB) theo Hz, so với FIR Hamming cùng số hệ số</div><canvas class="plot" id="c11c" data-h="220"></canvas></div>
+      </div>
+      <div class="legend"><span><i style="background:var(--a3)"></i>IIR Butterworth</span><span><i style="background:var(--a4)"></i>FIR Hamming cùng số phép nhân</span><span>Âm thanh: tông 300 Hz + tiếng rít 2500 Hz + nhiễu trắng</span></div>
+      <div class="readout" id="s11info"></div>
+    </div>
+  </div>
+  <div class="tbl"><table class="t">
+    <thead><tr><th>Tiêu chí</th><th>FIR</th><th>IIR</th></tr></thead>
+    <tbody>
+      <tr><td>Ổn định</td><td>Luôn ổn định</td><td>Phải kiểm tra cực trong vòng tròn đơn vị</td></tr>
+      <tr><td>Pha</td><td>Tuyến tính chính xác được</td><td>Phi tuyến, nhất là gần tần số cắt</td></tr>
+      <tr><td>Số hệ số cho cùng độ dốc</td><td>Nhiều (hàng chục đến hàng trăm)</td><td>Ít (thường 4 đến 12)</td></tr>
+      <tr><td>Nhạy với lượng tử hệ số</td><td>Thấp</td><td>Cao, nên dùng cấu trúc biquad</td></tr>
+      <tr><td>Dùng khi</td><td>Âm thanh chất lượng cao, truyền thông số, xử lý ảnh</td><td>Điều khiển, cân bằng âm (EQ), tài nguyên hạn chế</td></tr>
+    </tbody></table></div>
+  <div class="prose"><p>Các họ IIR khác: <b>Chebyshev I</b> (gợn ở dải thông, dốc hơn), <b>Chebyshev II</b> (gợn ở dải chặn), <b>Elliptic</b> (gợn cả hai dải, dốc nhất với cùng bậc).</p></div>
+  <div class="quiz" data-quiz="11"></div>
+</section>
+
+<!-- ===================== PHẦN IV ===================== -->
+<div class="part-title">Phần IV · Nâng cao</div>
+
+<!-- ========== C12 ========== -->
+<section class="ch" id="c12" data-ch="12">
+  <h2><span class="no">12</span>Phân tích phổ: rò rỉ, cửa sổ và STFT</h2>
+  <p class="lead">DFT ngầm giả định \(N\) mẫu là một chu kỳ của tín hiệu tuần hoàn. Khi sin không có số chu kỳ nguyên trong khung, chỗ nối hai đầu khung bị nhảy và năng lượng “rò” sang mọi bin.</p>
+  <div class="stepper" data-title="Vì sao có rò rỉ phổ và vì sao cửa sổ giúp được">
+    <ol>
+      <li><div>\[x_N[n] = x[n]\cdot w_R[n],\qquad w_R[n] = 1 \text{ với } 0\le n\lt N\]<p class="why">Chỉ ghi \(N\) mẫu tương đương nhân tín hiệu vô hạn với cửa sổ chữ nhật.</p></div></li>
+      <li><div>\[X_N(e^{j\omega}) = \frac{1}{2\pi} X(e^{j\omega}) \circledast W_R(e^{j\omega})\]<p class="why">Phổ thật bị tích chập với phổ cửa sổ. Một vạch phổ sắc nét trở thành một bản sao của \(W_R\): búp chính rộng \(4\pi/N\) và các búp phụ.</p></div></li>
+      <li><div>\[X[k] = X_N(e^{j2\pi k/N})\]<p class="why">DFT lấy mẫu phổ đó tại các bin. Nếu sin khớp bin, các điểm lấy mẫu rơi đúng vào điểm 0 của búp phụ nên không thấy rò rỉ. Lệch bin thì các búp phụ hiện ra.</p></div></li>
+      <li><div>\[\text{Hann, Blackman, ...}\;\Rightarrow\; \text{búp phụ thấp hơn, búp chính rộng hơn}\]<p class="why">Cửa sổ thuôn về 0 ở hai đầu làm mất chỗ nhảy. Đổi lại, hai tần số gần nhau khó tách hơn.</p></div></li>
+      <li><div>\[\text{Zero-padding: } N \to N_{fft}\;\Rightarrow\; \text{lưới bin mịn hơn, độ phân giải KHÔNG đổi}\]<p class="why">Thêm số 0 chỉ lấy mẫu dày hơn cùng một \(X_N(e^{j\omega})\). Độ phân giải thật \(\approx f_s/N\) chỉ tăng khi ghi thêm dữ liệu thật.</p></div></li>
+    </ol>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 12.1 · Rò rỉ phổ, cửa sổ và zero-padding</b><span class="tag">hai sin gần nhau</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <label class="ctl"><span class="lbl">Tần số sin 1 (bin) <output id="s12f1o">10.0</output></span><input type="range" id="s12f1" min="2" max="28" step="0.1" value="10"></label>
+        <label class="ctl"><span class="lbl">Sin 2: cách sin 1 (bin) <output id="s12dfo">3.0</output></span><input type="range" id="s12df" min="0.5" max="10" step="0.1" value="3"></label>
+        <label class="ctl"><span class="lbl">Biên độ sin 2 (dB) <output id="s12a2o">−20</output></span><input type="range" id="s12a2" min="-60" max="0" value="-20"></label>
+        <label class="ctl"><span class="lbl">Cửa sổ</span><select id="s12win"><option value="rect">Chữ nhật</option><option value="hann" selected>Hann</option><option value="hamming">Hamming</option><option value="blackman">Blackman</option></select></label>
+        <label class="ctl"><span class="lbl">Zero-padding ×<output id="s12zpo">4</output></span><input type="range" id="s12zp" min="1" max="8" value="4"></label>
+      </div>
+      <canvas class="plot" id="c12a" data-h="240"></canvas>
+      <div class="legend"><span><i style="background:var(--sample)"></i>bin DFT gốc (N = 64)</span><span><i style="background:var(--trace)"></i>DFT sau zero-padding</span><span><i style="background:var(--a4)"></i>vị trí tần số thật</span></div>
+    </div>
+  </div>
+  <h3>STFT và phổ đồ (spectrogram)</h3>
+  <div class="prose">
+    <p>Tín hiệu thực như tiếng nói hay âm nhạc có phổ thay đổi theo thời gian. <b>STFT</b> trượt một cửa sổ ngắn dọc tín hiệu và tính DFT cho từng khung:</p>
+    <div class="mathbox">\[X[m, k] = \sum_{n} x[n]\, w[n - mR]\, e^{-j2\pi kn/N}\]</div>
+    <p>với \(R\) là bước nhảy. Đánh đổi bất định: cửa sổ dài cho phân giải tần số tốt nhưng làm nhoè thời gian; cửa sổ ngắn ngược lại (\(\Delta t\cdot\Delta f \ge\) hằng số).</p>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 12.2 · Phổ đồ</b><span class="tag">đánh đổi thời gian và tần số</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <label class="ctl"><span class="lbl">Tín hiệu</span><select id="s12sig"><option value="chirp">Chirp (tần số quét tăng)</option><option value="tones" selected>Giai điệu 4 nốt + tiếng gõ</option><option value="fm">Còi hú (FM)</option></select></label>
+        <label class="ctl"><span class="lbl">Độ dài cửa sổ N <output id="s12Lo">128</output></span><input type="range" id="s12L" min="4" max="9" value="7"></label>
+        <div class="btns"><button class="btn ghost" id="s12play">▶ Nghe tín hiệu</button></div>
+      </div>
+      <canvas class="plot" id="c12b" data-h="260"></canvas>
+      <div class="cap" id="s12cap"></div>
+    </div>
+  </div>
+  <div class="quiz" data-quiz="12"></div>
+</section>
+
+<!-- ========== C13 ========== -->
+<section class="ch" id="c13" data-ch="13">
+  <h2><span class="no">13</span>Xử lý đa tốc độ: decimation &amp; interpolation</h2>
+  <p class="lead">Thay đổi tần số lấy mẫu ngay trong miền số: giảm \(f_s\) để tiết kiệm tính toán (decimation), tăng \(f_s\) để ghép với hệ khác hoặc làm mượt (interpolation).</p>
+  <div class="stepper" data-title="Hạ tốc độ M lần (downsampling)">
+    <ol>
+      <li><div>\[y[n] = x[Mn]\]<p class="why">Giữ một mẫu trong mỗi \(M\) mẫu. Tần số lấy mẫu mới là \(f_s/M\).</p></div></li>
+      <li><div>\[Y(e^{j\omega}) = \frac{1}{M}\sum_{i=0}^{M-1} X\!\left(e^{j(\omega - 2\pi i)/M}\right)\]<p class="why">Phổ bị <b>giãn</b> \(M\) lần và cộng thêm \(M-1\) bản sao dịch. Đây chính là lấy mẫu lại, nên có thể bị aliasing.</p></div></li>
+      <li><div>\[\text{Điều kiện không chồng phổ: } X(e^{j\omega}) = 0 \text{ với } |\omega| \gt \pi/M\]<p class="why">Phổ giãn \(M\) lần chỉ không đè lên nhau nếu băng thông ban đầu nhỏ hơn \(\pi/M\).</p></div></li>
+      <li><div>\[x \to \boxed{H_{LP},\ \omega_c = \pi/M} \to \boxed{\downarrow M} \to y\]<p class="why">Vì vậy luôn lọc thông thấp chống chồng phổ trước khi bỏ mẫu. Cả khối gọi là <b>decimator</b>.</p></div></li>
+    </ol>
+  </div>
+  <div class="stepper" data-title="Tăng tốc độ L lần (upsampling) và cấu trúc polyphase">
+    <ol>
+      <li><div>\[v[n] = \begin{cases} x[n/L], & n \text{ chia hết cho } L\\ 0, & \text{ngược lại}\end{cases}\]<p class="why">Chèn \(L-1\) số 0 giữa các mẫu.</p></div></li>
+      <li><div>\[V(e^{j\omega}) = X(e^{j\omega L})\]<p class="why">Phổ bị <b>nén</b> \(L\) lần, nên trong \([-\pi,\pi]\) xuất hiện \(L-1\) bản sao gọi là <b>ảnh (image)</b>.</p></div></li>
+      <li><div>\[x \to \boxed{\uparrow L} \to \boxed{H_{LP},\ \omega_c = \pi/L,\ \text{gain} = L} \to y\]<p class="why">Lọc thông thấp xoá ảnh, đồng thời “lấp” các số 0 bằng giá trị nội suy. Hệ số khuếch đại \(L\) bù năng lượng bị chia nhỏ.</p></div></li>
+      <li><div>\[H(z) = \sum_{k=0}^{M-1} z^{-k}\,E_k(z^M),\qquad E_k(z) = \sum_n h[nM + k]\,z^{-n}\]<p class="why"><b>Phân tích polyphase:</b> tách bộ lọc thành \(M\) bộ con, mỗi bộ lấy các hệ số cách nhau \(M\).</p></div></li>
+      <li><div>\[\boxed{E_k(z^M)} \to \boxed{\downarrow M} \;\equiv\; \boxed{\downarrow M} \to \boxed{E_k(z)}\]<p class="why"><b>Đẳng thức Noble</b> cho phép đưa bộ hạ tốc lên trước bộ lọc. Mỗi bộ con chạy ở tốc độ thấp: giảm \(M\) lần số phép tính, không tính các mẫu sẽ bị bỏ. Đây là nền tảng của bộ lọc CIC, filter bank và DDC trên FPGA.</p></div></li>
+    </ol>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 13.1 · Decimation có và không có lọc chống chồng phổ</b><span class="tag">quan sát phổ</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <label class="ctl"><span class="lbl">Chế độ</span><select id="s13mode"><option value="dec">Hạ tốc ↓M</option><option value="int">Tăng tốc ↑L</option></select></label>
+        <label class="ctl"><span class="lbl">Hệ số M / L <output id="s13Mo">3</output></span><input type="range" id="s13M" min="2" max="5" value="3"></label>
+        <label class="chk"><input type="checkbox" id="s13filt"> Dùng bộ lọc thông thấp (FIR 63 hệ số)</label>
+      </div>
+      <div class="cols">
+        <div><div class="cap" id="s13capA">Tín hiệu (miền thời gian)</div><canvas class="plot" id="c13a" data-h="200"></canvas></div>
+        <div><div class="cap">Phổ |X| trước (xám) và sau (xanh lá), trục ω chuẩn hoá theo tốc độ của chính nó</div><canvas class="plot" id="c13b" data-h="200"></canvas></div>
+      </div>
+      <div class="readout wrap" id="s13info"></div>
+    </div>
+  </div>
+  <div class="quiz" data-quiz="13"></div>
+</section>
+
+<!-- ========== C14 ========== -->
+<section class="ch" id="c14" data-ch="14">
+  <h2><span class="no">14</span>Lọc thích nghi LMS</h2>
+  <p class="lead">Khi đặc tính nhiễu hay kênh truyền không biết trước hoặc thay đổi theo thời gian, bộ lọc phải tự học hệ số. Thuật toán LMS (Widrow–Hoff, 1960) cực kỳ đơn giản: mỗi mẫu chỉ cần khoảng \(2M\) phép nhân.</p>
+  <div class="stepper" data-title="Dẫn giải LMS từ phương pháp hạ gradient">
+    <ol>
+      <li><div>\[\hat d[n] = \mathbf{w}^T\mathbf{x}[n] = \sum_{k=0}^{M-1} w_k\, x[n-k],\qquad e[n] = d[n] - \hat d[n]\]<p class="why">Bộ lọc FIR \(M\) hệ số \(\mathbf{w}\) cố gắng dự đoán tín hiệu mong muốn \(d[n]\) từ đầu vào tham chiếu \(\mathbf{x}[n]\).</p></div></li>
+      <li><div>\[J(\mathbf{w}) = E\{e^2[n]\}\]<p class="why">Mục tiêu: tối thiểu sai số bình phương trung bình (MSE). \(J\) là một “cái bát” bậc hai theo \(\mathbf{w}\), chỉ có một đáy duy nhất (nghiệm Wiener).</p></div></li>
+      <li><div>\[\nabla J = \frac{\partial E\{e^2\}}{\partial\mathbf{w}} = E\left\{2e[n]\frac{\partial e[n]}{\partial \mathbf{w}}\right\} = -2E\{e[n]\,\mathbf{x}[n]\}\]<p class="why">Quy tắc đạo hàm hàm hợp, với \(\partial e/\partial\mathbf{w} = -\mathbf{x}[n]\).</p></div></li>
+      <li><div>\[\nabla J \approx -2\,e[n]\,\mathbf{x}[n]\]<p class="why">Ý tưởng của LMS: không tính kỳ vọng, dùng luôn giá trị tức thời làm ước lượng gradient (gradient ngẫu nhiên).</p></div></li>
+      <li><div>\[\mathbf{w}[n+1] = \mathbf{w}[n] - \tfrac{\mu}{2}\nabla J = \boxed{\mathbf{w}[n] + \mu\, e[n]\,\mathbf{x}[n]}\]<p class="why">Bước xuống dốc với bước nhảy \(\mu\). Mỗi hệ số được chỉnh tỉ lệ với sai số nhân đầu vào tương ứng.</p></div></li>
+      <li><div>\[0 \lt \mu \lt \frac{2}{M\,P_x}\]<p class="why">Điều kiện hội tụ gần đúng (\(P_x\) là công suất đầu vào). \(\mu\) lớn thì học nhanh nhưng dao động quanh nghiệm, vượt ngưỡng thì phân kỳ. \(\mu\) nhỏ thì chính xác nhưng chậm. NLMS chia \(\mu\) cho \(\|\mathbf{x}\|^2\) để tự chuẩn hoá.</p></div></li>
+    </ol>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 14.1 · Khử nhiễu chủ động</b><span class="tag">lời nói bị lẫn tiếng ồn động cơ</span></div>
+    <div class="lab-b">
+      <div class="prose"><p class="cap">Mô hình: micro chính nhận \(d[n] = s[n] + (h * v)[n]\), trong đó \(s\) là tín hiệu có ích và \(v\) là nhiễu đã qua một đường truyền \(h\) chưa biết. Micro tham chiếu chỉ nghe nhiễu \(v[n]\). LMS học \(\mathbf{w} \approx h\), và sai số \(e[n]\) chính là tín hiệu đã làm sạch.</p></div>
+      <div class="controls">
+        <label class="ctl"><span class="lbl">Bước học μ <output id="s14muo">0.020</output></span><input type="range" id="s14mu" min="-3.5" max="-0.3" step="0.05" value="-1.7"></label>
+        <label class="ctl"><span class="lbl">Số hệ số M <output id="s14Mo">8</output></span><input type="range" id="s14M" min="2" max="16" value="8"></label>
+        <div class="btns"><button class="btn" id="s14run">▶ Chạy lại</button></div>
+      </div>
+      <canvas class="plot" id="c14a" data-h="200"></canvas>
+      <div class="legend"><span><i style="background:var(--muted)"></i>d[n] = tín hiệu + nhiễu</span><span><i style="background:var(--a3)"></i>e[n] đầu ra đã khử nhiễu</span><span><i style="background:var(--trace)"></i>s[n] thật</span></div>
+      <div class="cols">
+        <div><div class="cap">Đường cong học: (e − s)² trung bình trượt, thang dB</div><canvas class="plot" id="c14b" data-h="180"></canvas></div>
+        <div><div class="cap">Hệ số học được w (cam) so với đường truyền thật h (vòng xanh)</div><canvas class="plot" id="c14c" data-h="180"></canvas></div>
+      </div>
+      <div class="readout" id="s14info"></div>
+    </div>
+  </div>
+  <div class="prose"><p>Ứng dụng: khử tiếng vọng điện thoại (echo cancellation), tai nghe chống ồn (ANC), cân bằng kênh trong modem và 5G, nhận dạng hệ thống, dự đoán tuyến tính. Biến thể mạnh hơn: RLS hội tụ nhanh hơn nhiều nhưng tốn \(O(M^2)\) phép tính mỗi mẫu.</p></div>
+  <div class="quiz" data-quiz="14"></div>
+</section>
+
+<!-- ========== C15 ========== -->
+<section class="ch" id="c15" data-ch="15">
+  <h2><span class="no">15</span>Số học dấu phẩy tĩnh &amp; hiện thực trên FPGA</h2>
+  <p class="lead">FPGA và DSP giá rẻ thường không dùng số thực dấu phẩy động. Mọi giá trị là số nguyên bù 2 mà ta <b>quy ước</b> vị trí dấu phẩy. Hiểu rõ định dạng Q giúp tránh tràn số và mất chính xác.</p>
+  <div class="stepper" data-title="Định dạng Qm.n và phép nhân trên phần cứng">
+    <ol>
+      <li><div>\[\text{Q}m.n:\quad 1 \text{ bit dấu} + m \text{ bit nguyên} + n \text{ bit phân số},\quad B = 1 + m + n\]<p class="why">Quy ước dùng ở đây (kiểu TI/ARM). Ví dụ Q0.15 (hay Q15) là 16 bit, biểu diễn \([-1, 1)\).</p></div></li>
+      <li><div>\[\text{giá trị} = \frac{\text{số nguyên bù 2}}{2^n},\qquad \text{dải: } [-2^m,\; 2^m - 2^{-n}],\quad \text{bước } 2^{-n}\]<p class="why">Bit dấu có trọng số \(-2^m\), các bit còn lại có trọng số \(2^{m-1}, \dots, 2^{-n}\).</p></div></li>
+      <li><div>\[\text{Q}a.b \times \text{Q}c.d = \text{Q}(a+c+1).(b+d)\]<p class="why">Nhân hai số 16 bit Q15 cho tích 32 bit Q1.30. Bit nguyên thêm vào chỉ để chứa trường hợp \((-1)\times(-1) = +1\).</p></div></li>
+      <li><div>\[y_{Q15} = \operatorname{sat}\!\left(\left(p_{Q30} + 2^{14}\right) \gg 15\right)\]<p class="why">Đưa về Q15: cộng nửa LSB để làm tròn, dịch phải 15 bit, rồi <b>bão hoà</b> (saturate) nếu vượt dải thay vì để tràn quay vòng.</p></div></li>
+      <li><div>\[\text{guard bits} = \lceil \log_2 N_{taps} \rceil\]<p class="why">Bộ tích luỹ của FIR \(N\) hệ số cộng \(N\) tích, nên cần thêm bit bảo vệ. Ví dụ DSP48 của Xilinx có bộ cộng dồn 48 bit cho tích 25×18 bit.</p></div></li>
+    </ol>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 15.1 · Bộ chuyển đổi định dạng Q</b><span class="tag">bấm vào từng bit</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <label class="ctl"><span class="lbl">Tổng số bit B <output id="s15Bo">16</output></span><input type="range" id="s15B" min="4" max="24" value="16"></label>
+        <label class="ctl"><span class="lbl">Số bit phân số n <output id="s15no">15</output></span><input type="range" id="s15n" min="0" max="23" value="15"></label>
+        <label class="ctl"><span class="lbl">Giá trị thực cần biểu diễn</span><input type="number" id="s15v" value="0.70710678" step="0.001"></label>
+        <label class="chk"><input type="checkbox" id="s15sat" checked> Bão hoà khi vượt dải</label>
+      </div>
+      <div class="bits" id="s15bits"></div>
+      <div class="readout" id="s15info"></div>
+    </div>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 15.2 · Lượng tử hệ số: dạng trực tiếp và nối tầng biquad</b><span class="tag">Butterworth bậc 6, ωc = 0.06π</span></div>
+    <div class="lab-b">
+      <div class="controls">
+        <label class="ctl"><span class="lbl">Số bit phân số của hệ số <output id="s15qbo">12</output></span><input type="range" id="s15qb" min="6" max="24" value="12"></label>
+      </div>
+      <div class="cols">
+        <div><div class="cap">|H| (dB): số thực (nét đứt), dạng trực tiếp (hồng), nối tầng biquad (xanh lá)</div><canvas class="plot" id="c15a" data-h="230"></canvas></div>
+        <div><div class="cap">Cực: số thực (•), dạng trực tiếp đã lượng tử (×), biquad đã lượng tử (+)</div><canvas class="plot" id="c15b" data-h="230"></canvas></div>
+      </div>
+      <div class="readout wrap" id="s15qinfo"></div>
+    </div>
+  </div>
+  <div class="lab">
+    <div class="lab-h"><b>Thí nghiệm 15.3 · Tràn số: quay vòng hay bão hoà</b><span class="tag">8 bit Q0.7</span></div>
+    <div class="lab-b">
+      <div class="controls"><label class="ctl"><span class="lbl">Khuếch đại <output id="s15go">1.40</output></span><input type="range" id="s15g" min="0.5" max="3" step="0.01" value="1.4"></label></div>
+      <canvas class="plot" id="c15c" data-h="190"></canvas>
+      <div class="legend"><span><i style="background:var(--muted)"></i>lý tưởng</span><span><i style="background:var(--bad)"></i>tràn quay vòng (wrap)</span><span><i style="background:var(--a3)"></i>bão hoà (saturate)</span></div>
+    </div>
+  </div>
+  <h3>Cấu trúc thực hiện</h3>
+  <div class="cols">
+    <div class="prose">
+      <p><b>Direct Form I:</b> hai dãy thanh ghi trễ riêng cho \(x\) và \(y\), cần \(M+N\) bộ nhớ, khó tràn ở nút trung gian.</p>
+      <p><b>Direct Form II:</b> dùng chung một dãy trễ, chỉ \(\max(M,N)\) bộ nhớ, nhưng nút trung gian có thể rất lớn.</p>
+      <p><b>Transposed Direct Form:</b> rất hợp FPGA: mỗi tầng chỉ có một bộ nhân và một bộ cộng trước thanh ghi, đường tới hạn ngắn, chạy được tần số cao mà không cần pipeline thêm.</p>
+      <p><b>Tối ưu:</b> FIR đối xứng gộp hai mẫu trước khi nhân để giảm một nửa số bộ nhân; hệ số hằng có thể thay bằng dịch và cộng (CSD); bộ lọc chạy chậm hơn clock có thể chia sẻ một bộ MAC theo thời gian.</p>
+    </div>
+    <pre class="code">// FIR transposed, hệ số và dữ liệu Q0.15 (16 bit)
+module fir_tdf #(parameter N = 8) (
+  input  wire               clk,
+  input  wire signed [15:0] x,     // Q0.15
+  output reg  signed [15:0] y      // Q0.15
+);
+  // hệ số h[k] (Q0.15) – sinh từ thiết kế ở chương 10
+  reg signed [15:0] h [0:N-1];
+  // cộng dồn: tích Q1.30 (32 bit) + 3 guard bits (log2 8)
+  reg signed [34:0] acc [0:N-1];
+  integer k;
+  function signed [15:0] sat16(input signed [34:0] v);
+    sat16 = (v &gt; 35'sd32767)  ? 16'sh7FFF :
+            (v &lt; -35'sd32768) ? 16'sh8000 : v[15:0];
+  endfunction
+  always @(posedge clk) begin
+    for (k = 0; k &lt; N-1; k = k + 1)
+      acc[k] &lt;= acc[k+1] + x * h[k];
+    acc[N-1] &lt;= x * h[N-1];
+    // làm tròn + bão hoà về Q1.15
+    y &lt;= sat16((acc[0] + 35'sd16384) &gt;&gt;&gt; 15);
+  end
+endmodule</pre>
+  </div>
+  <div class="quiz" data-quiz="15"></div>
+</section>
+
+<!-- ========== Tóm tắt ========== -->
+<section class="ch" id="tomtat">
+  <h2><span class="no">∑</span>Bảng công thức tra cứu nhanh</h2>
+  <div class="summary-grid">
+    <div><b>Lấy mẫu</b>\[f_s \gt 2f_{max},\quad \omega = 2\pi f/f_s\]</div>
+    <div><b>Lượng tử</b>\[\text{SQNR} \approx 6{,}02N + 1{,}76 \text{ dB}\]</div>
+    <div><b>Tích chập</b>\[y[n] = \sum_k x[k]h[n-k]\]</div>
+    <div><b>DTFT</b>\[X(e^{j\omega}) = \sum_n x[n]e^{-j\omega n}\]</div>
+    <div><b>DFT</b>\[X[k] = \sum_{n=0}^{N-1} x[n]e^{-j2\pi kn/N}\]</div>
+    <div><b>FFT</b>\[X[k] = E[k] \pm W_N^k O[k],\ \ \tfrac{N}{2}\log_2N\]</div>
+    <div><b>Biến đổi Z</b>\[H(z) = \frac{\sum b_k z^{-k}}{1 + \sum a_k z^{-k}}\]</div>
+    <div><b>Ổn định (nhân quả)</b>\[|p_i| \lt 1\ \ \forall i\]</div>
+    <div><b>FIR cửa sổ</b>\[h[n] = \tfrac{\sin(\omega_c(n-\alpha))}{\pi(n-\alpha)}w[n],\ \alpha = \tfrac{N-1}{2}\]</div>
+    <div><b>Song tuyến</b>\[s = \tfrac{2}{T}\tfrac{1-z^{-1}}{1+z^{-1}},\ \ \Omega = \tfrac{2}{T}\tan\tfrac{\omega}{2}\]</div>
+    <div><b>Decimation / Interpolation</b>\[\omega_c = \pi/M,\qquad \omega_c = \pi/L,\ \text{gain } L\]</div>
+    <div><b>LMS</b>\[\mathbf{w} \leftarrow \mathbf{w} + \mu\,e[n]\,\mathbf{x}[n]\]</div>
+  </div>
+  <footer>Mọi đồ thị và âm thanh trên trang được tính trực tiếp bằng JavaScript trong trình duyệt của bạn. Tiến độ làm câu đố chỉ lưu trên trình duyệt này.</footer>
+</section>
+</main>
+</div>
+<script>
+(function(){
+"use strict";
+/* ================= THƯ VIỆN TOÁN DSP (thuần, không DOM) ================= */
+const PI = Math.PI, TAU = 2 * Math.PI;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const dB = v => 20 * Math.log10(Math.max(Math.abs(v), 1e-12));
+const range = (a, b) => { const r = []; for (let i = a; i <= b; i++) r.push(i); return r; };
+const fmt = (v, d = 3) => {
+  if (!isFinite(v)) return v > 0 ? '∞' : (v < 0 ? '−∞' : 'NaN');
+  const s = (Math.abs(v) < 0.5 * Math.pow(10, -d) ? 0 : v).toFixed(d);
+  return s.replace('-', '−');
+};
+const cfmt = (re, im, d = 2) => {
+  const r = Math.abs(re) < 0.5 * Math.pow(10, -d) ? 0 : re, i = Math.abs(im) < 0.5 * Math.pow(10, -d) ? 0 : im;
+  if (i === 0) return fmt(r, d);
+  if (r === 0) return fmt(i, d) + 'j';
+  return fmt(r, d) + (i < 0 ? ' − ' : ' + ') + Math.abs(i).toFixed(d) + 'j';
+};
+// bộ sinh số giả ngẫu nhiên có hạt giống (để đồ thị ổn định giữa các lần vẽ)
+function rng(seed = 1) {
+  let s = seed >>> 0 || 1;
+  const u = () => { s ^= s << 13; s >>>= 0; s ^= s >>> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; };
+  u.n = () => { let a = 0; for (let i = 0; i < 6; i++) a += u(); return (a - 3) / Math.sqrt(0.5); };
+  return u;
+}
+
+// FFT radix-2 tại chỗ, decimation-in-time (đảo bit + bướm)
+function fft(re, im) {
+  const n = re.length;
+  for (let i = 1, j = 0; i < n; i++) {
+    let bit = n >> 1;
+    for (; j & bit; bit >>= 1) j ^= bit;
+    j ^= bit;
+    if (i < j) { let t = re[i]; re[i] = re[j]; re[j] = t; t = im[i]; im[i] = im[j]; im[j] = t; }
+  }
+  for (let len = 2; len <= n; len <<= 1) {
+    const ang = -TAU / len, half = len >> 1;
+    for (let i = 0; i < n; i += len) {
+      for (let k = 0; k < half; k++) {
+        const wr = Math.cos(ang * k), wi = Math.sin(ang * k);
+        const a = i + k, b = a + half;
+        const tr = re[b] * wr - im[b] * wi, ti = re[b] * wi + im[b] * wr;
+        re[b] = re[a] - tr; im[b] = im[a] - ti;
+        re[a] += tr; im[a] += ti;
+      }
+    }
+  }
+}
+function dft(x, xi) {
+  const N = x.length, re = new Array(N).fill(0), im = new Array(N).fill(0);
+  for (let k = 0; k < N; k++) for (let n = 0; n < N; n++) {
+    const a = -TAU * k * n / N, c = Math.cos(a), s = Math.sin(a), xr = x[n], xim = xi ? xi[n] : 0;
+    re[k] += xr * c - xim * s; im[k] += xr * s + xim * c;
+  }
+  return { re, im };
+}
+// phổ biên độ thực, độ dài nfft (lũy thừa 2) có zero-padding
+function magSpec(x, nfft) {
+  const re = new Float64Array(nfft), im = new Float64Array(nfft);
+  for (let i = 0; i < Math.min(x.length, nfft); i++) re[i] = x[i];
+  fft(re, im);
+  const m = new Float64Array(nfft / 2 + 1);
+  for (let k = 0; k <= nfft / 2; k++) m[k] = Math.hypot(re[k], im[k]);
+  return m;
+}
+function conv(x, h) {
+  const y = new Array(x.length + h.length - 1).fill(0);
+  for (let i = 0; i < x.length; i++) for (let j = 0; j < h.length; j++) y[i + j] += x[i] * h[j];
+  return y;
+}
+// đáp ứng tần số H(e^jw) = B(e^jw)/A(e^jw), w ∈ [0, π]
+function freqz(b, a = [1], n = 512) {
+  const w = [], mag = [], ph = [], re = [], im = [];
+  for (let i = 0; i <= n; i++) {
+    const om = PI * i / n;
+    let br = 0, bi = 0, ar = 0, ai = 0;
+    for (let k = 0; k < b.length; k++) { br += b[k] * Math.cos(om * k); bi -= b[k] * Math.sin(om * k); }
+    for (let k = 0; k < a.length; k++) { ar += a[k] * Math.cos(om * k); ai -= a[k] * Math.sin(om * k); }
+    const den = ar * ar + ai * ai || 1e-30;
+    const hr = (br * ar + bi * ai) / den, hi = (bi * ar - br * ai) / den;
+    w.push(om); re.push(hr); im.push(hi); mag.push(Math.hypot(hr, hi)); ph.push(Math.atan2(hi, hr));
+  }
+  return { w, mag, ph, re, im };
+}
+function H_at(b, a, om) {
+  let br = 0, bi = 0, ar = 0, ai = 0;
+  for (let k = 0; k < b.length; k++) { br += b[k] * Math.cos(om * k); bi -= b[k] * Math.sin(om * k); }
+  for (let k = 0; k < a.length; k++) { ar += a[k] * Math.cos(om * k); ai -= a[k] * Math.sin(om * k); }
+  const den = ar * ar + ai * ai || 1e-30;
+  return [(br * ar + bi * ai) / den, (bi * ar - br * ai) / den];
+}
+// lọc theo phương trình sai phân, a[0] = 1
+function filt(b, a, x) {
+  const y = new Float64Array(x.length);
+  for (let n = 0; n < x.length; n++) {
+    let acc = 0;
+    for (let k = 0; k < b.length; k++) if (n - k >= 0) acc += b[k] * x[n - k];
+    for (let k = 1; k < a.length; k++) if (n - k >= 0) acc -= a[k] * y[n - k];
+    y[n] = acc;
+  }
+  return y;
+}
+function besselI0(x) {
+  let s = 1, t = 1;
+  for (let k = 1; k < 50; k++) { t *= (x / (2 * k)) * (x / (2 * k)); s += t; if (t < 1e-12 * s) break; }
+  return s;
+}
+function windowFn(name, N, beta = 6) {
+  const w = new Array(N);
+  for (let n = 0; n < N; n++) {
+    const r = N > 1 ? n / (N - 1) : 0.5;
+    switch (name) {
+      case 'hann': w[n] = 0.5 - 0.5 * Math.cos(TAU * r); break;
+      case 'hamming': w[n] = 0.54 - 0.46 * Math.cos(TAU * r); break;
+      case 'blackman': w[n] = 0.42 - 0.5 * Math.cos(TAU * r) + 0.08 * Math.cos(2 * TAU * r); break;
+      case 'kaiser': { const t = 2 * r - 1; w[n] = besselI0(beta * Math.sqrt(Math.max(0, 1 - t * t))) / besselI0(beta); break; }
+      default: w[n] = 1;
+    }
+  }
+  return w;
+}
+// thông thấp lý tưởng dịch alpha: sin(wc (n-α)) / (π (n-α))
+function idealLP(N, wc) {
+  const al = (N - 1) / 2, h = new Array(N);
+  for (let n = 0; n < N; n++) { const m = n - al; h[n] = Math.abs(m) < 1e-9 ? wc / PI : Math.sin(wc * m) / (PI * m); }
+  return h;
+}
+function firIdeal(N, type, wc, bw) {
+  const al = (N - 1) / 2;
+  if (type === 'hp') { const lp = idealLP(N, wc); return lp.map((v, n) => (Math.abs(n - al) < 1e-9 ? 1 : 0) - v); }
+  if (type === 'bp') {
+    const w1 = clamp(wc - bw / 2, 0.001, PI), w2 = clamp(wc + bw / 2, 0, PI - 0.001);
+    const a = idealLP(N, w2), b = idealLP(N, w1); return a.map((v, i) => v - b[i]);
+  }
+  return idealLP(N, wc);
+}
+function firDesign(N, type, wc, bw, win) {
+  const hd = firIdeal(N, type, wc, bw), w = windowFn(win, N);
+  return { hd, w, h: hd.map((v, i) => v * w[i]) };
+}
+// nhân đa thức theo z^-1 từ danh sách nghiệm phức [re, im]: Π(1 - r z^-1)
+function polyFromRoots(roots) {
+  let pr = [1], pi = [0];
+  for (const [rr, ri] of roots) {
+    const nr = new Array(pr.length + 1).fill(0), ni = new Array(pr.length + 1).fill(0);
+    for (let i = 0; i < pr.length; i++) {
+      nr[i] += pr[i]; ni[i] += pi[i];
+      nr[i + 1] -= pr[i] * rr - pi[i] * ri;
+      ni[i + 1] -= pr[i] * ri + pi[i] * rr;
+    }
+    pr = nr; pi = ni;
+  }
+  return pr;
+}
+// nghiệm đa thức a[0] z^N + a[1] z^{N-1} + ... (tức 1 + a1 z^-1 + ...) bằng Durand–Kerner
+function polyRoots(a) {
+  const N = a.length - 1; if (N < 1) return [];
+  const c = a.map(v => v / a[0]);
+  let zr = [], zi = [];
+  for (let i = 0; i < N; i++) { const ang = TAU * i / N + 0.4; zr.push(0.9 * Math.cos(ang)); zi.push(0.9 * Math.sin(ang)); }
+  for (let it = 0; it < 500; it++) {
+    let delta = 0;
+    for (let i = 0; i < N; i++) {
+      // p(z) bằng Horner
+      let pr = 1, pi = 0;
+      for (let k = 1; k <= N; k++) { const t = pr * zr[i] - pi * zi[i] + c[k]; pi = pr * zi[i] + pi * zr[i]; pr = t; }
+      let dr = 1, di = 0;
+      for (let j = 0; j < N; j++) if (j !== i) { const xr = zr[i] - zr[j], xi = zi[i] - zi[j]; const t = dr * xr - di * xi; di = dr * xi + di * xr; dr = t; }
+      const den = dr * dr + di * di || 1e-30;
+      const qr = (pr * dr + pi * di) / den, qi = (pi * dr - pr * di) / den;
+      zr[i] -= qr; zi[i] -= qi; delta = Math.max(delta, Math.hypot(qr, qi));
+    }
+    if (delta < 1e-13) break;
+  }
+  return zr.map((r, i) => [r, zi[i]]);
+}
+// Butterworth thông thấp bậc N, tần số cắt số wc (rad/mẫu), biến đổi song tuyến với T = 2
+function butter(N, wc) {
+  const Wc = Math.tan(wc / 2);
+  const sP = [], zP = [];
+  for (let k = 1; k <= N; k++) {
+    const th = PI * (2 * k + N - 1) / (2 * N);
+    const pr = Wc * Math.cos(th), pi = Wc * Math.sin(th);
+    sP.push([pr, pi]);
+    // z = (1 + s) / (1 - s)
+    const nr = 1 + pr, ni = pi, dr = 1 - pr, di = -pi, den = dr * dr + di * di;
+    zP.push([(nr * dr + ni * di) / den, (ni * dr - nr * di) / den]);
+  }
+  const a = polyFromRoots(zP);
+  const b0 = polyFromRoots(new Array(N).fill([-1, 0]));
+  const g = a.reduce((s, v) => s + v, 0) / b0.reduce((s, v) => s + v, 0);
+  return { b: b0.map(v => v * g), a, g, Wc, sPoles: sP, zPoles: zP };
+}
+// LMS: x tham chiếu, d mong muốn
+function lms(x, d, M, mu) {
+  const L = x.length, w = new Float64Array(M), e = new Float64Array(L), y = new Float64Array(L);
+  let diverged = false;
+  for (let n = 0; n < L; n++) {
+    let acc = 0;
+    for (let k = 0; k < M; k++) if (n - k >= 0) acc += w[k] * x[n - k];
+    y[n] = acc; e[n] = d[n] - acc;
+    if (!isFinite(e[n]) || Math.abs(e[n]) > 1e6) { diverged = true; for (let m = n; m < L; m++) e[m] = NaN; break; }
+    for (let k = 0; k < M; k++) if (n - k >= 0) w[k] += mu * e[n] * x[n - k];
+  }
+  return { w, e, y, diverged };
+}
+function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a; }
+
+/* ================= LÕI GIAO DIỆN ================= */
+const $ = id => document.getElementById(id);
+const COL = {};
+function readColors() {
+  const s = getComputedStyle(document.documentElement);
+  for (const k of ['paper', 'panel', 'panel-2', 'ink', 'muted', 'line', 'grid', 'trace', 'sample', 'a3', 'a4', 'warn', 'bad', 'good'])
+    COL[k] = s.getPropertyValue('--' + k).trim();
+}
+readColors();
+function alpha(col, a) {
+  // nhận #rrggbb, trả rgba
+  if (col && col[0] === '#' && col.length === 7) {
+    const r = parseInt(col.slice(1, 3), 16), g = parseInt(col.slice(3, 5), 16), b = parseInt(col.slice(5, 7), 16);
+    return `rgba(${r},${g},${b},${a})`;
+  }
+  return col;
+}
+function niceStep(span, count) {
+  const raw = span / Math.max(1, count), p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p;
+  return (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * p;
+}
+class Plot {
+  constructor(c) {
+    const dpr = window.devicePixelRatio || 1, w = c.clientWidth || c.parentElement.clientWidth || 300, h = +c.dataset.h || 200;
+    c.style.height = h + 'px';
+    const W = Math.round(w * dpr), Hh = Math.round(h * dpr);
+    if (c.width !== W) c.width = W;
+    if (c.height !== Hh) c.height = Hh;
+    const x = c.getContext('2d');
+    x.setTransform(dpr, 0, 0, dpr, 0, 0);
+    x.clearRect(0, 0, w, h);
+    Object.assign(this, { c, x, w, h, m: { l: 42, r: 10, t: 10, b: 24 } });
+    this.font = '11px "JetBrains Mono", ui-monospace, monospace';
+  }
+  range(x0, x1, y0, y1) { if (y1 - y0 < 1e-12) { y0 -= 1; y1 += 1; } Object.assign(this, { x0, x1, y0, y1 }); return this; }
+  equal(cx, cy, r) { // khung tỉ lệ 1:1 (mặt phẳng phức)
+    const W = this.w - this.m.l - this.m.r, H = this.h - this.m.t - this.m.b, s = Math.min(W, H) / (2 * r);
+    return this.range(cx - W / (2 * s), cx + W / (2 * s), cy - H / (2 * s), cy + H / (2 * s));
+  }
+  X(v) { return this.m.l + (v - this.x0) / (this.x1 - this.x0) * (this.w - this.m.l - this.m.r); }
+  Y(v) { return this.h - this.m.b - (v - this.y0) / (this.y1 - this.y0) * (this.h - this.m.t - this.m.b); }
+  iX(px) { return this.x0 + (px - this.m.l) / (this.w - this.m.l - this.m.r) * (this.x1 - this.x0); }
+  iY(py) { return this.y0 + (this.h - this.m.b - py) / (this.h - this.m.t - this.m.b) * (this.y1 - this.y0); }
+  frame(o = {}) {
+    const x = this.x, m = this.m;
+    x.fillStyle = COL['panel-2']; x.fillRect(m.l, m.t, this.w - m.l - m.r, this.h - m.t - m.b);
+    x.font = this.font; x.lineWidth = 1;
+    const xs = o.xt || niceStep(this.x1 - this.x0, Math.max(2, Math.floor((this.w - m.l) / 70)));
+    const ys = o.yt || niceStep(this.y1 - this.y0, Math.max(2, Math.floor((this.h - m.t - m.b) / 34)));
+    const xf = o.xf || (v => +v.toFixed(6) + ''), yf = o.yf || (v => +v.toFixed(6) + '');
+    x.strokeStyle = COL.grid; x.fillStyle = COL.muted;
+    x.textAlign = 'center'; x.textBaseline = 'top';
+    for (let v = Math.ceil(this.x0 / xs - 1e-9) * xs; v <= this.x1 + 1e-9; v += xs) {
+      const px = Math.round(this.X(v)) + .5;
+      x.beginPath(); x.moveTo(px, m.t); x.lineTo(px, this.h - m.b); x.stroke();
+      if (!o.noXL) x.fillText(xf(v).replace('-', '−'), px, this.h - m.b + 5);
+    }
+    x.textAlign = 'right'; x.textBaseline = 'middle';
+    for (let v = Math.ceil(this.y0 / ys - 1e-9) * ys; v <= this.y1 + 1e-9; v += ys) {
+      const py = Math.round(this.Y(v)) + .5;
+      x.beginPath(); x.moveTo(m.l, py); x.lineTo(this.w - m.r, py); x.stroke();
+      if (!o.noYL) x.fillText(yf(v).replace('-', '−'), m.l - 5, py);
+    }
+    x.strokeStyle = COL.muted; x.lineWidth = 1;
+    if (this.y0 < 0 && this.y1 > 0 && !o.noZero) { const py = Math.round(this.Y(0)) + .5; x.beginPath(); x.moveTo(m.l, py); x.lineTo(this.w - m.r, py); x.stroke(); }
+    if (o.yAxis0 && this.x0 < 0 && this.x1 > 0) { const px = Math.round(this.X(0)) + .5; x.beginPath(); x.moveTo(px, m.t); x.lineTo(px, this.h - m.b); x.stroke(); }
+    if (o.xl) { x.textAlign = 'right'; x.textBaseline = 'bottom'; x.fillStyle = COL.muted; x.fillText(o.xl, this.w - m.r - 3, this.h - m.b - 3); }
+    if (o.yl) { x.textAlign = 'left'; x.textBaseline = 'top'; x.fillStyle = COL.muted; x.fillText(o.yl, m.l + 4, m.t + 3); }
+    return this;
+  }
+  clip() { const m = this.m; this.x.save(); this.x.beginPath(); this.x.rect(m.l, m.t, this.w - m.l - m.r, this.h - m.t - m.b); this.x.clip(); return this; }
+  unclip() { this.x.restore(); return this; }
+  line(xs, ys, col, lw = 1.8, dash) {
+    const x = this.x; x.strokeStyle = col; x.lineWidth = lw; x.setLineDash(dash || []); x.lineJoin = 'round';
+    x.beginPath(); let pen = false;
+    for (let i = 0; i < xs.length; i++) {
+      const yv = ys[i]; if (!isFinite(yv)) { pen = false; continue; }
+      const px = this.X(xs[i]), py = this.Y(clamp(yv, this.y0 - (this.y1 - this.y0) * 5, this.y1 + (this.y1 - this.y0) * 5));
+      if (pen) x.lineTo(px, py); else { x.moveTo(px, py); pen = true; }
+    }
+    x.stroke(); x.setLineDash([]); return this;
+  }
+  fn(f, col, lw = 1.8, n = 500, dash) {
+    const xs = [], ys = [];
+    for (let i = 0; i <= n; i++) { const v = this.x0 + (this.x1 - this.x0) * i / n; xs.push(v); ys.push(f(v)); }
+    return this.line(xs, ys, col, lw, dash);
+  }
+  stem(xs, ys, col, r = 3, lw = 1.6) {
+    const x = this.x, y0 = this.Y(clamp(0, this.y0, this.y1));
+    x.strokeStyle = col; x.fillStyle = col; x.lineWidth = lw;
+    for (let i = 0; i < xs.length; i++) {
+      if (!isFinite(ys[i])) continue;
+      const px = this.X(xs[i]), py = this.Y(clamp(ys[i], this.y0, this.y1));
+      x.beginPath(); x.moveTo(px, y0); x.lineTo(px, py); x.stroke();
+      if (r > 0) { x.beginPath(); x.arc(px, py, r, 0, TAU); x.fill(); }
+    }
+    return this;
+  }
+  dot(vx, vy, col, r = 3.5, hollow) {
+    const x = this.x; x.beginPath(); x.arc(this.X(vx), this.Y(vy), r, 0, TAU);
+    if (hollow) { x.strokeStyle = col; x.lineWidth = 2; x.stroke(); } else { x.fillStyle = col; x.fill(); }
+    return this;
+  }
+  cross(vx, vy, col, s = 6, lw = 2.2) {
+    const x = this.x, px = this.X(vx), py = this.Y(vy); x.strokeStyle = col; x.lineWidth = lw;
+    x.beginPath(); x.moveTo(px - s, py - s); x.lineTo(px + s, py + s); x.moveTo(px + s, py - s); x.lineTo(px - s, py + s); x.stroke();
+    return this;
+  }
+  plus(vx, vy, col, s = 6, lw = 2) {
+    const x = this.x, px = this.X(vx), py = this.Y(vy); x.strokeStyle = col; x.lineWidth = lw;
+    x.beginPath(); x.moveTo(px - s, py); x.lineTo(px + s, py); x.moveTo(px, py - s); x.lineTo(px, py + s); x.stroke();
+    return this;
+  }
+  seg(a, b, c, d, col, lw = 1.5, dash) {
+    const x = this.x; x.strokeStyle = col; x.lineWidth = lw; x.setLineDash(dash || []);
+    x.beginPath(); x.moveTo(this.X(a), this.Y(b)); x.lineTo(this.X(c), this.Y(d)); x.stroke(); x.setLineDash([]); return this;
+  }
+  arrow(a, b, c, d, col, lw = 2) {
+    this.seg(a, b, c, d, col, lw);
+    const x = this.x, px = this.X(c), py = this.Y(d), ang = Math.atan2(py - this.Y(b), px - this.X(a)), L = 7;
+    if (Math.hypot(px - this.X(a), py - this.Y(b)) < 4) return this;
+    x.fillStyle = col; x.beginPath(); x.moveTo(px, py);
+    x.lineTo(px - L * Math.cos(ang - .4), py - L * Math.sin(ang - .4)); x.lineTo(px - L * Math.cos(ang + .4), py - L * Math.sin(ang + .4)); x.closePath(); x.fill();
+    return this;
+  }
+  vline(v, col, dash = [4, 4], lw = 1.2) { return this.seg(v, this.y0, v, this.y1, col, lw, dash); }
+  hline(v, col, dash = [4, 4], lw = 1.2) { return this.seg(this.x0, v, this.x1, v, col, lw, dash); }
+  circle(cx, cy, r, col, lw = 1.2, dash) {
+    const x = this.x; x.strokeStyle = col; x.lineWidth = lw; x.setLineDash(dash || []);
+    x.beginPath(); x.ellipse(this.X(cx), this.Y(cy), Math.abs(this.X(cx + r) - this.X(cx)), Math.abs(this.Y(cy + r) - this.Y(cy)), 0, 0, TAU); x.stroke(); x.setLineDash([]);
+    return this;
+  }
+  text(t, vx, vy, col, align = 'left', base = 'middle', font) {
+    const x = this.x; x.font = font || this.font; x.fillStyle = col || COL.ink; x.textAlign = align; x.textBaseline = base;
+    x.fillText(t, this.X(vx), this.Y(vy)); return this;
+  }
+  tpx(t, px, py, col, align = 'left', base = 'middle', font) {
+    const x = this.x; x.font = font || this.font; x.fillStyle = col || COL.ink; x.textAlign = align; x.textBaseline = base;
+    x.fillText(t, px, py); return this;
+  }
+}
+const autoY = (arrs, pad = 0.12, minSpan = 0.5) => {
+  let lo = Infinity, hi = -Infinity;
+  for (const a of arrs) for (const v of a) if (isFinite(v)) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
+  if (!isFinite(lo)) { lo = -1; hi = 1; }
+  lo = Math.min(lo, 0); hi = Math.max(hi, 0);
+  if (hi - lo < minSpan) { hi += minSpan / 2; lo -= minSpan / 2; }
+  const p = (hi - lo) * pad; return [lo - (lo < 0 ? p : 0), hi + p];
+};
+const piF = v => { const r = Math.round(v / PI * 100) / 100; return r === 0 ? '0' : (r === 1 ? 'π' : (r === -1 ? '−π' : r + 'π')); };
+
+/* registry: mỗi demo đăng ký hàm vẽ lại; gọi lại khi đổi kích thước hoặc giao diện */
+const demos = [];
+function demo(fnc) { demos.push(fnc); try { fnc(); } catch (err) { console.error(err); } return fnc; }
+function redrawAll() { readColors(); for (const d of demos) { try { d(); } catch (err) { console.error(err); } } }
+let rzT = 0, lastW = window.innerWidth;
+window.addEventListener('resize', () => { if (Math.abs(window.innerWidth - lastW) < 2) return; lastW = window.innerWidth; clearTimeout(rzT); rzT = setTimeout(redrawAll, 150); });
+try { window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => setTimeout(redrawAll, 30)); } catch (e) { }
+new MutationObserver(() => setTimeout(redrawAll, 30)).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+/* liên kết thanh trượt với nhãn hiển thị */
+function bind(ids, fnc) {
+  for (const id of ids) { const el = $(id); if (!el) continue; el.addEventListener('input', fnc); el.addEventListener('change', fnc); }
+}
+const val = id => +$(id).value;
+const out = (id, t) => { const o = $(id); if (o) o.textContent = t; };
+
+/* âm thanh */
+let actx = null;
+function playSamples(arr, sr, gap) {
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    let peak = 1e-9; for (const v of arr) peak = Math.max(peak, Math.abs(v));
+    const buf = actx.createBuffer(1, arr.length, sr), ch = buf.getChannelData(0), fade = Math.min(400, arr.length / 4);
+    for (let i = 0; i < arr.length; i++) { let g = 0.45 / peak; if (i < fade) g *= i / fade; if (arr.length - i < fade) g *= (arr.length - i) / fade; ch[i] = arr[i] * g; }
+    const src = actx.createBufferSource(); src.buffer = buf; src.connect(actx.destination); src.start(actx.currentTime + (gap || 0));
+  } catch (err) { console.warn('Không phát được âm thanh', err); }
+}
+
+/* ================= STEPPER: dẫn giải từng bước ================= */
+document.querySelectorAll('.stepper').forEach(st => {
+  const ol = st.querySelector('ol'), lis = [...ol.children];
+  const head = document.createElement('div'); head.className = 'sh';
+  head.innerHTML = `<h4>${st.dataset.title || 'Dẫn giải'}</h4>`;
+  const allBtn = document.createElement('button'); allBtn.className = 'btn ghost'; allBtn.type = 'button'; allBtn.textContent = 'Hiện tất cả';
+  head.appendChild(allBtn); st.insertBefore(head, ol);
+  const bar = document.createElement('div'); bar.className = 'stepbar';
+  bar.innerHTML = '<span class="count"></span><button class="btn ghost" type="button">◀ Bước trước</button><button class="btn" type="button">Bước tiếp ▶</button>';
+  st.appendChild(bar);
+  ol.style.position = 'relative';
+  const [cnt, prev, next] = bar.children;
+  let i = 0;
+  const show = (k, anim) => {
+    const old = i; i = clamp(k, 0, lis.length - 1);
+    lis.forEach((li, j) => {
+      const vis = j <= i;
+      li.classList.toggle('later', !vis);
+      li.classList.toggle('cur', j === i);
+      li.setAttribute('aria-hidden', vis ? 'false' : 'true');
+      if (anim && vis && j > old) { li.classList.remove('enter'); void li.offsetWidth; li.classList.add('enter'); }
+    });
+    cnt.textContent = `Bước ${i + 1} / ${lis.length}`;
+    prev.disabled = i === 0; next.disabled = i === lis.length - 1;
+    allBtn.textContent = i === lis.length - 1 ? 'Thu gọn' : 'Hiện tất cả';
+  };
+  prev.onclick = () => show(i - 1, true);
+  next.onclick = () => show(i + 1, true);
+  allBtn.onclick = () => show(i === lis.length - 1 ? 0 : lis.length - 1, true);
+  show(0);
+});
+{ // CSS cho các bước chưa mở: vẫn được dàn trang (để MathJax đo được) nhưng ẩn hoàn toàn
+  const s = document.createElement('style');
+  s.textContent = '.stepper li.later{position:absolute;left:0;right:0;top:0;visibility:hidden;pointer-events:none}';
+  document.head.appendChild(s);
+}
+
+/* ================= TIẾN ĐỘ, MỤC LỤC, GIAO DIỆN ================= */
+const TOTAL = 15;
+let done = {};
+try { done = JSON.parse(localStorage.getItem('dsp-lab-done') || '{}') || {}; } catch (e) { done = {}; }
+function saveDone() { try { localStorage.setItem('dsp-lab-done', JSON.stringify(done)); } catch (e) { } }
+function updateProgress() {
+  const n = Object.keys(done).filter(k => done[k]).length;
+  $('progBar').style.width = (100 * n / TOTAL) + '%';
+  $('progTxt').textContent = `${n}/${TOTAL} chương`;
+  document.querySelectorAll('#toc a').forEach(a => { const id = a.getAttribute('href').slice(2); a.classList.toggle('done', !!done[id]); });
+}
+const tocLinks = [...document.querySelectorAll('#toc a')];
+const io = new IntersectionObserver(ents => {
+  for (const e of ents) if (e.isIntersecting) {
+    const id = e.target.id;
+    tocLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + id));
+  }
+}, { rootMargin: '-30% 0px -60% 0px' });
+document.querySelectorAll('section.ch').forEach(s => io.observe(s));
+$('menuBtn').onclick = () => { const t = $('toc'); t.classList.toggle('open'); $('menuBtn').setAttribute('aria-expanded', t.classList.contains('open')); };
+tocLinks.forEach(a => a.addEventListener('click', () => { $('toc').classList.remove('open'); $('menuBtn').setAttribute('aria-expanded', 'false'); }));
+$('themeBtn').onclick = () => {
+  const r = document.documentElement, cur = r.getAttribute('data-theme');
+  const sysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const isDark = cur ? cur === 'dark' : sysDark;
+  r.setAttribute('data-theme', isDark ? 'light' : 'dark');
+};
+
+/* ================= HERO: máy hiện sóng ================= */
+{
+  const c = $('heroScope'); let t0 = 0, running = false, last = 0;
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const draw = () => {
+    const p = new Plot(c); p.m = { l: 8, r: 8, t: 8, b: 8 };
+    p.range(0, 1, -1.25, 1.25).frame({ noXL: true, noYL: true, xt: 0.1, yt: 0.5 });
+    const f = 3, fs = 20, ph = t0;
+    p.clip();
+    p.fn(t => Math.sin(TAU * f * t + ph), COL.trace, 2.2, 400);
+    const ns = [], vs = [];
+    for (let n = 0; n <= fs; n++) { ns.push(n / fs); vs.push(Math.sin(TAU * f * n / fs + ph)); }
+    // giữ bậc 0 (bậc thang) mờ
+    const sx = [], sy = [];
+    for (let i = 0; i < ns.length; i++) { sx.push(ns[i], ns[i] + 1 / fs); sy.push(vs[i], vs[i]); }
+    p.line(sx, sy, alpha(COL.sample, .35), 1.2);
+    p.stem(ns, vs, COL.sample, 3.5);
+    p.unclip();
+  };
+  const loop = ts => {
+    if (!running) return;
+    if (last) t0 += (ts - last) / 1000 * 1.2;
+    last = ts; draw(); requestAnimationFrame(loop);
+  };
+  demo(draw);
+  if (!reduce) {
+    new IntersectionObserver(es => {
+      for (const e of es) { if (e.isIntersecting && !running) { running = true; last = 0; requestAnimationFrame(loop); } else if (!e.isIntersecting) running = false; }
+    }).observe(c);
+  }
+}
+
+/* ================= C1: tín hiệu cơ bản ================= */
+demo(function c1a() {
+  const type = $('s1type').value, n0 = val('s1n0'), a = val('s1a'), w = val('s1w') * PI;
+  out('s1n0o', n0); out('s1ao', a.toFixed(2)); out('s1wo', val('s1w').toFixed(2) + 'π');
+  const ns = range(-10, 20), re = [], im = [];
+  for (const n of ns) {
+    const m = n - n0; let r = 0, i = 0;
+    switch (type) {
+      case 'delta': r = m === 0 ? 1 : 0; break;
+      case 'step': r = m >= 0 ? 1 : 0; break;
+      case 'rect': r = (m >= 0 && m < 5) ? 1 : 0; break;
+      case 'ramp': r = m >= 0 ? m : 0; break;
+      case 'exp': r = m >= 0 ? Math.pow(a, m) : 0; break;
+      case 'sin': r = Math.cos(w * m); break;
+      case 'cexp': r = Math.cos(w * m); i = Math.sin(w * m); break;
+      case 'damped': r = m >= 0 ? Math.pow(a, m) * Math.cos(w * m) : 0; break;
+    }
+    re.push(r); im.push(i);
+  }
+  const [lo, hi] = autoY(type === 'cexp' ? [re, im] : [re], 0.12, 1);
+  const p = new Plot($('c1a')).range(-10.8, 20.8, lo, hi).frame({ xt: 2, xl: 'n' });
+  if (type === 'sin' || type === 'cexp') p.fn(t => Math.cos(w * (t - n0)), alpha(COL.trace, .35), 1.2, 600, [3, 3]);
+  p.stem(ns.map(n => type === 'cexp' ? n - .15 : n), re, COL.sample);
+  if (type === 'cexp') p.stem(ns.map(n => n + .15), im, COL.a4);
+  $('s1leg').innerHTML = type === 'cexp'
+    ? '<span><i style="background:var(--sample)"></i>phần thực cos(ω₀n)</span><span><i style="background:var(--a4)"></i>phần ảo sin(ω₀n)</span><span><i style="background:var(--trace)"></i>đường bao liên tục (chỉ để tham chiếu)</span>'
+    : '<span><i style="background:var(--sample)"></i>x[n]</span>' + (type === 'sin' ? '<span><i style="background:var(--trace)"></i>cos liên tục cùng tần số (tham chiếu)</span>' : '');
+  let info = '';
+  const r100 = Math.round(val('s1w') * 100);
+  const g = gcd(r100, 200), per = r100 === 0 ? 1 : 200 / g;
+  switch (type) {
+    case 'delta': info = `δ[n − ${n0}]: chỉ bằng 1 tại n = ${n0}. Tính chất “sàng lọc”: Σ x[n]·δ[n − n₀] = x[n₀].`; break;
+    case 'step': info = `u[n − ${n0}] bật lên 1 từ n = ${n0}. Hiệu u[n] − u[n−1] = δ[n].`; break;
+    case 'rect': info = `Xung chữ nhật = u[n − ${n0}] − u[n − ${n0 + 5}]: năm mẫu bằng 1.`; break;
+    case 'ramp': info = `n·u[n] tăng tuyến tính, không bị chặn: tổng tích luỹ của u[n−1].`; break;
+    case 'exp': info = `aⁿu[n] với a = ${a.toFixed(2)}: ` + (Math.abs(a) < 1 ? `|a| < 1 nên suy giảm về 0. Năng lượng Σ|x|² = 1/(1 − a²) = ${(1 / (1 - a * a)).toFixed(3)}.` : (Math.abs(a) === 1 ? '|a| = 1: biên độ không đổi.' : '|a| > 1 nên tăng không giới hạn (không ổn định).')) + (a < 0 ? ' a < 0 nên dấu đổi xen kẽ mỗi mẫu.' : ''); break;
+    case 'sin':
+    case 'cexp': info = `ω₀ = ${val('s1w').toFixed(2)}π rad/mẫu. ω₀/2π = ${r100}/200 = ${r100 / g}/${200 / g}` + (r100 === 0 ? ' : tín hiệu hằng.' : ` → tuần hoàn với chu kỳ N = ${per} mẫu (sin rời rạc chỉ tuần hoàn khi ω₀/2π là số hữu tỉ).`) + (val('s1w') > 1 ? `\nω₀ > π: các mẫu trùng với tần số 2π − ω₀ = ${(2 - val('s1w')).toFixed(2)}π${type === 'cexp' ? ' nhưng quay ngược chiều (phần ảo đổi dấu)' : ''}. Tần số “nhanh nhất” của tín hiệu rời rạc là π (đổi dấu mỗi mẫu).` : ''); break;
+    case 'damped': info = `aⁿcos(ω₀n): đường bao mũ a = ${a.toFixed(2)} nhân với dao động. Đây chính là đáp ứng xung của hệ có cặp cực phức tại a·e^(±jω₀) (chương 9).`; break;
+  }
+  $('s1info').textContent = info;
+});
+bind(['s1type', 's1n0', 's1a', 's1w'], demos[demos.length - 1]);
+
+demo(function c1b() {
+  const k = val('s1k'), M = val('s1M'), sg = $('s1flip').checked ? -1 : 1;
+  out('s1kO', k); out('s1MO', M);
+  const X = { '-1': 0.5, 0: 1, 1: 2, 2: 3, 3: 1.5, 4: -1 };
+  const xv = n => X[n] || 0;
+  const ns = range(-10, 10);
+  const p1 = new Plot($('c1b')).range(-10.8, 10.8, -1.6, 3.6).frame({ xt: 2, xl: 'n' });
+  p1.stem(ns, ns.map(xv), COL.trace);
+  const ys = ns.map(n => xv(sg * M * n - k));
+  const p2 = new Plot($('c1c')).range(-10.8, 10.8, -1.6, 3.6).frame({ xt: 2, xl: 'n' });
+  p2.stem(ns, ns.map(xv), alpha(COL.trace, .22), 2);
+  p2.stem(ns, ys, COL.sample);
+  const expr = `x[${sg < 0 ? '−' : ''}${M > 1 ? M : ''}n ${k >= 0 ? '−' : '+'} ${Math.abs(k)}]`;
+  let s = `y[n] = ${expr}\n`;
+  s += `Bước 1 (dịch): v[n] = x[n ${k >= 0 ? '−' : '+'} ${Math.abs(k)}] → ${k > 0 ? `trễ (sang phải) ${k} mẫu` : k < 0 ? `sớm (sang trái) ${-k} mẫu` : 'không dịch'}.\n`;
+  s += `Bước 2 (${sg < 0 ? 'lật' : ''}${sg < 0 && M > 1 ? ' + ' : ''}${M > 1 ? 'co' : ''}${sg > 0 && M === 1 ? 'giữ nguyên' : ''}): y[n] = v[${sg < 0 ? '−' : ''}${M > 1 ? M : ''}n]`;
+  s += sg < 0 ? ' → gương qua n = 0' : '';
+  s += M > 1 ? `, chỉ giữ mẫu có chỉ số chia hết cho ${M} rồi dồn lại (mất thông tin!)` : '';
+  s += `.\nCách khác: y[n] = x[${sg < 0 ? '−' : ''}${M > 1 ? M : ''}(n ${(sg * k) >= 0 ? '−' : '+'} ${fmt(Math.abs(k / M), 2).replace(/\.?0+$/, '')})] → ${sg < 0 ? 'lật/co trước, rồi dịch theo chiều ngược' : 'co trước rồi dịch k/M'}. Kết quả như nhau.\n`;
+  const pairs = ns.filter(n => ys[ns.indexOf(n)] !== 0).map(n => `y[${n}] = x[${sg * M * n - k}] = ${xv(sg * M * n - k)}`);
+  s += 'Kiểm tra: ' + (pairs.join(';  ') || 'mọi mẫu bằng 0 trong khung');
+  $('s1tx').textContent = s;
+});
+bind(['s1k', 's1M', 's1flip'], demos[demos.length - 1]);
+
+/* ================= C2: lấy mẫu ================= */
+const aliasOf = (f, fs) => Math.abs(f - fs * Math.round(f / fs));
+demo(function c2() {
+  const f = val('s2f'), fs = val('s2fs'); out('s2fo', f.toFixed(1)); out('s2fso', fs.toFixed(1));
+  const fa = aliasOf(f, fs), T = 1;
+  const p = new Plot($('c2a')).range(0, T, -1.3, 1.3).frame({ xt: 0.1, xl: 't (s)' });
+  p.clip();
+  p.fn(t => Math.cos(TAU * f * t), alpha(COL.trace, .9), 1.5, 1600);
+  if (Math.abs(fa - f) > 1e-6) p.fn(t => Math.cos(TAU * fa * t), COL.a4, 2.4, 800, [6, 4]);
+  const ns = [], vs = [];
+  for (let n = 0; n / fs <= T + 1e-9; n++) { ns.push(n / fs); vs.push(Math.cos(TAU * f * n / fs)); }
+  p.stem(ns, vs, COL.sample, 4);
+  p.unclip();
+  // biểu đồ gấp tần số
+  const fmax = 42, q = new Plot($('c2b')); q.m.b = 26;
+  q.range(0, fmax, 0, Math.max(fs / 2, 1) * 1.25).frame({ xl: 'f (Hz)', yl: 'f_alias', yt: niceStep(fs / 2 * 1.25, 3) });
+  const xs = [], ys = [];
+  for (let i = 0; i <= 840; i++) { const v = fmax * i / 840; xs.push(v); ys.push(aliasOf(v, fs)); }
+  q.line(xs, ys, COL.muted, 1.4);
+  for (let k = 1; k * fs / 2 <= fmax; k++) q.vline(k * fs / 2, alpha(k % 2 ? COL.warn : COL.muted, .6), [3, 4]);
+  q.text('fs/2', fs / 2 + 0.4, Math.max(fs / 2, 1) * 1.15, COL.warn, 'left');
+  q.seg(f, 0, f, fa, COL.trace, 1.2, [2, 3]); q.seg(0, fa, f, fa, COL.a4, 1.2, [2, 3]);
+  q.dot(f, fa, f > fs / 2 ? COL.a4 : COL.a3, 5);
+  const ok = f < fs / 2;
+  $('s2info').innerHTML = `Tần số Nyquist fs/2 = <b>${(fs / 2).toFixed(2)} Hz</b>. ω = 2πf/fs = <b>${(2 * f / fs).toFixed(3)}π</b> rad/mẫu. ` +
+    (ok ? `<span class="pill good">Đúng điều kiện</span> f &lt; fs/2: mẫu dựng lại đúng sin ${f.toFixed(1)} Hz.`
+      : `<span class="pill bad">Chồng phổ</span> f ≥ fs/2: các mẫu giống hệt một sin <b>${fa.toFixed(2)} Hz</b> (= |${f.toFixed(1)} − ${Math.round(f / fs)}·${fs}|). Bộ khôi phục sẽ cho ra sin ${fa.toFixed(2)} Hz, sai tần số.`) +
+    ` Cần fs &gt; ${(2 * f).toFixed(1)} Hz để lấy mẫu đúng tín hiệu này.`;
+});
+bind(['s2f', 's2fs'], demos[demos.length - 1]);
+$('s2play').onclick = () => {
+  const f = val('s2f') * 100, fa = aliasOf(val('s2f'), val('s2fs')) * 100, sr = 44100, L = Math.round(sr * 0.7);
+  const a = new Float32Array(L), b = new Float32Array(L);
+  for (let i = 0; i < L; i++) { a[i] = Math.sin(TAU * f * i / sr); b[i] = fa > 1 ? Math.sin(TAU * fa * i / sr) : 0; }
+  playSamples(a, sr, 0); playSamples(b, sr, 0.85);
+};
+
+/* ================= C3: lượng tử ================= */
+function quantMidRise(x, N, dither, r) {
+  const D = 2 / Math.pow(2, N);
+  let v = x + (dither ? (r() - r()) * D : 0);
+  let q = D * (Math.floor(v / D) + 0.5);
+  return clamp(q, -1 + D / 2, 1 - D / 2);
+}
+demo(function c3() {
+  const N = val('s3b'), A = val('s3a'), dith = $('s3dith').checked; out('s3bo', N); out('s3ao', A.toFixed(2));
+  const fs = 80, f = 2, r = rng(7);
+  const ts = [], xq = [], er = [];
+  for (let n = 0; n < fs; n++) { const t = n / fs, x = A * Math.sin(TAU * f * t + 0.3); const q = quantMidRise(x, N, dith, r); ts.push(t); xq.push(q); er.push(q - x); }
+  const D = 2 / Math.pow(2, N);
+  const p = new Plot($('c3a')).range(0, 1, -1.15, 1.15).frame({ xt: 0.1, xl: 't' });
+  if (N <= 6) for (let l = 0; l < Math.pow(2, N); l++) p.hline(-1 + D / 2 + l * D, alpha(COL.muted, .35), [2, 4], 1);
+  p.fn(t => A * Math.sin(TAU * f * t + 0.3), COL.trace, 1.8);
+  const sx = [], sy = []; for (let i = 0; i < ts.length; i++) { sx.push(ts[i], ts[i] + 1 / fs); sy.push(xq[i], xq[i]); }
+  p.line(sx, sy, COL.sample, 1.8);
+  const q = new Plot($('c3b')); const em = Math.max(D / 2 * 1.4, 1e-6);
+  q.range(0, 1, -em, em).frame({ xt: 0.1, yt: niceStep(2 * em, 3), yf: v => (v / D).toFixed(2) + 'Δ', yl: 'e[n] (đơn vị Δ)' });
+  q.hline(D / 2, COL.warn); q.hline(-D / 2, COL.warn);
+  q.stem(ts, er, COL.a4, 2);
+  // đo SQNR với nhiều mẫu
+  let ps = 0, pe = 0; const r2 = rng(11);
+  for (let n = 0; n < 20000; n++) { const x = A * Math.sin(TAU * 0.01234567 * n); const qq = quantMidRise(x, N, dith, r2); ps += x * x; pe += (qq - x) * (qq - x); }
+  const meas = 10 * Math.log10(ps / pe), theo = 6.02 * N + 1.76 + 20 * Math.log10(A);
+  $('s3info').textContent =
+    `Số mức: 2^${N} = ${Math.pow(2, N)}        Bước Δ = 2/2^${N} = ${D.toPrecision(4)}        |e| ≤ Δ/2 = ${(D / 2).toPrecision(4)}\n` +
+    `SQNR lý thuyết  = 6.02·${N} + 1.76 + 20log10(${A.toFixed(2)}) = ${theo.toFixed(2)} dB\n` +
+    `SQNR đo được    = ${meas.toFixed(2)} dB` + (N <= 2 ? '   (N rất nhỏ: giả thiết nhiễu đều không còn đúng)' : '') + (dith ? '\nDither làm nhiễu lớn hơn chút nhưng phá vỡ tương quan giữa sai số và tín hiệu (hết méo hài).' : '');
+});
+bind(['s3b', 's3a', 's3dith'], demos[demos.length - 1]);
+
+/* ================= C4: tích chập ================= */
+const parseList = s => s.split(/[,;\s]+/).map(v => parseFloat(v.replace('−', '-'))).filter(v => isFinite(v)).slice(0, 10);
+let c4timer = null;
+const c4 = demo(function c4() {
+  let x = parseList($('s4x').value), h = parseList($('s4h').value);
+  if (!x.length) x = [1]; if (!h.length) h = [1];
+  const y = conv(x, h), Lx = x.length, Lh = h.length;
+  const sl = $('s4n'); sl.min = -2; sl.max = Lx + Lh; const n = val('s4n'); out('s4no', n);
+  const kmin = -Lh - 1, kmax = Lx + Lh + 1, ks = range(kmin, kmax);
+  const xk = ks.map(k => (k >= 0 && k < Lx) ? x[k] : 0);
+  const hk = ks.map(k => (n - k >= 0 && n - k < Lh) ? h[n - k] : 0);
+  const pr = ks.map((k, i) => xk[i] * hk[i]);
+  const [lo, hi] = autoY([x, h], .15, 1);
+  const p = new Plot($('c4a')).range(kmin - .8, kmax + .8, lo, hi).frame({ xt: 1, xl: 'k' });
+  p.stem(ks.map(k => k - .12), xk, COL.trace, 3.5);
+  p.stem(ks.map(k => k + .12), hk, COL.sample, 3.5);
+  p.vline(n, alpha(COL.sample, .6));
+  p.text(`h[${n} − k]`, n + .3, hi - (hi - lo) * .08, COL.sample);
+  p.text('x[k]', kmin - .4, hi - (hi - lo) * .08, COL.trace);
+  const [plo, phi] = autoY([pr, y.map(v => v / 2)], .15, 1);
+  const q = new Plot($('c4b')).range(kmin - .8, kmax + .8, plo, phi).frame({ xt: 1, xl: 'k' });
+  q.stem(ks, pr, COL.a4, 3.5);
+  const nsY = range(kmin, kmax), yv = nsY.map(m => (m >= 0 && m < y.length) ? y[m] : 0);
+  const [ylo, yhi] = autoY([y], .15, 1);
+  const r = new Plot($('c4c')).range(kmin - .8, kmax + .8, ylo, yhi).frame({ xt: 1, xl: 'n' });
+  r.stem(nsY, yv, alpha(COL.a3, .22), 2.5);
+  r.stem(nsY.filter(m => m <= n), yv.filter((_, i) => nsY[i] <= n), COL.a3, 3.5);
+  if (n >= kmin && n <= kmax) r.dot(n, (n >= 0 && n < y.length) ? y[n] : 0, COL.sample, 6, true);
+  const terms = [];
+  for (let k = 0; k < Lx; k++) if (n - k >= 0 && n - k < Lh) terms.push([k, x[k], h[n - k]]);
+  const yn = (n >= 0 && n < y.length) ? y[n] : 0;
+  let s = `y[${n}] = Σₖ x[k]·h[${n} − k]\n`;
+  if (!terms.length) s += `     = 0   (h[${n} − k] không chồng lên x[k] nào)`;
+  else {
+    s += '     = ' + terms.map(([k]) => `x[${k}]·h[${n - k}]`).join(' + ') + '\n';
+    s += '     = ' + terms.map(([, a, b]) => `${fmt(a, 2)}·${fmt(b, 2)}`).join(' + ') + '\n';
+    s += '     = ' + terms.map(([, a, b]) => fmt(a * b, 2)).join(' + ') + ` = ${fmt(yn, 3)}`;
+  }
+  s += `\nĐộ dài: ${Lx} + ${Lh} − 1 = ${y.length} mẫu. y = [${y.map(v => fmt(v, 2)).join(', ')}]`;
+  $('s4info').textContent = s;
+});
+bind(['s4x', 's4h', 's4n'], c4);
+$('s4play').onclick = () => {
+  if (c4timer) { clearInterval(c4timer); c4timer = null; $('s4play').textContent = '▶ Chạy'; return; }
+  const sl = $('s4n'); sl.value = sl.min; c4();
+  $('s4play').textContent = '■ Dừng';
+  c4timer = setInterval(() => {
+    if (+sl.value >= +sl.max) { clearInterval(c4timer); c4timer = null; $('s4play').textContent = '▶ Chạy'; return; }
+    sl.value = +sl.value + 1; c4();
+  }, 750);
+};
+{
+  const presets = [['1, 2, 3, 1', '1, 1, 0.5'], ['1, 1, 1, 1, 1', '1, 1, 1, 1, 1'], ['0, 0, 1, 0, 0, -1', '1, 0.5, 0.25, 0.125'], ['1, -1, 1, -1, 1, -1', '0.5, 0.5'], ['2, 1', '1, 0, 0, 0, -1']];
+  let pi = 0;
+  $('s4preset').onclick = () => { pi = (pi + 1) % presets.length; $('s4x').value = presets[pi][0]; $('s4h').value = presets[pi][1]; $('s4n').value = 0; c4(); };
+}
+
+/* ================= C5: phương trình sai phân ================= */
+demo(function c5() {
+  const typ = $('s5in').value, al = val('s5a'), b0 = val('s5b0'), b1 = val('s5b1');
+  out('s5ao', al.toFixed(2)); out('s5b0o', b0.toFixed(2)); out('s5b1o', b1.toFixed(2));
+  const L = 40, r = rng(5), x = [];
+  for (let n = 0; n < L; n++) {
+    x.push(typ === 'imp' ? (n === 0 ? 1 : 0) : typ === 'step' ? 1 : typ === 'sq' ? ((Math.floor(n / 8) % 2) ? 0 : 1) : Math.sin(TAU * n / 20) + 0.4 * r.n());
+  }
+  const y = Array.from(filt([b0, b1], [1, -al], x));
+  const ns = range(0, L - 1);
+  const [lo, hi] = autoY([x, y], .1, 1);
+  const p = new Plot($('c5a')).range(-.8, L - .2, lo, hi).frame({ xt: 5, xl: 'n' });
+  p.stem(ns.map(n => n - .15), x, alpha(COL.trace, .75), 2.5);
+  p.stem(ns.map(n => n + .15), y, COL.a3, 3);
+  const st = Math.abs(al) < 1 ? '<span class="pill good">Ổn định: |α| &lt; 1</span>' : Math.abs(al) === 1 ? '<span class="pill warn">Biên ổn định: |α| = 1</span>' : '<span class="pill bad">Không ổn định: |α| &gt; 1</span>';
+  $('s5stab').innerHTML = st + (al < 0 ? ' α &lt; 0: đáp ứng đổi dấu xen kẽ (đặc tính thông cao)' : '');
+  let rows = '<thead><tr><th>n</th><th>x[n]</th><th>x[n−1]</th><th>y[n−1]</th><th>y[n] = b₀x[n] + b₁x[n−1] + α·y[n−1]</th></tr></thead><tbody>';
+  for (let n = 0; n < 8; n++) {
+    const x1 = n ? x[n - 1] : 0, y1 = n ? y[n - 1] : 0;
+    rows += `<tr><td class="num">${n}</td><td class="num">${fmt(x[n], 3)}</td><td class="num">${fmt(x1, 3)}</td><td class="num">${fmt(y1, 3)}</td><td class="num">${fmt(b0, 2)}·${fmt(x[n], 3)} + ${fmt(b1, 2)}·${fmt(x1, 3)} + ${fmt(al, 2)}·${fmt(y1, 3)} = <b>${fmt(y[n], 4)}</b></td></tr>`;
+  }
+  $('s5tab').innerHTML = rows + '</tbody>';
+});
+bind(['s5in', 's5a', 's5b0', 's5b1'], demos[demos.length - 1]);
+
+/* ================= C6: đáp ứng tần số ================= */
+demo(function c6() {
+  const M = val('s6M'), w0 = val('s6w') * PI; out('s6Mo', M); out('s6wo', val('s6w').toFixed(3) + 'π');
+  const h = new Array(M).fill(1 / M), F = freqz(h, [1], 600);
+  const pa = new Plot($('c6a')).range(0, PI, 0, 1.1).frame({ xt: PI / 4, xf: piF, xl: 'ω' });
+  pa.line(F.w, F.mag, COL.a3, 2);
+  for (let k = 1; 2 * k / M <= 1; k++) pa.dot(TAU * k / M, 0, COL.bad, 3);
+  const [hr, hi] = H_at(h, [1], w0), mag = Math.hypot(hr, hi), ph = Math.atan2(hi, hr);
+  pa.vline(w0, COL.sample); pa.dot(w0, mag, COL.sample, 5);
+  const pb = new Plot($('c6b')).range(0, PI, -PI * 1.1, PI * 1.1).frame({ xt: PI / 4, xf: piF, yt: PI / 2, yf: v => piF(v), xl: 'ω' });
+  pb.line(F.w, F.ph, COL.a4, 1.8);
+  pb.fn(w => -w * (M - 1) / 2, alpha(COL.muted, .6), 1, 200, [3, 3]);
+  pb.vline(w0, COL.sample); pb.dot(w0, ph, COL.sample, 5);
+  const L = 48, x = range(0, L - 1).map(n => Math.cos(w0 * n)), y = filt(h, [1], x);
+  const pc = new Plot($('c6c')).range(-.5, L - .5, -1.3, 1.3).frame({ xt: 4, xl: 'n' });
+  pc.fn(t => Math.cos(w0 * t), alpha(COL.trace, .3), 1, 600);
+  pc.stem(range(0, L - 1).map(n => n - .12), x, COL.trace, 2.5);
+  pc.stem(range(0, L - 1).map(n => n + .12), Array.from(y), COL.a3, 3);
+  pc.fn(t => mag * Math.cos(w0 * t + ph), alpha(COL.a3, .45), 1.2, 600, [4, 3]);
+  pc.x.fillStyle = alpha(COL.muted, .12); pc.x.fillRect(pc.X(-.5), pc.m.t, pc.X(M - 1.5) - pc.X(-.5), pc.h - pc.m.t - pc.m.b);
+  pc.text('quá độ', (M - 2) / 2, 1.15, COL.muted, 'center');
+  const delay = w0 > 1e-6 ? -ph / w0 : (M - 1) / 2;
+  $('s6info').textContent =
+    `H(e^jω₀) = ${cfmt(hr, hi, 4)}  →  |H| = ${mag.toFixed(4)} (${dB(mag).toFixed(2)} dB),  ∠H = ${ph.toFixed(4)} rad\n` +
+    `Đầu ra (sau quá độ ${M - 1} mẫu): y[n] = ${mag.toFixed(3)}·cos(${val('s6w').toFixed(3)}πn ${ph < 0 ? '−' : '+'} ${Math.abs(ph).toFixed(3)})\n` +
+    `Độ trễ pha −∠H/ω₀ = ${delay.toFixed(2)} mẫu` + (Math.abs(delay - (M - 1) / 2) < 0.01 ? ` = (M−1)/2 đúng như lý thuyết pha tuyến tính.` : ` (khác (M−1)/2 = ${(M - 1) / 2} vì biên độ thực A(ω) đổi dấu → pha nhảy π).`) +
+    `\nĐiểm không của |H| (chấm đỏ) tại ω = 2πk/${M}: sin có đúng k chu kỳ trong ${M} mẫu bị triệt tiêu hoàn toàn.`;
+});
+bind(['s6M', 's6w'], demos[demos.length - 1]);
+
+/* ================= C7: DFT từng bước ================= */
+let c7timer = null;
+function c7sig(type, N) {
+  return range(0, N - 1).map(n => {
+    switch (type) {
+      case 'c2': return Math.cos(TAU * 2 * n / N);
+      case 'mix': return 1 + Math.cos(TAU * 2 * n / N) + 0.5 * Math.sin(TAU * 5 * n / N);
+      case 'rect': return n < 4 ? 1 : 0;
+      case 'c25': return Math.cos(TAU * 2.5 * n / N);
+      case 'imp': return n === 1 ? 1 : 0;
+    }
+    return 0;
+  });
+}
+const c7 = demo(function c7() {
+  const N = +$('s7N').value; const ks = $('s7k'), ms = $('s7m');
+  ks.max = N - 1; if (+ks.value > N - 1) ks.value = N - 1;
+  ms.max = N; if (+ms.value > N) ms.value = N;
+  const k = +ks.value, m = +ms.value; out('s7ko', k); out('s7mo', m);
+  const x = c7sig($('s7sig').value, N);
+  const X = dft(x), mag = X.re.map((r, i) => Math.hypot(r, X.im[i]));
+  // (a) tín hiệu và hàm cơ sở
+  const [lo, hi] = autoY([x], .1, 2);
+  const lim = Math.max(Math.abs(lo), Math.abs(hi), 1.2);
+  const pa = new Plot($('c7a')).range(-.6, N - .4, -lim, lim).frame({ xt: N <= 16 ? 2 : 4, xl: 'n' });
+  pa.fn(t => Math.cos(TAU * k * t / N), alpha(COL.a3, .8), 1.4, 600, [5, 3]);
+  pa.fn(t => -Math.sin(TAU * k * t / N), alpha(COL.a4, .8), 1.4, 600, [2, 3]);
+  pa.stem(range(0, N - 1), x, alpha(COL.trace, .35), 2.5);
+  pa.stem(range(0, m - 1), x.slice(0, m), COL.trace, 3.5);
+  // (b) đi bộ vectơ
+  let cr = 0, ci = 0; const pts = [[0, 0]];
+  for (let n = 0; n < m; n++) { const a = -TAU * k * n / N; cr += x[n] * Math.cos(a); ci += x[n] * Math.sin(a); pts.push([cr, ci]); }
+  let R = 1; let tr = 0, ti = 0;
+  for (let n = 0; n < N; n++) { const a = -TAU * k * n / N; tr += x[n] * Math.cos(a); ti += x[n] * Math.sin(a); R = Math.max(R, Math.hypot(tr, ti)); }
+  R = Math.max(R, ...x.map(Math.abs)) * 1.15;
+  const pb = new Plot($('c7b')); pb.m = { l: 36, r: 10, t: 10, b: 22 };
+  pb.equal(0, 0, R).frame({ yAxis0: true, xl: 'Re', yl: 'Im' });
+  const huesN = Math.max(1, m);
+  for (let n = 0; n < m; n++) {
+    const c = n === m - 1 ? COL.sample : alpha(COL.trace, 0.35 + 0.6 * (n + 1) / huesN);
+    pb.arrow(pts[n][0], pts[n][1], pts[n + 1][0], pts[n + 1][1], c, 1.8);
+  }
+  pb.arrow(0, 0, cr, ci, COL.a3, 2.8);
+  pb.dot(cr, ci, COL.a3, 4);
+  // (c) phổ
+  const pc = new Plot($('c7c')).range(-.6, N - .4, 0, Math.max(...mag) * 1.15 + 1e-9).frame({ xt: N <= 16 ? 1 : 2, xl: 'k' });
+  pc.stem(range(0, N - 1), mag, alpha(COL.a3, .8), 3);
+  pc.stem([k], [mag[k]], COL.sample, 5, 3);
+  pc.vline(N / 2, alpha(COL.muted, .7));
+  pc.text(' N/2', N / 2, Math.max(...mag) * 1.08, COL.muted);
+  // bảng
+  let s = ` n   x[n]     góc −2πkn/N     x[n]·e^(−j2πkn/N)        tổng dồn\n`;
+  let ar = 0, ai = 0;
+  for (let n = 0; n < N && n < 16; n++) {
+    const a = -TAU * k * n / N, tr2 = x[n] * Math.cos(a), ti2 = x[n] * Math.sin(a);
+    if (n < m) { ar += tr2; ai += ti2; }
+    const angDeg = ((a * 180 / PI) % 360 + 360) % 360;
+    s += `${String(n).padStart(2)}  ${fmt(x[n], 3).padStart(7)}   ${(angDeg.toFixed(1) + '°').padStart(8)}      ${cfmt(tr2, ti2, 3).padEnd(22)}  ${n < m ? cfmt(ar, ai, 3) : '·'}\n`;
+  }
+  if (N > 16) s += ` … (${N - 16} dòng nữa)\n`;
+  s += `\nX[${k}] = ${cfmt(X.re[k], X.im[k], 4)}   |X[${k}]| = ${mag[k].toFixed(4)}   ∠X[${k}] = ${(Math.atan2(X.im[k], X.re[k])).toFixed(3)} rad`;
+  s += `\nTần số bin: f = ${k}·fs/${N}` + (k > N / 2 ? `  (k > N/2 là tần số âm: tương ứng −${N - k}·fs/${N}; với x thực X[${k}] = X*[${N - k}])` : '');
+  $('s7info').textContent = s;
+});
+bind(['s7sig', 's7N', 's7k', 's7m'], c7);
+$('s7play').onclick = () => {
+  if (c7timer) { clearInterval(c7timer); c7timer = null; $('s7play').textContent = '▶ Cộng dần'; return; }
+  const ms = $('s7m'); ms.value = 0; c7(); $('s7play').textContent = '■ Dừng';
+  c7timer = setInterval(() => {
+    if (+ms.value >= +ms.max) { clearInterval(c7timer); c7timer = null; $('s7play').textContent = '▶ Cộng dần'; return; }
+    ms.value = +ms.value + 1; c7();
+  }, Math.max(120, 3200 / +$('s7N').value));
+};
+
+/* ================= C8: FFT bướm ================= */
+let s8stage = 0;
+const bitrev3 = i => ((i & 1) << 2) | (i & 2) | ((i & 4) >> 2);
+const c8 = demo(function c8() {
+  let x = parseList($('s8x').value); while (x.length < 8) x.push(0); x = x.slice(0, 8);
+  // tính giá trị tại mọi tầng
+  const st = [];
+  let re = range(0, 7).map(i => x[bitrev3(i)]), im = new Array(8).fill(0);
+  st.push({ re: re.slice(), im: im.slice() });
+  const ops = [];
+  for (let s = 1; s <= 3; s++) {
+    const len = 1 << s, half = len >> 1, nr = re.slice(), ni = im.slice(), o = [];
+    for (let i = 0; i < 8; i += len) for (let k = 0; k < half; k++) {
+      const a = i + k, b = a + half, tw = 8 / len * k, ang = -TAU * tw / 8, wr = Math.cos(ang), wi = Math.sin(ang);
+      const tr = re[b] * wr - im[b] * wi, ti = re[b] * wi + im[b] * wr;
+      nr[a] = re[a] + tr; ni[a] = im[a] + ti; nr[b] = re[a] - tr; ni[b] = im[a] - ti;
+      o.push({ a, b, tw, tr, ti });
+    }
+    re = nr; im = ni; st.push({ re: re.slice(), im: im.slice() }); ops.push(o);
+  }
+  const S = s8stage;
+  const c = $('c8a'), p = new Plot(c); const W = p.w, H = p.h, x0 = 70, x1 = W - 110, top = 30, rowH = (H - top - 20) / 7;
+  const colX = s => x0 + (x1 - x0) * s / 3, rowY = r => top + r * rowH;
+  const g = p.x; g.font = p.font;
+  g.textAlign = 'center'; g.textBaseline = 'top'; g.fillStyle = COL.muted;
+  ['Đầu vào (đảo bit)', 'Tầng 1: DFT 2 điểm', 'Tầng 2: DFT 4 điểm', 'Tầng 3: DFT 8 điểm'].forEach((t, s) => g.fillText(t, colX(s), 4));
+  for (let s = 1; s <= 3; s++) for (const o of ops[s - 1]) {
+    const act = s <= S, cur = s === S;
+    const col = cur ? COL.sample : act ? alpha(COL.trace, .55) : alpha(COL.muted, .18);
+    g.lineWidth = cur ? 2 : 1.2; g.strokeStyle = col;
+    g.beginPath(); g.moveTo(colX(s - 1), rowY(o.a)); g.lineTo(colX(s), rowY(o.a)); g.moveTo(colX(s - 1), rowY(o.b)); g.lineTo(colX(s), rowY(o.a));
+    g.moveTo(colX(s - 1), rowY(o.a)); g.lineTo(colX(s), rowY(o.b)); g.moveTo(colX(s - 1), rowY(o.b)); g.lineTo(colX(s), rowY(o.b)); g.stroke();
+    if (cur) {
+      g.fillStyle = COL.a4; g.textAlign = 'left'; g.textBaseline = 'middle';
+      g.fillText('W' + o.tw, colX(s - 1) + 6, rowY(o.b) - 8);
+      g.fillStyle = COL.bad; g.fillText('−1', colX(s) - 20, rowY(o.b) - 8);
+    }
+  }
+  for (let s = 0; s <= 3; s++) for (let r = 0; r < 8; r++) {
+    const vis = s <= S;
+    g.fillStyle = vis ? (s === S ? COL.sample : COL.trace) : COL.grid;
+    g.beginPath(); g.arc(colX(s), rowY(r), 4, 0, TAU); g.fill();
+    if (vis) {
+      g.fillStyle = COL.ink; g.textBaseline = 'bottom';
+      g.textAlign = s === 3 ? 'left' : 'center';
+      const t = cfmt(st[s].re[r], st[s].im[r], 2);
+      g.fillText(t, s === 3 ? colX(s) + 8 : colX(s), rowY(r) - 5);
+    }
+  }
+  g.textAlign = 'right'; g.textBaseline = 'middle'; g.fillStyle = COL.muted;
+  for (let r = 0; r < 8; r++) g.fillText(`x[${bitrev3(r)}]`, x0 - 12, rowY(r));
+  if (S === 3) { g.textAlign = 'left'; g.fillStyle = COL.a3; for (let r = 0; r < 8; r++) g.fillText(`X[${r}]`, colX(3) + 8, rowY(r) + 9); }
+  $('s8stage').textContent = S === 0 ? 'Tầng 0 / 3: sắp xếp lại đầu vào' : `Tầng ${S} / 3`;
+  $('s8prev').disabled = S === 0; $('s8next').disabled = S === 3;
+  let s = '';
+  if (S === 0) s = 'Đảo bit chỉ số: 0(000)→0, 1(001)→4(100), 2(010)→2, 3(011)→6(110), 4→1, 5→5, 6→3, 7→7.\nNhờ vậy mọi phép bướm sau đó tính được tại chỗ, không cần bộ nhớ phụ.';
+  else {
+    const len = 1 << S;
+    s = `Tầng ${S}: ghép các DFT ${len / 2} điểm thành DFT ${len} điểm. Hệ số xoay W${len}^k = W8^(${8 / len}k), W8^m = e^(−j2πm/8).\n`;
+    for (const o of ops[S - 1]) {
+      const A = st[S - 1], wr = Math.cos(-TAU * o.tw / 8), wi = Math.sin(-TAU * o.tw / 8);
+      s += `• a=${o.a}, b=${o.b}: W8^${o.tw} = ${cfmt(wr, wi, 3)};  t = W·[${cfmt(A.re[o.b], A.im[o.b], 2)}] = ${cfmt(o.tr, o.ti, 3)};  ` +
+        `out[${o.a}] = ${cfmt(A.re[o.a], A.im[o.a], 2)} + t = ${cfmt(st[S].re[o.a], st[S].im[o.a], 3)};  out[${o.b}] = ${cfmt(A.re[o.a], A.im[o.a], 2)} − t = ${cfmt(st[S].re[o.b], st[S].im[o.b], 3)}\n`;
+    }
+    if (S === 3) {
+      const D = dft(x); let e = 0; for (let k = 0; k < 8; k++) e = Math.max(e, Math.hypot(D.re[k] - st[3].re[k], D.im[k] - st[3].im[k]));
+      s += `\nKiểm tra với DFT trực tiếp (64 phép nhân phức): sai lệch lớn nhất = ${e.toExponential(2)}. FFT chỉ dùng 12 phép nhân (thực chất ít hơn vì W8^0 = 1, W8^2 = −j).`;
+    }
+  }
+  $('s8info').textContent = s;
+});
+$('s8next').onclick = () => { s8stage = Math.min(3, s8stage + 1); c8(); };
+$('s8prev').onclick = () => { s8stage = Math.max(0, s8stage - 1); c8(); };
+bind(['s8x'], c8);
+
+demo(function c8b() {
+  const pSel = val('s8p'); out('s8po', pSel);
+  const ps = range(1, 20), d = ps.map(p => 2 * p * Math.LN2 / Math.LN10), f = ps.map(p => Math.log10(Math.pow(2, p) / 2 * p));
+  const pl = new Plot($('c8b')).range(1, 20, 0, 13).frame({ xt: 1, yt: 2, yf: v => '10^' + v, xl: 'p (N = 2^p)' });
+  pl.line(ps, d, COL.bad, 2); pl.line(ps, f, COL.a3, 2);
+  pl.vline(pSel, COL.sample);
+  pl.dot(pSel, 2 * pSel * Math.LN2 / Math.LN10, COL.bad, 5); pl.dot(pSel, Math.log10(Math.pow(2, pSel) / 2 * pSel), COL.a3, 5);
+  pl.text('DFT: N²', 15, 2 * 15 * Math.LN2 / Math.LN10 + .8, COL.bad, 'right');
+  pl.text('FFT: (N/2)·log₂N', 19.6, Math.log10(Math.pow(2, 19) / 2 * 19) - 1, COL.a3, 'right');
+  const N = Math.pow(2, pSel), dd = N * N, ff = N / 2 * pSel;
+  const tm = v => { const s = v / 1e9; return s < 1e-3 ? (s * 1e6).toFixed(2) + ' µs' : s < 1 ? (s * 1e3).toFixed(2) + ' ms' : s < 3600 ? s.toFixed(2) + ' s' : (s / 3600).toFixed(1) + ' giờ'; };
+  $('s8cmp').textContent = `N = ${N.toLocaleString('vi-VN')}\nDFT trực tiếp: ${dd.toLocaleString('vi-VN')} phép nhân phức  (~${tm(dd)} ở 1 tỉ phép/giây)\nFFT radix-2:   ${ff.toLocaleString('vi-VN')} phép nhân phức  (~${tm(ff)})\nNhanh hơn ${(dd / ff).toLocaleString('vi-VN', { maximumFractionDigits: 1 })} lần`;
+});
+bind(['s8p'], demos[demos.length - 1]);
+
+/* ================= C9: mặt phẳng z ================= */
+const pz = { poles: [], zeros: [], sel: null };
+const PZ_PRESETS = {
+  res: { poles: [[0.9 * Math.cos(PI / 4), 0.9 * Math.sin(PI / 4)]], zeros: [[-1, 0], [1, 0]] },
+  notch: { poles: [[0.92 * Math.cos(PI / 3), 0.92 * Math.sin(PI / 3)]], zeros: [[Math.cos(PI / 3), Math.sin(PI / 3)]] },
+  lp: { poles: [[0.7, 0]], zeros: [[-1, 0]] },
+  hp: { poles: [[-0.6, 0]], zeros: [[1, 0]] },
+  unstable: { poles: [[1.08 * Math.cos(PI / 5), 1.08 * Math.sin(PI / 5)]], zeros: [] }
+};
+function pzLoad(name) { const p = PZ_PRESETS[name]; pz.poles = p.poles.map(v => v.slice()); pz.zeros = p.zeros.map(v => v.slice()); pz.sel = null; }
+pzLoad('res');
+const expand = list => { const r = []; for (const [x, y] of list) { if (Math.abs(y) < 1e-9) r.push([x, 0]); else { r.push([x, y], [x, -y]); } } return r; };
+let c9plot = null;
+const c9 = demo(function c9() {
+  const w = val('s9w') * PI; out('s9wo', val('s9w').toFixed(3) + 'π');
+  const P = expand(pz.poles), Z = expand(pz.zeros);
+  let b = polyFromRoots(Z), a = polyFromRoots(P);
+  const F0 = freqz(b, a, 512); const pk = Math.max(...F0.mag.filter(isFinite)) || 1;
+  b = b.map(v => v / pk);
+  const F = freqz(b, a, 512);
+  const p = new Plot($('c9a')); p.m = { l: 34, r: 10, t: 10, b: 22 };
+  p.equal(0, 0, 1.55).frame({ yAxis0: true, xt: 0.5, yt: 0.5 });
+  p.circle(0, 0, 1, COL.muted, 1.5);
+  const ez = [Math.cos(w), Math.sin(w)];
+  for (const q of Z) p.seg(ez[0], ez[1], q[0], q[1], alpha(COL.a3, .55), 1.3);
+  for (const q of P) p.seg(ez[0], ez[1], q[0], q[1], alpha(COL.sample, .55), 1.3);
+  p.dot(ez[0], ez[1], COL.trace, 5); p.text(' e^jω', ez[0], ez[1] + .1, COL.trace);
+  pz.zeros.forEach((q, i) => {
+    const s = pz.sel && pz.sel.t === 'z' && pz.sel.i === i;
+    p.dot(q[0], q[1], COL.a3, s ? 9 : 7, true); if (Math.abs(q[1]) > 1e-9) p.dot(q[0], -q[1], alpha(COL.a3, .5), 7, true);
+  });
+  pz.poles.forEach((q, i) => {
+    const s = pz.sel && pz.sel.t === 'p' && pz.sel.i === i;
+    p.cross(q[0], q[1], COL.sample, s ? 9 : 7, s ? 3 : 2.2); if (Math.abs(q[1]) > 1e-9) p.cross(q[0], -q[1], alpha(COL.sample, .5), 7);
+  });
+  c9plot = p;
+  const pb = new Plot($('c9b')).range(0, PI, -50, 6).frame({ xt: PI / 4, xf: piF, yt: 10 });
+  pb.line(F.w, F.mag.map(dB), COL.a3, 2);
+  const [hr, hi] = H_at(b, a, w); pb.vline(w, COL.trace); pb.dot(w, clamp(dB(Math.hypot(hr, hi)), -50, 6), COL.trace, 4);
+  const L = 40, imp = new Array(L).fill(0); imp[0] = 1;
+  const h = Array.from(filt(b, a, imp));
+  const [lo, hiY] = autoY([h], .12, .5);
+  const pc = new Plot($('c9c')).range(-.6, L - .4, lo, hiY).frame({ xt: 5 });
+  pc.stem(range(0, L - 1), h, COL.a4, 2.5);
+  const maxP = P.length ? Math.max(...P.map(q => Math.hypot(q[0], q[1]))) : 0;
+  const prodZ = Z.reduce((s, q) => s * Math.hypot(ez[0] - q[0], ez[1] - q[1]), 1), prodP = P.reduce((s, q) => s * Math.hypot(ez[0] - q[0], ez[1] - q[1]), 1);
+  const poly = (c, v) => c.map((x, i) => (i === 0 ? fmt(x, 4) : (x < 0 ? ' − ' : ' + ') + Math.abs(x).toFixed(4) + `${v}^−${i}`)).join('');
+  $('s9info').innerHTML =
+    (maxP < 1 ? `<span class="pill good">Ổn định</span> mọi cực nằm trong vòng tròn đơn vị (max |p| = ${maxP.toFixed(3)})` :
+      `<span class="pill bad">Không ổn định</span> có cực với |p| = ${maxP.toFixed(3)} ≥ 1: h[n] không tắt dần`) + '\n' +
+    `B(z) = ${poly(b, 'z')}\nA(z) = ${poly(a, 'z')}\n` +
+    `Tại ω = ${val('s9w').toFixed(3)}π: Π|e^jω − zero| = ${prodZ.toFixed(4)},  Π|e^jω − cực| = ${prodP.toFixed(4)}  →  |H| = ${fmt(b[0] || 0, 4)}·${prodZ.toFixed(3)}/${prodP.toFixed(3)} = ${Math.hypot(hr, hi).toFixed(4)} (${dB(Math.hypot(hr, hi)).toFixed(1)} dB)`;
+});
+bind(['s9w'], c9);
+$('s9preset').onchange = () => { pzLoad($('s9preset').value); c9(); };
+$('s9addP').onclick = () => { pz.poles.push([0.5 * Math.cos(2.2), 0.5 * Math.sin(2.2)]); pz.sel = { t: 'p', i: pz.poles.length - 1 }; c9(); };
+$('s9addZ').onclick = () => { pz.zeros.push([0.8 * Math.cos(2.6), 0.8 * Math.sin(2.6)]); pz.sel = { t: 'z', i: pz.zeros.length - 1 }; c9(); };
+$('s9del').onclick = () => { if (!pz.sel) return; (pz.sel.t === 'p' ? pz.poles : pz.zeros).splice(pz.sel.i, 1); pz.sel = null; c9(); };
+{
+  const c = $('c9a'); let drag = null;
+  const pos = e => { const r = c.getBoundingClientRect(); return [c9plot.iX(e.clientX - r.left), c9plot.iY(e.clientY - r.top), e.clientX - r.left, e.clientY - r.top]; };
+  c.addEventListener('pointerdown', e => {
+    const [, , px, py] = pos(e); let best = null, bd = 18;
+    const test = (list, t) => list.forEach((q, i) => {
+      for (const s of [1, -1]) { const d = Math.hypot(c9plot.X(q[0]) - px, c9plot.Y(s * q[1]) - py); if (d < bd) { bd = d; best = { t, i, mir: s }; } }
+    });
+    test(pz.poles, 'p'); test(pz.zeros, 'z');
+    pz.sel = best; drag = best; if (best) c.setPointerCapture(e.pointerId); c9();
+  });
+  c.addEventListener('pointermove', e => {
+    if (!drag) return; let [x, y] = pos(e); y *= drag.mir;
+    const R = Math.hypot(x, y); if (R > 1.5) { x *= 1.5 / R; y *= 1.5 / R; }
+    if (Math.abs(y) < 0.04) y = 0;
+    (drag.t === 'p' ? pz.poles : pz.zeros)[drag.i] = [x, Math.abs(y)];
+    c9();
+  });
+  const up = () => { drag = null; };
+  c.addEventListener('pointerup', up); c.addEventListener('pointercancel', up);
+}
+
+/* ================= C10: FIR ================= */
+const TW = { rect: 0.9, hann: 3.1, hamming: 3.3, blackman: 5.5, kaiser: 4.0 };
+const WNAME = { rect: 'Chữ nhật', hann: 'Hann', hamming: 'Hamming', blackman: 'Blackman', kaiser: 'Kaiser β=6' };
+demo(function c10() {
+  const type = $('s10type').value, win = $('s10win').value, N = val('s10N'), wc = val('s10w') * PI, bw = val('s10bw') * PI;
+  out('s10No', N); out('s10wo', val('s10w').toFixed(2) + 'π'); out('s10bwo', val('s10bw').toFixed(2) + 'π');
+  $('s10bw').disabled = type !== 'bp';
+  const { hd, w, h } = firDesign(N, type, wc, bw, win);
+  const ns = range(0, N - 1), [lo, hi] = autoY([hd, h], .12, .3);
+  const pa = new Plot($('c10a')).range(-1, N, lo, hi).frame({ xt: niceStep(N, 6), xl: 'n' });
+  const hmax = Math.max(...h.map(Math.abs)) || 1;
+  pa.line(ns, w.map(v => v * hmax), alpha(COL.a4, .8), 1.4, [5, 3]);
+  pa.stem(ns, hd, alpha(COL.muted, .35), N > 60 ? 0 : 2, 1.2);
+  pa.stem(ns, h, COL.sample, N > 60 ? 1.5 : 2.8);
+  const F = freqz(h, [1], 800), md = F.mag.map(dB);
+  const pb = new Plot($('c10b')).range(0, PI, -110, 10).frame({ xt: PI / 4, xf: piF, yt: 20, xl: 'ω' });
+  const ideal = F.w.map(om => {
+    if (type === 'lp') return om <= wc ? 0 : -200;
+    if (type === 'hp') return om >= wc ? 0 : -200;
+    return (om >= wc - bw / 2 && om <= wc + bw / 2) ? 0 : -200;
+  });
+  pb.line(F.w, ideal, alpha(COL.muted, .8), 1.2, [4, 4]);
+  pb.hline(-3, alpha(COL.warn, .6), [2, 3]);
+  pb.line(F.w, md, COL.a3, 1.8);
+  // đo đạc
+  const tw = TW[win] * TAU / N;
+  const inStop = om => type === 'lp' ? om >= wc + tw : type === 'hp' ? om <= wc - tw : (om <= wc - bw / 2 - tw || om >= wc + bw / 2 + tw);
+  const inPass = om => type === 'lp' ? om <= wc - tw : type === 'hp' ? om >= wc + tw : (om >= wc - bw / 2 + tw && om <= wc + bw / 2 - tw);
+  let sMax = -999, pMin = 999, pMax = -999;
+  F.w.forEach((om, i) => { if (inStop(om)) sMax = Math.max(sMax, md[i]); if (inPass(om)) { pMin = Math.min(pMin, md[i]); pMax = Math.max(pMax, md[i]); } });
+  // áp dụng lên tín hiệu
+  const L = 260, r = rng(9), x = range(0, L - 1).map(n => Math.sin(0.05 * PI * n) + 0.6 * Math.sin(0.6 * PI * n) + 0.25 * r.n());
+  const y = filt(h, [1], x), D = (N - 1) / 2;
+  const pc = new Plot($('c10c')).range(0, L - 1, -2.3, 2.3).frame({ xt: 20, xl: 'n' });
+  pc.line(range(0, L - 1), x, alpha(COL.muted, .55), 1);
+  pc.line(range(0, L - 1 - D), Array.from(y).slice(D), COL.a3, 2);
+  $('s10info').textContent =
+    `Cửa sổ ${WNAME[win]}, N = ${N} hệ số → độ trễ nhóm (N−1)/2 = ${D} mẫu. Chuyển tiếp ước tính ≈ ${TW[win]}·2π/N = ${(tw / PI).toFixed(3)}π.\n` +
+    (sMax > -998 ? `Suy hao dải chặn đo được: ${(-sMax).toFixed(1)} dB` : 'Dải chặn quá hẹp để đo với N hiện tại') +
+    (pMin < 998 ? `   ·   Gợn dải thông: ${(pMax - pMin).toFixed(3)} dB` : '') +
+    `\nhệ số h[0..${Math.min(N, 8) - 1}] = [${h.slice(0, 8).map(v => v.toFixed(5)).join(', ')}${N > 8 ? ', …' : ''}]  (đối xứng: h[n] = h[${N - 1}−n])` +
+    (win === 'rect' ? '\nChú ý gợn ~9% sát mép (Gibbs): tăng N chỉ làm gợn hẹp lại, không thấp đi.' : '');
+});
+bind(['s10type', 's10win', 's10N', 's10w', 's10bw'], demos[demos.length - 1]);
+
+/* ================= C11: IIR Butterworth ================= */
+const FS11 = 8000;
+let c11sig = null;
+function c11signal() {
+  if (c11sig) return c11sig;
+  const L = FS11 * 2, r = rng(21), x = new Float64Array(L);
+  for (let n = 0; n < L; n++) x[n] = 0.5 * Math.sin(TAU * 300 * n / FS11) + 0.25 * Math.sin(TAU * 2500 * n / FS11) + 0.12 * r.n();
+  return (c11sig = x);
+}
+let c11cur = null;
+demo(function c11() {
+  const N = val('s11N'), fc = val('s11f'); out('s11No', N); out('s11fo', fc);
+  const wc = TAU * fc / FS11, B = butter(N, wc); c11cur = B;
+  // (1) mặt phẳng s
+  const Rs = B.Wc * 1.5;
+  const pa = new Plot($('c11a')); pa.m = { l: 34, r: 8, t: 10, b: 22 };
+  pa.equal(0, 0, Rs).frame({ yAxis0: true, xf: v => v.toFixed(1), yf: v => v.toFixed(1), xl: 'σ', yl: 'jΩ' });
+  pa.x.fillStyle = alpha(COL.a3, .07); pa.x.fillRect(pa.m.l, pa.m.t, pa.X(0) - pa.m.l, pa.h - pa.m.t - pa.m.b);
+  pa.circle(0, 0, B.Wc, alpha(COL.muted, .8), 1, [3, 3]);
+  B.sPoles.forEach(q => pa.cross(q[0], q[1], COL.sample, 6));
+  pa.text(`Ωc = tan(ωc/2) = ${B.Wc.toFixed(3)}`, pa.x0 + (pa.x1 - pa.x0) * .03, pa.y0 + (pa.y1 - pa.y0) * .06, COL.muted);
+  // (2) mặt phẳng z
+  const pb = new Plot($('c11b')); pb.m = { l: 34, r: 8, t: 10, b: 22 };
+  pb.equal(0, 0, 1.25).frame({ yAxis0: true, xt: .5, yt: .5 });
+  pb.circle(0, 0, 1, COL.muted, 1.5);
+  B.zPoles.forEach(q => pb.cross(q[0], q[1], COL.sample, 6));
+  pb.dot(-1, 0, COL.a3, 7, true); pb.text(`${N}×`, -1, .16, COL.a3, 'center');
+  const wcz = [Math.cos(wc), Math.sin(wc)]; pb.seg(0, 0, wcz[0], wcz[1], alpha(COL.trace, .6), 1, [3, 3]); pb.text(' ωc', wcz[0], wcz[1], COL.trace);
+  // (3) đáp ứng biên độ
+  const F = freqz(B.b, B.a, 600), taps = 2 * N + 1, fir = firDesign(taps, 'lp', wc, 0, 'hamming').h, F2 = freqz(fir, [1], 600);
+  const hz = F.w.map(o => o / TAU * FS11);
+  const pc = new Plot($('c11c')).range(0, FS11 / 2, -80, 6).frame({ xt: 1000, yt: 20, xl: 'Hz' });
+  pc.hline(-3, alpha(COL.warn, .6), [2, 3]); pc.vline(fc, alpha(COL.trace, .6));
+  pc.line(hz, F2.mag.map(dB), COL.a4, 1.6);
+  pc.line(hz, F.mag.map(dB), COL.a3, 2.2);
+  const at = f => dB(Math.hypot(...H_at(B.b, B.a, TAU * f / FS11)));
+  const cf = c => c.map(v => (v >= 0 ? ' ' : '') + v.toPrecision(5)).join(', ');
+  $('s11info').textContent =
+    `Bước 1  Prewarp: Ωc = tan(π·${fc}/${FS11}) = ${B.Wc.toFixed(5)}\n` +
+    `Bước 2  Cực tương tự: ` + B.sPoles.slice(0, 4).map(q => cfmt(q[0], q[1], 3)).join(';  ') + (N > 4 ? ' …' : '') + '\n' +
+    `Bước 3  z = (1+s)/(1−s): ` + B.zPoles.slice(0, 4).map(q => cfmt(q[0], q[1], 3)).join(';  ') + (N > 4 ? ' …' : '') + `   (|z|max = ${Math.max(...B.zPoles.map(q => Math.hypot(q[0], q[1]))).toFixed(4)})\n` +
+    `Bước 4  Hệ số khuếch đại g = ${B.g.toExponential(4)}\n` +
+    `b = [${cf(B.b)}]\na = [${cf(B.a)}]\n` +
+    `|H| tại fc = ${at(fc).toFixed(2)} dB, tại 2500 Hz = ${at(2500).toFixed(1)} dB.  Cùng ${taps} phép nhân, FIR Hamming chỉ đạt ${dB(Math.hypot(...H_at(fir, [1], TAU * 2500 / FS11))).toFixed(1)} dB tại 2500 Hz.`;
+});
+bind(['s11N', 's11f'], demos[demos.length - 1]);
+$('s11pa').onclick = () => playSamples(c11signal(), FS11);
+$('s11pb').onclick = () => playSamples(filt(c11cur.b, c11cur.a, c11signal()), FS11);
+
+/* ================= C12: rò rỉ phổ & STFT ================= */
+demo(function c12a() {
+  const f1 = val('s12f1'), df = val('s12df'), a2 = val('s12a2'), win = $('s12win').value, zp = val('s12zp');
+  out('s12f1o', f1.toFixed(1)); out('s12dfo', df.toFixed(1)); out('s12a2o', a2 === 0 ? '0' : '−' + Math.abs(a2)); out('s12zpo', zp);
+  const N = 64, nfft = 1 << Math.ceil(Math.log2(N * zp)), A2 = Math.pow(10, a2 / 20), f2 = f1 + df;
+  const w = windowFn(win, N), sw = w.reduce((s, v) => s + v, 0);
+  const x = range(0, N - 1).map(n => (Math.cos(TAU * f1 * n / N) + A2 * Math.cos(TAU * f2 * n / N + 0.7)) * w[n]);
+  const m0 = magSpec(x, N), m1 = magSpec(x, nfft);
+  const p = new Plot($('c12a')).range(0, 32, -100, 6).frame({ xt: 2, yt: 20, xl: 'bin (theo N = 64)', yl: 'dB' });
+  p.clip();
+  p.line(range(0, nfft / 2).map(k => k * N / nfft), Array.from(m1).map(v => dB(2 * v / sw)), COL.trace, 1.6);
+  p.stem(range(0, 32), Array.from(m0).map(v => dB(2 * v / sw)), COL.sample, 3);
+  p.vline(f1, alpha(COL.a4, .8)); p.vline(f2, alpha(COL.a4, .8));
+  p.unclip();
+});
+bind(['s12f1', 's12df', 's12a2', 's12win', 's12zp'], demos[demos.length - 1]);
+
+const FS12 = 8000;
+function s12signal(type) {
+  const L = Math.round(FS12 * 1.6), x = new Float64Array(L);
+  if (type === 'chirp') { for (let n = 0; n < L; n++) { const t = n / FS12; x[n] = Math.sin(TAU * (100 * t + (3700 / (2 * 1.6)) * t * t)); } }
+  else if (type === 'fm') { for (let n = 0, ph = 0; n < L; n++) { const t = n / FS12; ph += TAU * (1500 + 700 * Math.sin(TAU * 1.5 * t)) / FS12; x[n] = Math.sin(ph); } }
+  else {
+    const notes = [523.25, 659.25, 783.99, 1046.5];
+    for (let n = 0; n < L; n++) {
+      const t = n / FS12, i = Math.floor(t / 0.3);
+      if (i < 4) { const tt = t - i * 0.3, env = Math.exp(-tt * 5) * Math.min(1, tt * 200); const f = notes[i]; x[n] = env * (Math.sin(TAU * f * t) + 0.4 * Math.sin(TAU * 2 * f * t) + 0.2 * Math.sin(TAU * 3 * f * t)); }
+    }
+    for (const tc of [1.3, 1.45]) { const n0 = Math.round(tc * FS12); for (let k = 0; k < 30; k++) x[n0 + k] += (k % 2 ? -1 : 1) * Math.exp(-k / 6) * 1.2; }
+  }
+  return x;
+}
+function cmap(v) { // v 0..1 → màu (thang tím-xanh-vàng)
+  const stops = [[13, 8, 48], [60, 30, 120], [33, 110, 160], [30, 170, 130], [160, 210, 60], [250, 235, 80]];
+  const s = clamp(v, 0, 1) * (stops.length - 1), i = Math.min(stops.length - 2, Math.floor(s)), f = s - i;
+  return stops[i].map((c, j) => Math.round(c + (stops[i + 1][j] - c) * f));
+}
+demo(function c12b() {
+  const type = $('s12sig').value, Nw = 1 << val('s12L'); out('s12Lo', Nw);
+  const x = s12signal(type), hop = Math.max(4, Nw / 4), w = windowFn('hann', Nw), frames = Math.floor((x.length - Nw) / hop) + 1, bins = Nw / 2;
+  const off = document.createElement('canvas'); off.width = frames; off.height = bins;
+  const og = off.getContext('2d'), img = og.createImageData(frames, bins);
+  const re = new Float64Array(Nw), im = new Float64Array(Nw);
+  for (let f = 0; f < frames; f++) {
+    for (let i = 0; i < Nw; i++) { re[i] = x[f * hop + i] * w[i]; im[i] = 0; }
+    fft(re, im);
+    for (let k = 0; k < bins; k++) {
+      const v = (dB(Math.hypot(re[k], im[k]) / (Nw / 4)) + 70) / 70, c = cmap(v), idx = ((bins - 1 - k) * frames + f) * 4;
+      img.data[idx] = c[0]; img.data[idx + 1] = c[1]; img.data[idx + 2] = c[2]; img.data[idx + 3] = 255;
+    }
+  }
+  og.putImageData(img, 0, 0);
+  const T = x.length / FS12, p = new Plot($('c12b')); p.m.l = 46;
+  p.range(0, T, 0, FS12 / 2).frame({ xt: 0.2, yt: 1000, xl: 't (s)', yf: v => (v / 1000) + 'k' });
+  p.x.imageSmoothingEnabled = Nw >= 64;
+  const t0 = Nw / 2 / FS12, t1 = ((frames - 1) * hop + Nw / 2) / FS12;
+  p.x.drawImage(off, p.X(t0), p.Y(FS12 / 2), p.X(t1) - p.X(t0), p.Y(0) - p.Y(FS12 / 2));
+  $('s12cap').textContent = `Cửa sổ Hann N = ${Nw}: độ phân giải thời gian ≈ ${(1000 * Nw / FS12).toFixed(1)} ms, độ phân giải tần số ≈ ${(FS12 / Nw).toFixed(1)} Hz (fs = 8 kHz, bước nhảy N/4). ` +
+    (Nw <= 32 ? 'Cửa sổ ngắn: tiếng gõ sắc nét theo thời gian nhưng các hài bị nhoè theo tần số.' : Nw >= 256 ? 'Cửa sổ dài: vạch tần số mảnh nhưng ranh giới các nốt và tiếng gõ bị nhoè theo thời gian.' : 'Cân bằng giữa thời gian và tần số.');
+});
+bind(['s12sig', 's12L'], demos[demos.length - 1]);
+$('s12play').onclick = () => playSamples(s12signal($('s12sig').value), FS12);
+
+/* ================= C13: đa tốc độ ================= */
+demo(function c13() {
+  const mode = $('s13mode').value, M = val('s13M'), useF = $('s13filt').checked; out('s13Mo', M);
+  const L0 = 512, hann = n => 0.5 - 0.5 * Math.cos(TAU * n / (n.length || 1));
+  const spec = (sig) => { const n = sig.length, nf = 1 << Math.ceil(Math.log2(n * 2)), w = windowFn('hann', n), m = magSpec(sig.map((v, i) => v * w[i]), nf), s = w.reduce((a, b) => a + b, 0); return { w: range(0, nf / 2).map(k => k / (nf / 2)), m: Array.from(m).map(v => 2 * v / s) }; };
+  let x, y, info = '';
+  const lpf = firDesign(63, 'lp', PI / M, 0, 'hamming').h;
+  if (mode === 'dec') {
+    const wl = 0.08 * PI, wh = 0.78 * PI;
+    x = range(0, L0 - 1).map(n => Math.cos(wl * n) + 0.7 * Math.cos(wh * n));
+    const xf = useF ? Array.from(filt(lpf, [1], x)) : x;
+    y = []; for (let n = 0; n * M < L0; n++) y.push(xf[n * M]);
+    const wa = Math.abs(((wh * M + PI) % TAU + TAU) % TAU - PI);
+    $('s13capA').textContent = `x[n] (xám) và các mẫu được giữ y[n] = x[${M}n] (xanh lá, đặt tại vị trí ${M}n)`;
+    const pa = new Plot($('c13a')).range(0, 72, -2, 2).frame({ xt: 8, xl: 'n (tốc độ gốc)' });
+    pa.line(range(0, 72), x.slice(0, 73), alpha(COL.muted, .6), 1.2);
+    pa.stem(range(0, Math.floor(72 / M)).map(n => n * M), y.slice(0, Math.floor(72 / M) + 1), COL.a3, 3);
+    info = `Thành phần thấp 0.08π → sau ↓${M} thành ${(0.08 * M).toFixed(2)}π (giãn ${M} lần, vẫn < π: giữ được).\n` +
+      `Thành phần cao 0.78π → ${(0.78 * M).toFixed(2)}π > π nên gấp về ${(wa / PI).toFixed(2)}π: ` +
+      (useF ? `nhưng bộ lọc thông thấp π/${M} đã chặn nó trước khi hạ tốc nên chỉ còn vạch rất nhỏ.` : `<b>chồng phổ!</b> Một vạch giả xuất hiện, không thể phân biệt với tín hiệu thật.`);
+  } else {
+    const L = M; const xs = 140;
+    x = range(0, xs - 1).map(n => Math.cos(0.12 * PI * n) + 0.6 * Math.cos(0.45 * PI * n));
+    const v = new Array(xs * L).fill(0); x.forEach((s, i) => v[i * L] = s);
+    const lpL = firDesign(63, 'lp', PI / L, 0, 'hamming').h.map(c => c * L);
+    y = useF ? Array.from(filt(lpL, [1], v)).slice(31) : v;
+    $('s13capA').textContent = `Mẫu gốc (xanh dương, tại vị trí ${L}n) và tín hiệu sau ↑${L} (xanh lá)`;
+    const pa = new Plot($('c13a')).range(0, 72, -2, 2).frame({ xt: 8, xl: 'n (tốc độ mới)' });
+    pa.stem(range(0, Math.floor(72 / L)).map(n => n * L), x.slice(0, Math.floor(72 / L) + 1), alpha(COL.trace, .45), 5);
+    pa.stem(range(0, 72), y.slice(0, 73), COL.a3, 2.5);
+    info = `Chèn ${L - 1} số 0 giữa các mẫu nén phổ ${L} lần: vạch 0.12π → ${(0.12 / L).toFixed(3)}π, 0.45π → ${(0.45 / L).toFixed(3)}π, và xuất hiện ${L - 1} bộ ảnh lặp quanh 2πk/${L}.\n` +
+      (useF ? `Bộ lọc thông thấp π/${L} (khuếch đại ${L}) xoá ảnh, số 0 được thay bằng giá trị nội suy mượt.` : `<b>Chưa lọc:</b> các ảnh vẫn còn, tín hiệu trong miền thời gian có “răng cưa” vì toàn số 0 xen giữa.`);
+  }
+  const S0 = spec(x), S1 = spec(y);
+  const pb = new Plot($('c13b')).range(0, 1, 0, 1.15).frame({ xt: .25, xf: v => v === 0 ? '0' : v === 1 ? 'π' : v + 'π', xl: 'ω' });
+  pb.line(S0.w, S0.m.map(v => v / Math.max(...S0.m)), alpha(COL.muted, .7), 1.4);
+  pb.line(S1.w, S1.m.map(v => v / Math.max(...S1.m)), COL.a3, 2);
+  if (useF) pb.vline(mode === 'dec' ? 1 / M : 1 / M, alpha(COL.warn, .7));
+  $('s13info').innerHTML = info;
+});
+bind(['s13mode', 's13M', 's13filt'], demos[demos.length - 1]);
+
+/* ================= C14: LMS ================= */
+let c14anim = null;
+const c14data = () => {
+  const L = 3000, r = rng(33), h = [0.8, -0.5, 0.3, 0.2, -0.1];
+  const s = range(0, L - 1).map(n => 0.6 * Math.sin(0.05 * n) * (0.6 + 0.4 * Math.sin(0.004 * n)));
+  const v = range(0, L - 1).map(n => Math.sin(0.3 * n) + 0.5 * Math.sin(0.71 * n + 1) + 0.5 * r.n());
+  const hv = conv(v, h).slice(0, L);
+  const d = s.map((x, i) => x + hv[i]);
+  return { L, h, s, v, d };
+};
+const C14 = c14data();
+function c14(reveal = 1) {
+  const mu = Math.pow(10, val('s14mu')), M = val('s14M'); out('s14muo', mu < 0.01 ? mu.toExponential(1) : mu.toFixed(3)); out('s14Mo', M);
+  const { L, h, s, v, d } = C14, R = lms(v, d, M, mu), e = Array.from(R.e);
+  const upto = Math.max(2, Math.floor(1500 * reveal));
+  const pa = new Plot($('c14a')).range(0, 1500, -3.5, 3.5).frame({ xt: 250, xl: 'n' });
+  pa.clip();
+  pa.line(range(0, upto - 1), d.slice(0, upto), alpha(COL.muted, .45), 1);
+  pa.line(range(0, upto - 1), s.slice(0, upto), alpha(COL.trace, .9), 1.2);
+  pa.line(range(0, upto - 1), e.slice(0, upto), COL.a3, 1.5);
+  pa.unclip();
+  // đường cong học
+  const lc = []; let acc = 0; const W = 60;
+  const err = e.map((x, i) => (x - s[i]) * (x - s[i]));
+  for (let n = 0; n < L; n++) { acc += isFinite(err[n]) ? err[n] : 1e6; if (n >= W) acc -= isFinite(err[n - W]) ? err[n - W] : 1e6; lc.push(10 * Math.log10(Math.max(acc / Math.min(n + 1, W), 1e-8))); }
+  const up2 = Math.floor(L * reveal);
+  const pb = new Plot($('c14b')).range(0, L, -60, 20).frame({ xt: 500, yt: 20, xl: 'n' });
+  pb.clip(); pb.line(range(0, up2 - 1), lc.slice(0, up2), COL.sample, 1.6); pb.unclip();
+  const pc = new Plot($('c14c')).range(-.6, Math.max(M, h.length) - .4, -1, 1.1).frame({ xt: 1, xl: 'k' });
+  pc.stem(range(0, M - 1), Array.from(R.w).map(x => isFinite(x) ? clamp(x, -5, 5) : 0), COL.sample, 3.5);
+  h.forEach((x, i) => pc.dot(i, x, COL.trace, 6, true));
+  const Px = v.reduce((a, b) => a + b * b, 0) / L, bound = 2 / (M * Px);
+  const fin = lc.slice(-300).filter(isFinite), mse = fin.reduce((a, b) => a + b, 0) / (fin.length || 1);
+  const werr = Math.sqrt(h.map((x, i) => (x - (i < M ? R.w[i] : 0)) ** 2).reduce((a, b) => a + b, 0));
+  $('s14info').textContent =
+    `μ = ${mu.toExponential(2)}   Px ≈ ${Px.toFixed(3)}   giới hạn ổn định gần đúng 2/(M·Px) = ${bound.toExponential(2)}\n` +
+    (R.diverged ? '⚠ Thuật toán PHÂN KỲ: μ quá lớn, sai số bùng nổ.' :
+      `MSE cuối (e − s)² ≈ ${mse.toFixed(1)} dB   ·   ‖w − h‖ = ${werr.toFixed(3)}` +
+      (M < h.length ? `\nM = ${M} < độ dài đường truyền thật (${h.length}): không thể mô hình đủ, còn sót nhiễu.` : '') +
+      (mu < bound / 200 ? '\nμ rất nhỏ: hội tụ chậm, chưa kịp học hết trong 3000 mẫu.' : mu > bound / 4 ? '\nμ lớn: hội tụ nhanh nhưng sai số dư cao (hệ số dao động quanh nghiệm).' : ''));
+}
+demo(() => c14(1));
+const c14run = () => {
+  if (c14anim) cancelAnimationFrame(c14anim);
+  const t0 = performance.now(), D = 1600;
+  const step = t => { const r = Math.min(1, (t - t0) / D); c14(r); if (r < 1) c14anim = requestAnimationFrame(step); else c14anim = null; };
+  c14anim = requestAnimationFrame(step);
+};
+bind(['s14mu', 's14M'], () => c14(1));
+$('s14run').onclick = c14run;
+
+/* ================= C15: dấu phẩy tĩnh ================= */
+let s15int = 0;
+function s15fromValue() {
+  const B = val('s15B'), nS = $('s15n'); nS.max = B - 1; if (+nS.value > B - 1) nS.value = B - 1;
+  const n = val('s15n'), v = parseFloat($('s15v').value) || 0;
+  const lo = -Math.pow(2, B - 1), hi = Math.pow(2, B - 1) - 1;
+  let i = Math.round(v * Math.pow(2, n));
+  if ($('s15sat').checked) i = clamp(i, lo, hi);
+  else { const m = Math.pow(2, B); i = ((i - lo) % m + m) % m + lo; }
+  s15int = i; s15render(v);
+}
+function s15render(vIn) {
+  const B = val('s15B'), n = val('s15n'), m = B - 1 - n; out('s15Bo', B); out('s15no', n);
+  const u = s15int < 0 ? s15int + Math.pow(2, B) : s15int;
+  const bits = []; for (let k = B - 1; k >= 0; k--) bits.push(Math.floor(u / Math.pow(2, k)) % 2);
+  const box = $('s15bits'); box.innerHTML = '';
+  bits.forEach((b, j) => {
+    const pos = B - 1 - j, wexp = pos - n;
+    if (pos === n - 1 && n > 0) { const d = document.createElement('div'); d.className = 'bit point'; d.title = 'dấu phẩy nhị phân'; box.appendChild(d); }
+    const d = document.createElement('div'); d.className = 'bit' + (j === 0 ? ' sign' : '');
+    const wt = j === 0 ? '−2^' + (B - 1 - n) : '2^' + wexp;
+    d.innerHTML = `<button type="button" class="${b ? 'on' : ''}" aria-label="bit ${pos}, trọng số ${wt}">${b}</button><small>${wt}</small>`;
+    d.firstChild.onclick = () => {
+      let uu = u ^ 0; const p2 = Math.pow(2, pos);
+      uu = b ? uu - p2 : uu + p2;
+      s15int = uu >= Math.pow(2, B - 1) ? uu - Math.pow(2, B) : uu;
+      $('s15v').value = +(s15int / Math.pow(2, n)).toPrecision(10); s15render();
+    };
+    box.appendChild(d);
+  });
+  const val2 = s15int / Math.pow(2, n), v = vIn !== undefined ? vIn : val2;
+  const hex = u.toString(16).toUpperCase().padStart(Math.ceil(B / 4), '0');
+  const lo = -Math.pow(2, m), hi = Math.pow(2, m) - Math.pow(2, -n);
+  $('s15info').textContent =
+    `Định dạng Q${m}.${n} (${B} bit: 1 dấu + ${m} nguyên + ${n} phân số)\n` +
+    `Dải biểu diễn: [${lo}, ${+hi.toPrecision(8)}]    Độ phân giải (1 LSB) = 2^−${n} = ${Math.pow(2, -n).toPrecision(5)}\n` +
+    `Số nguyên lưu trữ: ${s15int}    Hex: 0x${hex}    Nhị phân: ${bits.join('')}\n` +
+    `Giá trị = ${s15int} / 2^${n} = ${+val2.toPrecision(10)}\n` +
+    `Sai số so với ${v}: ${(val2 - v).toExponential(3)}` + (Math.abs(val2 - v) > Math.pow(2, -n) ? '   ⚠ vượt dải → ' + ($('s15sat').checked ? 'đã bão hoà' : 'đã tràn quay vòng (sai hoàn toàn!)') : '');
+}
+s15fromValue();
+bind(['s15B', 's15n', 's15v', 's15sat'], s15fromValue);
+
+demo(function c15q() {
+  const qb = val('s15qb'); out('s15qbo', qb);
+  const B = butter(6, 0.06 * PI), Q = v => Math.round(v * Math.pow(2, qb)) / Math.pow(2, qb);
+  const aD = B.a.map(Q);
+  // nối tầng: ghép cặp cực liên hợp
+  const ups = B.zPoles.filter(p => p[1] > 1e-12);
+  const sos = ups.map(p => [1, Q(-2 * p[0]), Q(p[0] * p[0] + p[1] * p[1])]);
+  const F = freqz(B.b, B.a, 800);
+  const FD = freqz(B.b, aD, 800);
+  const g1 = B.g; // tử số chung (1+z^-1)^6·g giữ chính xác
+  const aC = sos.reduce((acc, s) => conv(acc, s), [1]);
+  const FC = freqz(B.b, aC, 800);
+  const nrm = arr => { const ref = arr[0] || 1; return arr.map(v => dB(v)); };
+  const pa = new Plot($('c15a')).range(0, PI / 2, -100, 30).frame({ xt: PI / 8, xf: piF, yt: 20 });
+  pa.clip();
+  pa.line(F.w, nrm(F.mag), COL.muted, 2.4, [5, 4]);
+  pa.line(FD.w, nrm(FD.mag), COL.a4, 1.6);
+  pa.line(FC.w, nrm(FC.mag), COL.a3, 1.8);
+  pa.unclip();
+  const rD = polyRoots(aD), rC = sos.flatMap(s => polyRoots(s));
+  const pb = new Plot($('c15b')); pb.m = { l: 36, r: 10, t: 10, b: 22 };
+  pb.range(0.55, 1.15, -0.3, 0.3);
+  const W = pb.w - pb.m.l - pb.m.r, H = pb.h - pb.m.t - pb.m.b, sc = Math.min(W / 0.6, H / 0.6);
+  pb.range(0.85 - W / (2 * sc), 0.85 + W / (2 * sc), -H / (2 * sc), H / (2 * sc)).frame({ yAxis0: true, xt: 0.1, yt: 0.1 });
+  pb.circle(0, 0, 1, COL.muted, 1.5);
+  B.zPoles.forEach(p => pb.dot(p[0], p[1], COL.ink, 3.5));
+  rD.forEach(p => pb.cross(p[0], p[1], COL.a4, 5, 1.8));
+  rC.forEach(p => pb.plus(p[0], p[1], COL.a3, 6, 1.8));
+  const mD = Math.max(...rD.map(p => Math.hypot(p[0], p[1]))), mC = Math.max(...rC.map(p => Math.hypot(p[0], p[1])));
+  const amax = Math.max(...B.a.map(Math.abs));
+  $('s15qinfo').innerHTML =
+    `Hệ số mẫu số dạng trực tiếp: a = [${B.a.map(v => v.toFixed(4)).join(', ')}] → lớn nhất ${amax.toFixed(2)}, cần ${Math.ceil(Math.log2(amax + 1))} bit nguyên + ${qb} bit phân số = ${1 + Math.ceil(Math.log2(amax + 1)) + qb} bit.\n` +
+    `Mỗi biquad chỉ có |a₁| &lt; 2, |a₂| &lt; 1 → 1 bit nguyên + ${qb} bit phân số = ${qb + 2} bit.\n` +
+    `Dạng trực tiếp: |p|max = ${mD.toFixed(5)} ${mD >= 1 ? '<span class="pill bad">KHÔNG ỔN ĐỊNH</span>' : '<span class="pill good">ổn định</span>'}   ·   Biquad: |p|max = ${mC.toFixed(5)} ${mC >= 1 ? '<span class="pill bad">KHÔNG ỔN ĐỊNH</span>' : '<span class="pill good">ổn định</span>'}\n` +
+    `Lý do: cực của bộ lọc băng hẹp chụm sát z = 1; nghiệm của đa thức bậc cao rất nhạy với sai số hệ số, còn mỗi biquad chỉ quyết định đúng một cặp cực. Tử số (1 + z⁻¹)⁶ có hệ số nguyên nên ở đây giữ chính xác.`;
+});
+bind(['s15qb'], demos[demos.length - 1]);
+
+demo(function c15c() {
+  const g = val('s15g'); out('s15go', g.toFixed(2));
+  const ts = range(0, 400).map(i => i / 200), ideal = ts.map(t => g * Math.sin(TAU * t));
+  const q = v => Math.round(v * 128);
+  const wrap = ideal.map(v => { const i = q(v); return ((((i + 128) % 256) + 256) % 256 - 128) / 128; });
+  const sat = ideal.map(v => clamp(q(v), -128, 127) / 128);
+  const p = new Plot($('c15c')).range(0, 2, -Math.max(1.3, g * 1.1), Math.max(1.3, g * 1.1)).frame({ xt: 0.25 });
+  p.hline(1, alpha(COL.warn, .7)); p.hline(-1, alpha(COL.warn, .7));
+  p.line(ts, ideal, alpha(COL.muted, .7), 1.4, [5, 4]);
+  p.line(ts, wrap, COL.bad, 1.6);
+  p.line(ts, sat, COL.a3, 2.2);
+});
+bind(['s15g'], demos[demos.length - 1]);
+
+/* ================= CÂU HỎI KIỂM TRA ================= */
+const QUIZ = {
+  1: [
+    ['Hệ y[n] = n·x[n] có tính chất nào?', ['Tuyến tính và bất biến thời gian', 'Tuyến tính nhưng biến thiên theo thời gian', 'Phi tuyến và bất biến', 'Phi tuyến và biến thiên'], 1, 'Nhân với hằng số và cộng vẫn giữ nguyên (tuyến tính). Nhưng trễ đầu vào n₀ cho n·x[n−n₀], khác với đầu ra trễ (n−n₀)·x[n−n₀], nên không bất biến.'],
+    ['Biểu thức nào bằng δ[n]?', ['u[n] + u[n−1]', 'u[n] − u[n−1]', 'u[n]·u[−n−1]', 'n·u[n]'], 1, 'u[n] − u[n−1] chỉ khác 0 tại n = 0, nơi u[0] = 1 còn u[−1] = 0.'],
+    ['x[n] = cos(0.3πn) có tuần hoàn không? Nếu có, chu kỳ cơ bản là bao nhiêu?', ['Không tuần hoàn', 'N = 10', 'N = 20', 'N = 3'], 2, 'ω₀/2π = 0.15 = 3/20, tối giản nên N = 20 mẫu (gồm 3 chu kỳ của đường bao liên tục).']
+  ],
+  2: [
+    ['Tín hiệu có thành phần cao nhất 7 kHz. Tần số lấy mẫu tối thiểu theo Nyquist?', ['7 kHz', '14 kHz (phải lớn hơn)', '3,5 kHz', '21 kHz'], 1, 'Cần fs > 2·f_max = 14 kHz. Thực tế chọn cao hơn để bộ lọc chống chồng phổ có khoảng chuyển tiếp.'],
+    ['Lấy mẫu sin 9 kHz với fs = 10 kHz, ta nghe thấy tần số nào sau khi khôi phục?', ['9 kHz', '1 kHz', '19 kHz', '5 kHz'], 1, 'f_alias = |9 − 10·round(0.9)| = |9 − 10| = 1 kHz.'],
+    ['Vì sao bộ lọc chống chồng phổ phải đặt TRƯỚC bộ ADC?', ['Để giảm công suất tiêu thụ', 'Vì sau khi lấy mẫu, tần số bí danh không phân biệt được với tần số thật', 'Để tăng số bit', 'Không cần thiết nếu dùng FFT'], 1, 'Các mẫu của f và f + kfs giống hệt nhau, nên phải loại thành phần cao tần khi tín hiệu còn ở dạng tương tự.']
+  ],
+  3: [
+    ['Nâng ADC từ 12 bit lên 16 bit thì SQNR tăng khoảng bao nhiêu?', ['4 dB', '12 dB', '24 dB', '48 dB'], 2, 'Mỗi bit thêm ~6,02 dB, 4 bit thêm ~24 dB.'],
+    ['Công suất nhiễu lượng tử (phân bố đều, bước Δ) là:', ['Δ/2', 'Δ²/12', 'Δ²/4', 'Δ/√12'], 1, 'Phương sai của phân bố đều trên [−Δ/2, Δ/2] là Δ²/12. (Δ/√12 là độ lệch chuẩn.)'],
+    ['Tín hiệu chỉ dùng 1/4 dải đo của ADC. SQNR so với toàn thang giảm:', ['Không đổi', '~6 dB', '~12 dB', '~24 dB'], 2, '20·log10(1/4) ≈ −12 dB: biên độ giảm 2 lần thì mất ~6 dB, tương đương mất 1 bit.']
+  ],
+  4: [
+    ['x = [1, 2] và h = [1, 1, 1]. Tích chập y = x * h bằng:', ['[1, 3, 3, 2]', '[1, 2, 1, 2]', '[1, 3, 2]', '[2, 3, 3, 1]'], 0, 'y[0]=1·1=1, y[1]=1·1+2·1=3, y[2]=1·1+2·1=3, y[3]=2·1=2. Độ dài 2+3−1 = 4.'],
+    ['Hệ LTI có h[n] = 0.5ⁿu[n]. Hệ này:', ['Nhân quả và ổn định', 'Nhân quả, không ổn định', 'Không nhân quả, ổn định', 'Không nhân quả, không ổn định'], 0, 'h[n] = 0 với n < 0 nên nhân quả; Σ|0.5ⁿ| = 2 < ∞ nên ổn định.'],
+    ['Thứ tự thao tác khi tính y[n] bằng phương pháp đồ thị:', ['Nhân, dịch, lật, cộng', 'Lật h, dịch n, nhân với x, cộng', 'Cộng, nhân, lật, dịch', 'Lật x và h, rồi nhân'], 1, 'y[n] = Σ x[k]h[n−k]: lật h[k] thành h[−k], dịch n, nhân từng điểm với x[k], rồi cộng.']
+  ],
+  5: [
+    ['Hệ y[n] = x[n] + 1.2·y[n−1] là:', ['FIR ổn định', 'IIR ổn định', 'IIR không ổn định', 'FIR không ổn định'], 2, 'Có hồi tiếp nên IIR; h[n] = 1.2ⁿu[n] tăng không giới hạn vì |α| > 1.'],
+    ['Phương trình nào mô tả bộ lọc FIR?', ['y[n] = 0.5x[n] + 0.5x[n−1]', 'y[n] = x[n] − 0.9y[n−1]', 'y[n] = y[n−1] + x[n]', 'y[n] = x[n] + 0.1y[n−2]'], 0, 'Không có số hạng y[n−k] ở vế phải nên đáp ứng xung hữu hạn: h = [0.5, 0.5].'],
+    ['Với y[n] = x[n] + 0.5y[n−1] và x[n] = u[n], giá trị xác lập y[∞] là:', ['1', '1.5', '2', '∞'], 2, 'Ở trạng thái xác lập y = 1 + 0.5y nên y = 2 (tức H(1) = 1/(1−0.5)).']
+  ],
+  6: [
+    ['Cho cos(ω₀n) qua hệ LTI ổn định, đầu ra là:', ['Sin tần số 2ω₀', 'Sin cùng tần số ω₀, biên độ và pha thay đổi', 'Xung vuông', 'Luôn giống đầu vào'], 1, 'Mũ phức là hàm riêng của hệ LTI: chỉ bị nhân với H(e^jω₀).'],
+    ['Bộ trung bình trượt M = 4 triệt tiêu hoàn toàn tần số nào?', ['ω = π/4', 'ω = π/2 và π', 'ω = π/3', 'Không tần số nào'], 1, 'Điểm không tại ω = 2πk/4: π/2, π (và 3π/2 ≡ −π/2).'],
+    ['DTFT của tín hiệu rời rạc luôn:', ['Tuần hoàn chu kỳ 2π theo ω', 'Không tuần hoàn', 'Tuần hoàn chu kỳ π', 'Là hàm thực'], 0, 'e^{−j(ω+2π)n} = e^{−jωn} vì n nguyên.']
+  ],
+  7: [
+    ['fs = 1000 Hz, N = 250 điểm. Khoảng cách giữa hai bin DFT là:', ['0,25 Hz', '4 Hz', '250 Hz', '1000 Hz'], 1, 'Δf = fs/N = 1000/250 = 4 Hz.'],
+    ['x[n] thực, N = 16, |X[3]| = 5. Suy ra:', ['|X[13]| = 5', '|X[3]| = |X[8]|', 'X[0] = 5', 'Không suy ra được gì'], 0, 'Đối xứng liên hợp: X[N−k] = X*[k], nên |X[13]| = |X[3]|.'],
+    ['DFT của x[n] = δ[n] (N điểm) là:', ['X[k] = δ[k]', 'X[k] = 1 với mọi k', 'X[k] = N', 'X[k] = 0'], 1, 'Chỉ có số hạng n = 0, e⁰ = 1 nên X[k] = 1: xung chứa mọi tần số với biên độ như nhau.']
+  ],
+  8: [
+    ['FFT radix-2 cho N = 1024 cần khoảng bao nhiêu phép nhân phức?', ['1 048 576', '5 120', '10 240', '1 024'], 1, '(N/2)·log₂N = 512·10 = 5120.'],
+    ['Phép bướm (butterfly) tính:', ['X[k] = E[k]·O[k]', 'X[k] = E[k] ± W_N^k·O[k]', 'X[k] = E[k] + O[k+1]', 'X[k] = W_N^k·E[k]'], 1, 'Một phép nhân W·O dùng cho cả hai đầu ra: cộng và trừ.'],
+    ['Với FFT DIT 8 điểm, vị trí 1 của đầu vào sau khi đảo bit chứa mẫu:', ['x[1]', 'x[4]', 'x[2]', 'x[7]'], 1, '1 = 001₂, đảo thành 100₂ = 4.']
+  ],
+  9: [
+    ['Hệ nhân quả ổn định khi và chỉ khi:', ['Mọi không nằm trong vòng tròn đơn vị', 'Mọi cực nằm trong vòng tròn đơn vị', 'Có ít nhất một cực tại z = 0', 'Tử số bậc cao hơn mẫu số'], 1, 'ROC của hệ nhân quả là |z| > max|p|; ổn định khi ROC chứa |z| = 1.'],
+    ['Đặt một cặp không trên vòng tròn đơn vị tại e^(±jπ/3) tạo ra:', ['Đỉnh cộng hưởng tại π/3', 'Điểm triệt tiêu hoàn toàn tại ω = π/3', 'Hệ không ổn định', 'Pha tuyến tính'], 1, 'Khi e^jω chạm đúng điểm không, khoảng cách bằng 0 nên |H| = 0: bộ lọc notch.'],
+    ['Biến đổi Z của x[n−3] là:', ['z³X(z)', 'z⁻³X(z)', 'X(z − 3)', '3X(z)'], 1, 'Tính chất dịch thời gian: trễ k mẫu tương ứng nhân z^(−k).']
+  ],
+  10: [
+    ['Vì sao phải nhân h_d[n] với cửa sổ?', ['Để tăng độ lợi', 'Vì h_d[n] dài vô hạn, phải cắt thành hữu hạn', 'Để biến FIR thành IIR', 'Để lấy mẫu lại'], 1, 'sinc lý tưởng dài vô hạn và không nhân quả; cửa sổ cắt cụt nó một cách “mềm”.'],
+    ['Đổi cửa sổ Chữ nhật sang Blackman (giữ N) thì:', ['Suy hao dải chặn tăng, vùng chuyển tiếp rộng hơn', 'Suy hao giảm, chuyển tiếp hẹp hơn', 'Không đổi gì', 'Mất pha tuyến tính'], 0, 'Búp phụ thấp hơn (~−57 dB) nhưng búp chính rộng hơn (~5,5·2π/N).'],
+    ['FIR đối xứng N = 51 hệ số có độ trễ nhóm:', ['51 mẫu', '25 mẫu', '50 mẫu', 'Thay đổi theo tần số'], 1, '(N − 1)/2 = 25 mẫu, như nhau ở mọi tần số (pha tuyến tính).']
+  ],
+  11: [
+    ['Prewarping trong biến đổi song tuyến dùng để:', ['Làm bộ lọc ổn định', 'Bù méo trục tần số để tần số cắt rơi đúng vị trí', 'Giảm bậc bộ lọc', 'Loại bỏ aliasing'], 1, 'Ω = (2/T)tan(ω/2) phi tuyến; tính Ωc từ ωc mong muốn trước khi thiết kế tương tự.'],
+    ['Butterworth bậc N suy giảm ngoài dải thông với tốc độ:', ['6 dB/octave', '20N dB/decade', '3 dB cố định', '40 dB/decade với mọi N'], 1, '|H|² ~ (Ωc/Ω)^(2N) nên |H| giảm 20N dB mỗi decade (≈ 6N dB/octave).'],
+    ['Biến đổi song tuyến ánh xạ trục jΩ thành:', ['Trục thực của mặt phẳng z', 'Đường tròn đơn vị', 'Điểm z = 1', 'Nửa trái mặt phẳng z'], 1, 'Toàn bộ trục jΩ (−∞..∞) được nén lên đường tròn đơn vị, Ω → ∞ ứng với z = −1.']
+  ],
+  12: [
+    ['Zero-padding một khung 64 mẫu lên 512 điểm FFT sẽ:', ['Tăng độ phân giải tần số thật lên 8 lần', 'Cho lưới bin mịn hơn nhưng không tách được hai sin gần hơn', 'Giảm rò rỉ phổ', 'Tăng SNR'], 1, 'Chỉ nội suy cùng một phổ; độ phân giải phụ thuộc thời gian quan sát (64 mẫu).'],
+    ['Rò rỉ phổ xảy ra khi:', ['Tín hiệu có đúng số chu kỳ nguyên trong khung', 'Tín hiệu không có số chu kỳ nguyên trong khung (hai đầu khung không khớp)', 'Dùng FFT thay cho DFT', 'fs quá cao'], 1, 'DFT coi khung là một chu kỳ; chỗ nhảy ở hai đầu sinh thành phần ở mọi bin.'],
+    ['Muốn thấy rõ thời điểm một tiếng gõ ngắn trong spectrogram, nên:', ['Dùng cửa sổ dài', 'Dùng cửa sổ ngắn', 'Tăng zero-padding', 'Giảm fs'], 1, 'Cửa sổ ngắn cho độ phân giải thời gian tốt (đổi lại độ phân giải tần số kém).']
+  ],
+  13: [
+    ['Trước khi hạ tốc độ ↓4 cần bộ lọc thông thấp với tần số cắt:', ['π/2', 'π/4', '4π', 'Không cần lọc'], 1, 'Sau ↓M phổ giãn M lần; băng thông phải dưới π/M để không chồng phổ.'],
+    ['Sau khi chèn số 0 (↑L) mà chưa lọc, phổ có:', ['Aliasing', 'L − 1 bản ảnh (image)', 'Không thay đổi', 'Mất thành phần DC'], 1, 'V(e^jω) = X(e^jωL): phổ bị nén, các bản lặp lọt vào [−π, π].'],
+    ['Ưu điểm chính của cấu trúc polyphase cho decimator M lần:', ['Giảm M lần số phép tính', 'Tăng độ dốc bộ lọc', 'Bỏ được bộ lọc', 'Tăng fs'], 0, 'Đẳng thức Noble cho phép lọc ở tốc độ thấp, không tính các mẫu sẽ bị bỏ.']
+  ],
+  14: [
+    ['Công thức cập nhật LMS:', ['w ← w − μ·e·x', 'w ← w + μ·e[n]·x[n]', 'w ← μ·w + e', 'w ← (XᵀX)⁻¹Xᵀd'], 1, 'Hạ gradient với gradient tức thời −2e·x (hệ số 2 gộp vào μ).'],
+    ['Tăng μ quá lớn thì:', ['Hội tụ chậm hơn', 'Thuật toán có thể phân kỳ', 'Sai số dư bằng 0', 'Không ảnh hưởng'], 1, 'Cần 0 < μ < 2/(M·Px) (gần đúng); vượt ngưỡng thì trọng số dao động và bùng nổ.'],
+    ['Trong khử nhiễu chủ động, tín hiệu đã làm sạch chính là:', ['Đầu ra bộ lọc y[n]', 'Sai số e[n] = d[n] − y[n]', 'Tham chiếu x[n]', 'Trọng số w'], 1, 'Bộ lọc học cách tái tạo phần nhiễu trong d; trừ đi còn lại tín hiệu có ích.']
+  ],
+  15: [
+    ['Số 16 bit Q0.15 (Q15) biểu diễn dải:', ['[0, 1)', '[−1, 1)', '[−32768, 32767]', '[−2, 2)'], 1, 'Bit dấu trọng số −1, 15 bit phân số: [−1, 1 − 2⁻¹⁵].'],
+    ['Nhân hai số Q0.15 (16 bit) cho tích ở định dạng:', ['Q0.15 (16 bit)', 'Q1.30 (32 bit)', 'Q0.30 (31 bit)', 'Q2.28 (31 bit)'], 1, 'Q(a+c+1).(b+d) = Q(0+0+1).(15+15) = Q1.30, tổng 1 + 1 + 30 = 32 bit. Bit nguyên thêm vào để chứa (−1)×(−1) = +1.'],
+    ['Vì sao bộ lọc IIR bậc cao nên chia thành các khâu biquad nối tầng?', ['Giảm độ trễ', 'Giảm độ nhạy của vị trí cực với sai số lượng tử hệ số', 'Tăng bậc bộ lọc', 'Để có pha tuyến tính'], 1, 'Nghiệm đa thức bậc cao rất nhạy; mỗi biquad chỉ điều khiển một cặp cực.']
+  ]
+};
+document.querySelectorAll('.quiz[data-quiz]').forEach(box => {
+  const ch = box.dataset.quiz, qs = QUIZ[ch] || [];
+  box.innerHTML = `<h4>Kiểm tra nhanh <span id="qs${ch}">0/${qs.length} câu đã trả lời</span></h4>`;
+  let answered = 0, right = 0;
+  qs.forEach(([q, opts, ans, why], qi) => {
+    const d = document.createElement('div'); d.className = 'q';
+    d.innerHTML = `<div class="qt">${qi + 1}. ${q}</div><div class="opts"></div><div class="exp" hidden></div>`;
+    const op = d.querySelector('.opts'), ex = d.querySelector('.exp');
+    opts.forEach((o, oi) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'opt'; b.textContent = String.fromCharCode(65 + oi) + '. ' + o;
+      b.onclick = () => {
+        op.querySelectorAll('button').forEach((bb, j) => { bb.disabled = true; if (j === ans) bb.classList.add('right'); });
+        if (oi !== ans) b.classList.add('wrong'); else right++;
+        answered++;
+        ex.hidden = false; ex.innerHTML = (oi === ans ? '<b class="c-a3">Chính xác.</b> ' : '<b style="color:var(--bad)">Chưa đúng.</b> ') + why;
+        $('qs' + ch).textContent = `${answered}/${qs.length} câu · đúng ${right}`;
+        if (answered === qs.length) { done['c' + ch] = true; saveDone(); updateProgress(); }
+      };
+      op.appendChild(b);
+    });
+    box.appendChild(d);
+  });
+});
+updateProgress();
+
+})();
+</script>
+</body>
+</html>
